@@ -4,49 +4,52 @@ using UnityEngine;
 
 public class ActionMove : Action
 {
-    private Block current;
-    private Block from;
-    private Block to;
+    private SharedVar current;
+    private SharedVar to;
+    private SharedVar from;
 
-    public ActionMove(Block current, Block from, Block to)
+    public ActionMove()
     {
-        this.current = current;
-        this.from = from;
-        this.to = to;
+        actionName = "Move";
+
+        current = new SharedVar();
+        to = new SharedVar();
+        from = new SharedVar();
+
+        actionArgs = new SharedVar[] {current, to, from};
     }
 
-    private void Start()
+    private void Awake()
     {
-        preconditions.AddRange(GetPreconditions());
+        preconditions.AddRange(InitPreconditions());
+        effects.AddRange(InitEffects());
     }
 
-    public override List<Func<bool>> GetPreconditions()
+    public override List<(Func<object[], bool>, object[])> InitPreconditions()
     {
-        return new List<Func<bool>>
+        return new List<(Func<object[], bool>, object[])>
         {
-            () => isOn(current, from),
-            () => isClear(to),
-            () => isClear(current)
+            (PredicateLibrary.isClear, new object[] {current}),
+            (PredicateLibrary.isClear, new object[] {to}),
+            (PredicateLibrary.isOn, new object[] {current, from})
+        };
+    }
+
+    public override List<(Func<object[], bool>, object[])> InitEffects()
+    {
+        return new List<(Func<object[], bool>, object[])>
+        {
+            (PredicateLibrary.isClear, new object[] {from}),
+            (PredicateLibrary.isOn, new object[] {current, to})
         };
     }
 
 
-    // PRECONDITIONS & Effects
-    public bool isClear(Block x)
-    {
-        return x.isClear();
-    }
-
-    public bool isOn(Block x, Block y)
-    {
-        return x.GetBelow() == y && y.GetAbove() == x;
-    }
-
     public override void Execute()
     {
         // Do positions but for now just logic
-        to.SetAbove(current);
-        from.SetAbove(null);
-        current.SetBelow(to);
+        //to.SetAbove(current);
+        //from.SetAbove(null);
+        //current.SetBelow(to);
     }
 }

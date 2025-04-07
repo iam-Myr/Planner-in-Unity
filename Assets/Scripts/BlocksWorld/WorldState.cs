@@ -1,27 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
 using UnityEngine;
-public class WorldState : MonoBehaviour
+
+public class WorldState 
 {
-    private WorldState previousState; // TURN THIS INTO TREE NODE
-    // List of atoms owo?
-    // KeyValuPair is like isClear(), [Block A]
-    private List<KeyValuePair<Func<bool>, Block[]>> atoms { get;}
+    protected List<(Func<object[], bool>, object[])> atoms = new List<(Func<object[], bool>, object[])>();
 
-    public WorldState(List<KeyValuePair<Func<bool>, Block[]>> atoms)
-    {
-        this.atoms = atoms;
-    }
+    // State is goal if the goal's atoms are a subset of current state atoms
+    //public bool isGoal(WorldState goalState)
+    //{
+    //    return goalState.atoms.All(i => atoms.Contains(i));
+    // }
 
-    // State is goal if the goal's atoms are a subset of these atoms
-    public bool isGoal(WorldState goalState)
+    public WorldState AddAtoms(params (Func<object[], bool>, object[])[] args)
     {
-        return goalState.atoms.All(i => atoms.Contains(i));
+        atoms.AddRange(args);
+        return this;
     }
+    public List<(Func<object[], bool>, object[])> GetAtoms() => atoms;
 
-    public void ApplyAction(Action action)
-    {
-       
-    }
 }

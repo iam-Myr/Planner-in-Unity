@@ -10,44 +10,50 @@ public class BlockAgent : MonoBehaviour
     private WorldState currentState;
     private WorldState currentGoal;
 
+    public Block blockA, blockB, blockC;
+
     private void Start()
     {
+
+
+
         // Init planner with all actions
         planner = new BlockPlanner(GetComponents<Action>().ToList());
         // FInd current state
-        currentState = ObserveCurrentState();
+        SharedVar A = new SharedVar();
+        SharedVar B = new SharedVar();
+        SharedVar C = new SharedVar();
+
+        A.value = blockA;
+        B.value = blockB;
+        C.value = blockC;
+
+        currentState = new WorldState().AddAtoms(
+            (PredicateLibrary.isClear, new object[] {C}),
+            (PredicateLibrary.isClear, new object[] {B}),
+            (PredicateLibrary.isOn, new object[] {B, A})
+        );
+
+
         // Choose best goal
-        currentGoal = ChooseGoal();
+        currentGoal = new WorldState();
         // Plan!
         currentPlan = planner.MakePlan(currentState, currentGoal);
+        // Profit!!
+        PrintPlan(currentPlan);
         // Execute !!
-        ExecutePlan(currentPlan);
+        //ExecutePlan(currentPlan);
 
+    }
+
+    public void PrintPlan(List<Action> plan)
+    {
+        if (plan == null) print("No plan :(");
+        else foreach (Action action in plan) action.Print();
     }
 
     // Somehow choose goal based on some criteria. For now there's only 1 goal and it gets explicitly initialized.
-    public WorldState ChooseGoal()
-    {
-        List<KeyValuePair<Func<bool>, Block[]>> goalAtoms = new List<KeyValuePair<Func<bool>, Block[]>>()
-        {
-        // isOn(B, A)
-        new KeyValuePair<Func<bool>, Block[]>(isOn, new Block[] { B, A })
-        };
-        return new WorldState(goalAtoms);
-    }
 
-    public WorldState ObserveCurrentState() {
-        List<KeyValuePair<Func<bool>, Block[]>> currentAtoms = new List<KeyValuePair<Func<bool>, Block[]>>()
-        {
-        // isClear(Block A)
-        new KeyValuePair<Func<bool>, Block[]>(isClear, new Block[] { A }),
-
-        // isOn(B,C)
-        new KeyValuePair<Func<bool>, Block[]>(isOn, new Block[] { B, C })
-        };
-        return new WorldState(currentAtoms);
-
-    }
 
     public void ExecutePlan(List<Action> plan)
     {
