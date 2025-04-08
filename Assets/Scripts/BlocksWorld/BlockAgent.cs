@@ -14,12 +14,10 @@ public class BlockAgent : MonoBehaviour
 
     private void Start()
     {
-
-
-
         // Init planner with all actions
         planner = new BlockPlanner(GetComponents<Action>().ToList());
-        // FInd current state
+        
+        // Blocks
         SharedVar A = new SharedVar();
         SharedVar B = new SharedVar();
         SharedVar C = new SharedVar();
@@ -28,15 +26,18 @@ public class BlockAgent : MonoBehaviour
         B.value = blockB;
         C.value = blockC;
 
+        // Init state
         currentState = new WorldState().AddAtoms(
-            (PredicateLibrary.isClear, new object[] {C}),
-            (PredicateLibrary.isClear, new object[] {B}),
-            (PredicateLibrary.isOn, new object[] {B, A})
+            (PredicateLibrary.isClear, new SharedVar[] {C}),
+            (PredicateLibrary.isClear, new SharedVar[] {B}),
+            (PredicateLibrary.isOn, new SharedVar[] {B, A})
         );
 
+        // Goal state
+        currentGoal = new WorldState().AddAtoms(
+            (PredicateLibrary.isOn, new SharedVar[] {B, C})
+        );
 
-        // Choose best goal
-        currentGoal = new WorldState();
         // Plan!
         currentPlan = planner.MakePlan(currentState, currentGoal);
         // Profit!!
@@ -48,11 +49,10 @@ public class BlockAgent : MonoBehaviour
 
     public void PrintPlan(List<Action> plan)
     {
-        if (plan == null) print("No plan :(");
+        if (plan == null) Debug.Log("No plan :(");
         else foreach (Action action in plan) action.Print();
+        Debug.Log($"{plan.Count}");
     }
-
-    // Somehow choose goal based on some criteria. For now there's only 1 goal and it gets explicitly initialized.
 
 
     public void ExecutePlan(List<Action> plan)

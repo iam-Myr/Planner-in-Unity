@@ -25,22 +25,22 @@ public class ActionMove : Action
         effects.AddRange(InitEffects());
     }
 
-    public override List<(Func<object[], bool>, object[])> InitPreconditions()
+    public override List<(Func<object[], bool>, SharedVar[])> InitPreconditions()
     {
-        return new List<(Func<object[], bool>, object[])>
+        return new List<(Func<object[], bool>, SharedVar[])>
         {
-            (PredicateLibrary.isClear, new object[] {current}),
-            (PredicateLibrary.isClear, new object[] {to}),
-            (PredicateLibrary.isOn, new object[] {current, from})
+            (PredicateLibrary.isClear, new SharedVar[] {current}),
+            (PredicateLibrary.isClear, new SharedVar[] {to}),
+            (PredicateLibrary.isOn, new SharedVar[] {current, from})
         };
     }
 
-    public override List<(Func<object[], bool>, object[])> InitEffects()
+    public override List<(Func<object[], bool>, SharedVar[])> InitEffects()
     {
-        return new List<(Func<object[], bool>, object[])>
+        return new List<(Func<object[], bool>, SharedVar[])>
         {
-            (PredicateLibrary.isClear, new object[] {from}),
-            (PredicateLibrary.isOn, new object[] {current, to})
+            (PredicateLibrary.isClear, new SharedVar[] {from}),
+            (PredicateLibrary.isOn, new SharedVar[] {current, to})
         };
     }
 

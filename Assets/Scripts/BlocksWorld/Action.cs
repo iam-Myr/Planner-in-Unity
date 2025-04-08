@@ -6,15 +6,15 @@ public abstract class Action: MonoBehaviour
 {
     protected String actionName;
     protected SharedVar[] actionArgs;
-    protected List<(Func<object[], bool>, object[])> preconditions = new List<(Func<object[], bool>, object[])>();
-    protected List<(Func<object[], bool>, object[])> effects = new List<(Func<object[], bool>, object[])>();
+    protected List<(Func<object[], bool>, SharedVar[])> preconditions = new List<(Func<object[], bool>, SharedVar[])>();
+    protected List<(Func<object[], bool>, SharedVar[])> effects = new List<(Func<object[], bool>, SharedVar[])>();
 
-    public abstract List<(Func<object[], bool>, object[])> InitPreconditions();
-    public abstract List<(Func<object[], bool>, object[])> InitEffects();
+    public abstract List<(Func<object[], bool>, SharedVar[])> InitPreconditions();
+    public abstract List<(Func<object[], bool>, SharedVar[])> InitEffects();
     public abstract void Execute();
 
-    public List<(Func<object[], bool>, object[])> GetPreconditions() { return preconditions; }
-    public List<(Func<object[], bool>, object[])> GetEffects() { return effects; }
+    public List<(Func<object[], bool>, SharedVar[])> GetPreconditions() { return preconditions; }
+    public List<(Func<object[], bool>, SharedVar[])> GetEffects() { return effects; }
 
     public void Print()
     {

@@ -4,22 +4,35 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.Rendering.VolumeComponent;
 
 public class WorldState 
 {
-    protected List<(Func<object[], bool>, object[])> atoms = new List<(Func<object[], bool>, object[])>();
+    protected List<(Func<object[], bool>, SharedVar[])> atoms = new List<(Func<object[], bool>, SharedVar[])>();
 
-    // State is goal if the goal's atoms are a subset of current state atoms
-    //public bool isGoal(WorldState goalState)
-    //{
-    //    return goalState.atoms.All(i => atoms.Contains(i));
-    // }
-
-    public WorldState AddAtoms(params (Func<object[], bool>, object[])[] args)
+    public WorldState AddAtoms(params (Func<object[], bool>, SharedVar[])[] args)
     {
         atoms.AddRange(args);
         return this;
     }
-    public List<(Func<object[], bool>, object[])> GetAtoms() => atoms;
+
+    public WorldState RemoveAtoms(params (Func<object[], bool>, SharedVar[])[] args)
+    {
+        foreach (var atom in args)
+        {
+            atoms.Remove(atom);
+        }
+        return this;
+    }
+
+    public void Print()
+    {
+        foreach (var (predicate, args) in atoms)
+        {
+            Debug.Log($"{predicate.Method.Name}({string.Join(", ", args.Select(a => a?.value?.ToString() ?? "null"))})");
+        }
+    }
+
+    public List<(Func<object[], bool>, SharedVar[])> GetAtoms() => atoms;
 
 }
