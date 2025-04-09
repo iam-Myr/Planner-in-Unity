@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class ActionMove : Action
 {
-    private SharedVar current;
-    private SharedVar to;
-    private SharedVar from;
+    private SharedVar current, to, from;
 
     public ActionMove()
     {
@@ -16,31 +14,30 @@ public class ActionMove : Action
         to = new SharedVar();
         from = new SharedVar();
 
-        actionArgs = new SharedVar[] {current, to, from};
-    }
+        actionArgs = new List<SharedVar> { current, to, from };
 
-    private void Awake()
-    {
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public override List<(Func<object[], bool>, SharedVar[])> InitPreconditions()
+    // Preconditions
+    public override List<SharedDelegate> InitPreconditions()
     {
-        return new List<(Func<object[], bool>, SharedVar[])>
+        return new List<SharedDelegate>
         {
-            (PredicateLibrary.isClear, new SharedVar[] {current}),
-            (PredicateLibrary.isClear, new SharedVar[] {to}),
-            (PredicateLibrary.isOn, new SharedVar[] {current, from})
+            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {current}), // isClear(current)
+            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {to}), // isClear(to)
+            new SharedDelegate(PredicateLibrary.isOn, new List < SharedVar > { current, from }) // isOn(current, from)
         };
     }
 
-    public override List<(Func<object[], bool>, SharedVar[])> InitEffects()
+    // Effects
+    public override List<SharedDelegate> InitEffects()
     {
-        return new List<(Func<object[], bool>, SharedVar[])>
+        return new List<SharedDelegate>
         {
-            (PredicateLibrary.isClear, new SharedVar[] {from}),
-            (PredicateLibrary.isOn, new SharedVar[] {current, to})
+            new SharedDelegate(PredicateLibrary.isClear, new List < SharedVar > { from }), // isClear(from)
+            new SharedDelegate(PredicateLibrary.isOn, new List < SharedVar > { current, to }) // isOn(current, to)
         };
     }
 

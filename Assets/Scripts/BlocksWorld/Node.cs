@@ -1,22 +1,23 @@
 using UnityEngine;
 using System.Linq;
-
+using System;
+using System.Collections.Generic;
 
 public class Node 
 {
     private Node parent;
     private WorldState state;
     private Action action; // Action that got us here
-    //private List<(Func<object[], bool>, SharedVar[])> goalSet; NEXT TIME, a set of unsatisfied goals
+    private List<SharedDelegate> unsatisfiedGoals;
     private int depth;
-
-    // add satisfied and unsatisfied goal atoms maybe
 
     public Node(Node parent, WorldState state, Action action)
     {
         this.parent = parent;
         this.state = state;
         this.action = action;
+
+        unsatisfiedGoals = state.GetAtoms();
 
         if (parent == null) depth = 0;
         else  depth = parent.GetDepth() + 1;
@@ -31,14 +32,21 @@ public class Node
 
     public void Print()
     {
-        Debug.Log("================== ANALYSIS =========================");
-        Debug.Log($"Depth {depth}");
+        Debug.Log("================================== ANALYSIS ====================================");
+        Debug.Log($"Depth: {depth}");
         Debug.Log($"----------------- Current State ------------------- ");
         if (state != null) state.Print();
         Debug.Log("------------------ Previous Action ----------------- ");
         if (action != null) action.Print();
-        Debug.Log("");
+        Debug.Log($"Unsatisfied Goals: {unsatisfiedGoals.Count}");
+        Debug.Log("================================== END ANALYSIS ====================================");
     }
+
+    public void RemoveGoal(SharedDelegate goal) 
+    {
+        unsatisfiedGoals.Remove(goal);
+    }
+
     public void SetState(WorldState state)
     {
         this.state = state;
@@ -47,4 +55,6 @@ public class Node
     public WorldState GetState() => state;
     public Action GetAction() => action;
     public Node GetParent() => parent;
+
+    public List<SharedDelegate> GetUnsatisfiedGoals() => unsatisfiedGoals;
 }

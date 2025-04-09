@@ -9,13 +9,20 @@ public class BlockAgent : MonoBehaviour
     private List<Action> currentPlan;
     private WorldState currentState;
     private WorldState currentGoal;
+    private List<Action> actionList;
 
     public Block blockA, blockB, blockC;
 
     private void Start()
     {
+        // ACtion init
+        actionList = new List<Action>
+        {
+            new ActionMove()
+        };
+
         // Init planner with all actions
-        planner = new BlockPlanner(GetComponents<Action>().ToList());
+        planner = new BlockPlanner(actionList);
         
         // Blocks
         SharedVar A = new SharedVar();
@@ -28,14 +35,14 @@ public class BlockAgent : MonoBehaviour
 
         // Init state
         currentState = new WorldState().AddAtoms(
-            (PredicateLibrary.isClear, new SharedVar[] {C}),
-            (PredicateLibrary.isClear, new SharedVar[] {B}),
-            (PredicateLibrary.isOn, new SharedVar[] {B, A})
+            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {C}), // isClear(C)
+            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {B}), // isClear(B)
+            new SharedDelegate(PredicateLibrary.isOn, new List<SharedVar> {B, A}) // isOn(B, A)
         );
 
         // Goal state
         currentGoal = new WorldState().AddAtoms(
-            (PredicateLibrary.isOn, new SharedVar[] {B, C})
+            new SharedDelegate(PredicateLibrary.isOn, new List<SharedVar> { B, C }) // isOn(B, C)
         );
 
         // Plan!

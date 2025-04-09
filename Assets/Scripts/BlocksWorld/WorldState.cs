@@ -8,15 +8,15 @@ using static UnityEngine.Rendering.VolumeComponent;
 
 public class WorldState 
 {
-    protected List<(Func<object[], bool>, SharedVar[])> atoms = new List<(Func<object[], bool>, SharedVar[])>();
+    protected List<SharedDelegate> atoms = new List<SharedDelegate>();
 
-    public WorldState AddAtoms(params (Func<object[], bool>, SharedVar[])[] args)
+    public WorldState AddAtoms(params SharedDelegate[] args)
     {
         atoms.AddRange(args);
         return this;
     }
 
-    public WorldState RemoveAtoms(params (Func<object[], bool>, SharedVar[])[] args)
+    public WorldState RemoveAtoms(params SharedDelegate[] args)
     {
         foreach (var atom in args)
         {
@@ -27,12 +27,14 @@ public class WorldState
 
     public void Print()
     {
-        foreach (var (predicate, args) in atoms)
+        foreach (SharedDelegate sP in atoms)
         {
-            Debug.Log($"{predicate.Method.Name}({string.Join(", ", args.Select(a => a?.value?.ToString() ?? "null"))})");
+            Debug.Log($"{sP.func.Method.Name}({string.Join(", ", sP.args.Select(a => a?.value?.ToString() ?? "null"))})");
         }
     }
 
-    public List<(Func<object[], bool>, SharedVar[])> GetAtoms() => atoms;
+    public bool ContainsAtom(SharedDelegate atom) => atoms.Contains(atom);
+
+    public List<SharedDelegate> GetAtoms() => atoms;
 
 }
