@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -43,6 +43,7 @@ public class BlockAgent : MonoBehaviour
         // Goal state
         currentGoal = new WorldState().AddAtoms(
             new SharedDelegate(PredicateLibrary.isOn, new List<SharedVar> { B, C }) // isOn(B, C)
+            //new SharedDelegate(PredicateLibrary.isOn, new List<SharedVar> { A, B }) //isOn(A, B)
         );
 
         // Plan!
@@ -50,16 +51,27 @@ public class BlockAgent : MonoBehaviour
         // Profit!!
         PrintPlan(currentPlan);
         // Execute !!
-        //ExecutePlan(currentPlan);
+        ExecutePlan(currentPlan);
 
     }
 
     public void PrintPlan(List<Action> plan)
     {
-        if (plan == null) Debug.Log("No plan :(");
-        else foreach (Action action in plan) action.Print();
-        Debug.Log($"{plan.Count}");
+        if (plan == null || plan.Count == 0)
+        {
+            Debug.Log("No plan :(");
+            return;
+        }
+
+        Debug.Log("==== PLAN ====");
+        for (int i = 0; i < plan.Count; i++)
+        {
+            Debug.Log($"{i + 1}. ");
+            plan[i].Print();  // Assuming this prints nicely to console
+        }
+        Debug.Log($"==== {plan.Count} steps ====");
     }
+
 
 
     public void ExecutePlan(List<Action> plan)

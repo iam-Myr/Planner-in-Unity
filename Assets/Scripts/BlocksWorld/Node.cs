@@ -23,11 +23,32 @@ public class Node
         else  depth = parent.GetDepth() + 1;
     }
 
-    // Node is goal if the goal's atoms are a subset of current state atoms
-    public bool isGoal(Node goalNode)
+    // Node is goal if the current state atoms are a subset of the init state
+    public bool isGoal(Node initNode)
     {
-        WorldState goalState = goalNode.GetState();
-        return goalState.GetAtoms().All(i => state.GetAtoms().Contains(i));
+        List<SharedDelegate> initPreds = initNode.GetState().GetAtoms();
+        List<SharedDelegate> nodePreds = state.GetAtoms();
+
+        foreach (SharedDelegate p in nodePreds)
+        {
+            if (!ContainsPredicate(initPreds, p))
+                return false;
+        }
+        
+        return true;
+    }
+    
+    public bool ContainsPredicate(List<SharedDelegate> pList, SharedDelegate p)
+    {
+        foreach (SharedDelegate p_list in pList)
+        {
+            if (p.isSame(p_list))
+            {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     public void Print()

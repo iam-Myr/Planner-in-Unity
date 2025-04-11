@@ -146,7 +146,7 @@ Transform:
   m_GameObject: {fileID: 117291017}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.56, y: -0.9033576, z: -0.04084004}
+  m_LocalPosition: {x: -7.21, y: 0.096642375, z: -0.04084004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -165,6 +165,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockName: B
+  above: {fileID: 0}
+  below: {fileID: 657990365}
 --- !u!212 &117291020
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -229,7 +231,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 335871627}
-  - component: {fileID: 335871630}
   - component: {fileID: 335871631}
   m_Layer: 0
   m_Name: Agent
@@ -253,18 +254,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &335871630
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 335871626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a6466f0ebfb4c242abf0681aaa34511, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &335871631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,6 +315,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockName: A
+  above: {fileID: 117291019}
+  below: {fileID: 0}
 --- !u!212 &657990366
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -427,6 +418,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockName: C
+  above: {fileID: 0}
+  below: {fileID: 0}
 --- !u!212 &893313165
 SpriteRenderer:
   m_ObjectHideFlags: 0

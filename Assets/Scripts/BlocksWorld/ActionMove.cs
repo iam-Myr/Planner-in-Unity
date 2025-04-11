@@ -41,12 +41,22 @@ public class ActionMove : Action
         };
     }
 
-
     public override void Execute()
     {
-        // Do positions but for now just logic
-        //to.SetAbove(current);
-        //from.SetAbove(null);
-        //current.SetBelow(to);
+        if (to.value is Block toBlock &&
+            from.value is Block fromBlock &&
+            current.value is Block currentBlock)
+        {
+            // Do the logical update
+            toBlock.SetAbove(currentBlock);
+            fromBlock.SetAbove(null);
+            currentBlock.SetBelow(toBlock);
+
+            // Now do the visual update
+            Vector3 newPos = toBlock.transform.position + Vector3.up * 1.1f; // Just above the target
+            currentBlock.MoveTo(newPos);
+        }
+
     }
+
 }

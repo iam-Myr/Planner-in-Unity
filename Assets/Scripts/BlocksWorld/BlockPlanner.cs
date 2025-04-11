@@ -40,10 +40,13 @@ public class BlockPlanner
             currentNode = frontier.Pop();
             currentNode.Print();
 
-            // Preprocessing
-            Preprocess(currentNode, goalNode);
+            // Preprocessing DOESNT WORK YET BU IS OKAY
+            //Preprocess(currentNode, goalNode);
             //Debug.Log("After prepro");
             //currentNode.Print();
+
+            //Unify with init
+            UnifyWithInit(currentNode);
 
             if (currentNode.isGoal(goalNode)) 
             {
@@ -68,7 +71,8 @@ public class BlockPlanner
         // Remove goals already satisfied by init state
         foreach (SharedDelegate currentAtom in currentAtoms.ToList()) // Use ToList to safely modify the list while iterating
         {
-            if (initAtoms.Contains(currentAtom)) // If goal atom is already satisfied by the init state
+            foreach(SharedDelegate initAtom in initAtoms.ToList())
+            if (currentAtom.isSame(initAtom)) // If goal atom is already satisfied by the init state
             {
                 Debug.Log($"Found goal satisfied by init");
                 node.RemoveGoal(currentAtom); // Remove satisfied atom from the goal list
@@ -81,6 +85,20 @@ public class BlockPlanner
 
     #endregion
 
+    public void UnifyWithInit(Node node)
+    {
+        List<SharedDelegate> currentPredicates = node.GetUnsatisfiedGoals();
+        List<SharedDelegate> initAtoms = initState.GetAtoms();
+
+        foreach (SharedDelegate p in currentPredicates)
+        {
+            foreach (SharedDelegate init_p in initAtoms) {
+                if (canUnify(p, init_p))
+                    Unify(p, init_p);
+            }
+        }
+
+    }
     public void FindChildren(Node currentNode)
     {
         WorldState currentState = currentNode.GetState();
@@ -92,7 +110,7 @@ public class BlockPlanner
         foreach (Action action in allActions)
         {
             // DEEP COPY action for safety
-            Action actionCopy = action.Clone();
+            Action actionCopy = action.CreateNew();
 
             // For all effects
             foreach (SharedDelegate actionEffect in actionCopy.GetEffects())
@@ -100,7 +118,7 @@ public class BlockPlanner
                 if (canUnify(actionEffect, goalAtom))
                 {
                     // Unify effect and goal args 
-                    Unify(actionEffect.args, goalAtom.args);
+                    Unify(actionEffect, goalAtom);
 
                     //Debug.Log("ACTIONSSS");
                     //actionCopy.Print();
@@ -121,27 +139,42 @@ public class BlockPlanner
 
     // Example: on(current, to) with on(B, A) 
     public bool canUnify(
-        SharedDelegate p1,
-        SharedDelegate p2)
+    SharedDelegate p1,
+    SharedDelegate p2)
     {
-        //Debug.Log($"comparing {p1.args[0]} AND {p2.args[0]}");
-        if (p1.func.Method.Name != p2.func.Method.Name) return false; // Func name is not the same
-        if (p1.args.Count != p2.args.Count) return false; // Arg length is not the same
+        // Log the comparison being made between the function names and arguments
+        string p1Args = string.Join(", ", p1.args.Select(a => a?.Get()?.ToString() ?? "null"));
+        string p2Args = string.Join(", ", p2.args.Select(a => a?.Get()?.ToString() ?? "null"));
+        //Debug.Log($"Comparing {p1.func.Method.Name}({p1Args}) with {p2.func.Method.Name}({p2Args})");
 
-        for (int i = 0; i < p1.args.Count; i++) // Compare all args
+        // If the function names do not match, return false
+        if (p1.func.Method.Name != p2.func.Method.Name) return false;
+
+        // If the argument lengths are different, return false
+        if (p1.args.Count != p2.args.Count) return false;
+
+        // Compare all arguments
+        for (int i = 0; i < p1.args.Count; i++)
         {
             SharedVar arg1 = p1.args[i];
             SharedVar arg2 = p2.args[i];
 
-            // If both have value and that value is not equal
-            if (arg1.value != null && arg2.value != null && !arg1.value.Equals(arg2.value)) return false;   
+            // If both have values and those values don't match, return false
+            if (arg1.value != null && arg2.value != null && !arg1.value.Equals(arg2.value)) return false;
         }
-        Debug.Log($"MATCH FOUND: {p1.func.Method.Name.ToString()}");
+
+        // Log the match if found
+        Debug.Log($"MATCH FOUND: {p1.func.Method.Name}({p1Args}) and {p2.func.Method.Name}({p2Args})");
+
         return true;
     }
 
-    public void Unify(List<SharedVar> p1Args, List<SharedVar> p2Args)
+
+    public void Unify(SharedDelegate p1, SharedDelegate p2)
     {
+        List<SharedVar> p1Args = p1.args;
+        List<SharedVar> p2Args = p2.args;
+
         for (int i = 0; i < p1Args.Count; i++)
         {
             // ??= only assigns if value is null MAYBE on(B, null) on(null, C)

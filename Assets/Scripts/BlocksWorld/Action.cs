@@ -30,6 +30,28 @@ public class SharedDelegate
 
         return clone;
     }
+
+    public bool isSame(SharedDelegate sD)
+    {
+
+        // Check if the functions are the same by comparing their method names
+        if (this.func.Method.Name != sD.func.Method.Name)
+            return false;
+
+        // Check if the arguments list is the same length
+        if (this.args.Count != sD.args.Count)
+            return false;
+
+        // Compare each argument
+        for (int i = 0; i < this.args.Count; i++)
+        {
+            if (!this.args[i].value.Equals(sD.args[i].value))
+                return false;
+        }
+
+        return true;
+    }
+
 }
 
 public class Action
@@ -94,6 +116,7 @@ public class Action
         return clone;
     }
 
+    public virtual Action CreateNew() => (Action)Activator.CreateInstance(this.GetType());
 
     // Cool ChatGPT code probably super inefficient 
     public virtual Action Clone1()
