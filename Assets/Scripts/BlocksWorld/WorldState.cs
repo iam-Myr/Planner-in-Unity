@@ -8,15 +8,24 @@ using static UnityEngine.Rendering.VolumeComponent;
 
 public class WorldState 
 {
-    protected List<SharedDelegate> atoms = new List<SharedDelegate>();
+    protected List<Predicate> atoms = new List<Predicate>();
 
-    public WorldState AddAtoms(params SharedDelegate[] args)
+    // Add Atoms if they're not already contained
+    public WorldState AddPredicates(params Predicate[] args)
     {
-        atoms.AddRange(args);
+        foreach (Predicate p in args)
+        {
+            // Avoid adding duplicates (based on isSame)
+            if (!atoms.Any(existing => existing.isSame(p)))
+            {
+                atoms.Add(p);
+            }
+        }
         return this;
     }
 
-    public WorldState RemoveAtoms(params SharedDelegate[] args)
+
+    public WorldState RemovePredicates(params Predicate[] args)
     {
         foreach (var atom in args)
         {
@@ -27,14 +36,14 @@ public class WorldState
 
     public void Print()
     {
-        foreach (SharedDelegate sP in atoms)
+        foreach (Predicate sP in atoms)
         {
             Debug.Log($"{sP.func.Method.Name}({string.Join(", ", sP.args.Select(a => a?.value?.ToString() ?? "null"))})");
         }
     }
 
-    public bool ContainsAtom(SharedDelegate atom) => atoms.Contains(atom);
+    public bool ContainsAtom(Predicate atom) => atoms.Contains(atom);
 
-    public List<SharedDelegate> GetAtoms() => atoms;
+    public List<Predicate> GetPredicates() => atoms;
 
 }

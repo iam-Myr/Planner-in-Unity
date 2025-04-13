@@ -23,6 +23,13 @@ public class Block : MonoBehaviour
         transform.position = targetPosition; // Snap exactly to the target
     }
 
+    public IEnumerator MoveToWithDelay(Vector3 targetPosition, float delay = 1f)
+    {
+        transform.position = targetPosition;
+        yield return new WaitForSeconds(delay);
+    }
+
+
 
     public bool isClear() => above == null;
     public Block GetAbove() => above;

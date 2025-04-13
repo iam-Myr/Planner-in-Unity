@@ -18,26 +18,28 @@ public class ActionMove : Action
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
+
+
     }
 
     // Preconditions
-    public override List<SharedDelegate> InitPreconditions()
+    public override List<Predicate> InitPreconditions()
     {
-        return new List<SharedDelegate>
+        return new List<Predicate>
         {
-            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {current}), // isClear(current)
-            new SharedDelegate(PredicateLibrary.isClear, new List<SharedVar> {to}), // isClear(to)
-            new SharedDelegate(PredicateLibrary.isOn, new List < SharedVar > { current, from }) // isOn(current, from)
+            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {current}), // isClear(current)
+            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {to}), // isClear(to)
+            new Predicate(PredicateLibrary.isOn, new List < SharedVar > { current, from }) // isOn(current, from)
         };
     }
 
     // Effects
-    public override List<SharedDelegate> InitEffects()
+    public override List<Predicate> InitEffects()
     {
-        return new List<SharedDelegate>
+        return new List<Predicate>
         {
-            new SharedDelegate(PredicateLibrary.isClear, new List < SharedVar > { from }), // isClear(from)
-            new SharedDelegate(PredicateLibrary.isOn, new List < SharedVar > { current, to }) // isOn(current, to)
+            new Predicate(PredicateLibrary.isClear, new List < SharedVar > { from }), // isClear(from)
+            new Predicate(PredicateLibrary.isOn, new List < SharedVar > { current, to }) // isOn(current, to)
         };
     }
 

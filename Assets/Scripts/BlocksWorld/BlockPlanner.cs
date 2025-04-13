@@ -8,12 +8,16 @@ using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 
 // TO DO
-// [] Goal Set: A set of unsatisfied goals
+// [X] Goal Set: A set of unsatisfied goals
+// [] Visited: Prevent Loops ASAP
+// [] BFS and DFS
+// [] AllDifferent
+// [] Node cost: For heuristic, could be number of goals satisfied
 
 public class BlockPlanner
 {
     private List<Action> allActions;
-    private Stack<Node> frontier = new Stack<Node>();
+    private Queue<Node> frontier = new Queue<Node>();
     private WorldState initState;
 
     public BlockPlanner(List<Action> actions)
@@ -22,7 +26,7 @@ public class BlockPlanner
         allActions = actions;
     }
 
-    public List<Action> MakePlan(WorldState initState, WorldState goalState)
+    public List<Action> MakePlan(WorldState initState, WorldState goalState, int loops)
     {
         this.initState = initState;
 
@@ -31,26 +35,22 @@ public class BlockPlanner
         //Debug.Log("GOAL");
         //goalNode.Print();
 
-        frontier.Push(rootNode);
+        frontier.Enqueue(rootNode);
         Node currentNode;
 
-        for(int i = 0; i < 5; i++)
+        for(int i = 0; i < loops; i++)
         //while (frontier.Count > 0)
         {
-            currentNode = frontier.Pop();
-            currentNode.Print();
-
-            // Preprocessing DOESNT WORK YET BU IS OKAY
-            //Preprocess(currentNode, goalNode);
-            //Debug.Log("After prepro");
-            //currentNode.Print();
-
+            currentNode = frontier.Dequeue();
+            
             //Unify with init
-            UnifyWithInit(currentNode);
+            UnifyWithInit(currentNode, goalNode);
+      
+            currentNode.Print();
 
             if (currentNode.isGoal(goalNode)) 
             {
-                Debug.Log("GOAL");
+                Debug.Log($"Goal in {i}");
                 return ReconstructPlan(currentNode); }
 
             FindChildren(currentNode);
@@ -65,17 +65,17 @@ public class BlockPlanner
     public void Preprocess(Node node, Node init)
     {
         WorldState currentState = node.GetState();
-        List<SharedDelegate> currentAtoms = currentState.GetAtoms();
-        List<SharedDelegate> initAtoms = init.GetState().GetAtoms();
+        List<Predicate> currentPredicates = currentState.GetPredicates();
+        List<Predicate> initAtoms = init.GetState().GetPredicates();
 
         // Remove goals already satisfied by init state
-        foreach (SharedDelegate currentAtom in currentAtoms.ToList()) // Use ToList to safely modify the list while iterating
+        foreach (Predicate currentPredicate in currentPredicates.ToList()) // Use ToList to safely modify the list while iterating
         {
-            foreach(SharedDelegate initAtom in initAtoms.ToList())
-            if (currentAtom.isSame(initAtom)) // If goal atom is already satisfied by the init state
+            foreach(Predicate initAtom in initAtoms.ToList())
+            if (currentPredicate.isSame(initAtom)) // If goal atom is already satisfied by the init state
             {
-                Debug.Log($"Found goal satisfied by init");
-                node.RemoveGoal(currentAtom); // Remove satisfied atom from the goal list
+                Debug.Log($"Found goal satisfied by init: {currentPredicate.ToString()}");
+                node.RemoveGoal(currentPredicate); // Remove satisfied atom from the goal list
             }
         }
 
@@ -85,68 +85,72 @@ public class BlockPlanner
 
     #endregion
 
-    public void UnifyWithInit(Node node)
+    public void UnifyWithInit(Node node, Node init)
     {
-        List<SharedDelegate> currentPredicates = node.GetUnsatisfiedGoals();
-        List<SharedDelegate> initAtoms = initState.GetAtoms();
+        List<Predicate> currentPredicates = node.GetUnsatisfiedGoals();
+        List<Predicate> initAtoms = init.GetState().GetPredicates();
 
-        foreach (SharedDelegate p in currentPredicates)
+        foreach (Predicate p in currentPredicates)
         {
-            foreach (SharedDelegate init_p in initAtoms) {
+            foreach (Predicate init_p in initAtoms) {
                 if (canUnify(p, init_p))
                     Unify(p, init_p);
             }
         }
 
+        Preprocess(node, init);
     }
+
     public void FindChildren(Node currentNode)
     {
         WorldState currentState = currentNode.GetState();
-
-        // Choose a goal atom to satisfy, NO, CHOOSE AN ACTION THAT SATISFIES GOALS !!!!!!!!!!!!!!!!!!!!
-        SharedDelegate goalAtom = ChooseGoalAtom(currentNode); // returns (func, args[])
 
         // For all actions
         foreach (Action action in allActions)
         {
             // DEEP COPY action for safety
             Action actionCopy = action.CreateNew();
+            bool actionUnified = false;
+            List<Predicate> goalsToBeRemoved = new List<Predicate>();
 
             // For all effects
-            foreach (SharedDelegate actionEffect in actionCopy.GetEffects())
+            foreach (Predicate actionEffect in actionCopy.GetEffects())
             {
-                if (canUnify(actionEffect, goalAtom))
+                // For all goals
+                foreach (Predicate goalPredicate in currentNode.GetUnsatisfiedGoals())
                 {
-                    // Unify effect and goal args 
-                    Unify(actionEffect, goalAtom);
+                    if (canUnify(actionEffect, goalPredicate))
+                    {
+                        actionUnified = true;
+                        //Debug.Log($"Found unifying action:");
+                        //actionCopy.Print();
 
-                    //Debug.Log("ACTIONSSS");
-                    //actionCopy.Print();
-                    //action.Print();
-
-                    // Create new state POSSIBLY COPY HERE TOO
-                    WorldState newState = new WorldState().AddAtoms(currentState.GetAtoms().ToArray()); // Copy current state
-                    newState.RemoveAtoms(goalAtom); // Remove previous goal atom
-                    newState.AddAtoms(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
-
-                    // Create new node
-                    frontier.Push(new Node(currentNode, newState, actionCopy));
-                    break;
+                        // Unify effect and goal args 
+                        Unify(actionEffect, goalPredicate);
+                        goalsToBeRemoved.Add(goalPredicate);
+                    }
                 }
+            }
+
+            if(actionUnified)
+            {
+                // Create new state 
+                WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
+                // MAKE IT SO YOU DON'T ADD INIT PREDICATES
+                newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
+                newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
+
+                // Create new node
+                frontier.Enqueue(new Node(currentNode, newState, actionCopy));
             }
         }
     }
 
     // Example: on(current, to) with on(B, A) 
     public bool canUnify(
-    SharedDelegate p1,
-    SharedDelegate p2)
+    Predicate p1,
+    Predicate p2)
     {
-        // Log the comparison being made between the function names and arguments
-        string p1Args = string.Join(", ", p1.args.Select(a => a?.Get()?.ToString() ?? "null"));
-        string p2Args = string.Join(", ", p2.args.Select(a => a?.Get()?.ToString() ?? "null"));
-        //Debug.Log($"Comparing {p1.func.Method.Name}({p1Args}) with {p2.func.Method.Name}({p2Args})");
-
         // If the function names do not match, return false
         if (p1.func.Method.Name != p2.func.Method.Name) return false;
 
@@ -164,13 +168,13 @@ public class BlockPlanner
         }
 
         // Log the match if found
-        Debug.Log($"MATCH FOUND: {p1.func.Method.Name}({p1Args}) and {p2.func.Method.Name}({p2Args})");
+        Debug.Log($"MATCH FOUND: {p1.ToString()} and {p2.ToString()}");
 
         return true;
     }
 
 
-    public void Unify(SharedDelegate p1, SharedDelegate p2)
+    public void Unify(Predicate p1, Predicate p2)
     {
         List<SharedVar> p1Args = p1.args;
         List<SharedVar> p2Args = p2.args;
@@ -186,7 +190,7 @@ public class BlockPlanner
     }
 
     // Chooses a goal atom. Currently returns the top one
-    public SharedDelegate ChooseGoalAtom(Node currentNode)
+    public Predicate ChooseGoalAtom(Node currentNode)
     {
        return currentNode.GetUnsatisfiedGoals()[0];
     }
@@ -197,7 +201,7 @@ public class BlockPlanner
         List<Action> result = new List<Action>();
         while (node != null && node.GetAction() != null)
         {
-            result.Insert(0, node.GetAction());
+            result.Add(node.GetAction());
             node = node.GetParent();
         }
         return result;
