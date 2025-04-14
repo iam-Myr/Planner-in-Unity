@@ -41,16 +41,16 @@ public class BlockAgent : MonoBehaviour
 
         // Init state
         currentState = new WorldState().AddPredicates(
+            new Predicate(PredicateLibrary.isClear, new List<SharedVar> { B }), // isClear(B)
             new Predicate(PredicateLibrary.isClear, new List<SharedVar> {C}), // isClear(C)
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {B}), // isClear(B)
             new Predicate(PredicateLibrary.isOn, new List<SharedVar> {B, A}), // isOn(B, A)
             new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, D }) // isOn(A, D)
         );
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, B }), //isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { B, C }) // isOn(B, C)
+            //new Predicate(PredicateLibrary.isOn, new List<SharedVar> { B, C }), // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, B }) //isOn(A, B)
         );
 
         // Plan!
@@ -79,12 +79,12 @@ public class BlockAgent : MonoBehaviour
     }
 
 
-    public void ExecutePlan(List<Action> plan)
+    public async void ExecutePlan(List<Action> plan)
     {
         foreach (Action action in plan)
         {
             // is action possible? yes
-            action.Execute();
+            await action.Execute();
         }
     }
 }

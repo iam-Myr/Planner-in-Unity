@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Predicate
@@ -66,7 +67,7 @@ public class Action
 
     public virtual List<Predicate> InitPreconditions() => new();
     public virtual List<Predicate> InitEffects() => new();
-    public virtual void Execute() { }
+    public virtual async Task Execute() { await Task.CompletedTask; }
 
     public List<Predicate> GetPreconditions() => preconditions; 
     public List<Predicate> GetEffects() => effects;

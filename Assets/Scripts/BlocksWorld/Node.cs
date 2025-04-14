@@ -17,7 +17,9 @@ public class Node
         this.state = state;
         this.action = action;
 
-        unsatisfiedGoals = state.GetPredicates();
+        // Init goals
+
+        unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
 
         if (parent == null) depth = 0;
         else  depth = parent.GetDepth() + 1;
@@ -55,8 +57,8 @@ public class Node
     {
         Debug.Log("================================== ANALYSIS ====================================");
         Debug.Log($"Depth: {depth}");
-        //Debug.Log($"----------------- Current State ------------------- ");
-        //if (state != null) state.Print();
+        Debug.Log($"----------------- Current State ------------------- ");
+        if (state != null) state.Print();
         Debug.Log($"----------------- Unsatisfied Goals ------------------- ");
         if (unsatisfiedGoals != null) PrintGoals();
         Debug.Log($"Remaining Goals: {unsatisfiedGoals.Count}");
