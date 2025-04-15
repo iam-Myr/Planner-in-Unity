@@ -10,9 +10,9 @@ using UnityEngine.InputSystem.LowLevel;
 
 // TO DO
 // [X] Goal Set: A set of unsatisfied goals
-// [] Different action matches: All possible actions for a state
-// [] Rewrite findChildren
-// [] Visited: Prevent Loops ASAP
+// [X] Different action matches: All possible actions for a state
+// [X] Rewrite findChildren
+// [X] Visited: Prevent Loops ASAP
 // [] BFS and DFS using IFrontier
 // [] AllDifferent
 // [] Node cost: For heuristic, could be number of goals satisfied
@@ -22,7 +22,8 @@ public class BlockPlanner
 {
     private List<Action> allActions;
     private Queue<Node> frontier = new Queue<Node>();
-    private WorldState initState;
+    List<Node> visited = new List<Node>();
+    Node initNode;
 
     public BlockPlanner(List<Action> actions)
     {
@@ -32,39 +33,59 @@ public class BlockPlanner
 
     public List<Action> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
     {
-        this.initState = initState;
 
         Node rootNode = new Node(null, goalState, null);
-        Node goalNode = new Node(null, initState, null);
+        initNode = new Node(null, initState, null);
         //Debug.Log("GOAL");
         //goalNode.Print();
 
         frontier.Enqueue(rootNode);
         Node currentNode;
-        int i = 0;
+        int step = 0;
 
-        
-        while (frontier.Count > 0 && i < maxSteps)
+        while (frontier.Count > 0 && step < maxSteps)
         {
             currentNode = frontier.Dequeue();
-
-            //Init Preprocessing
-            UnifyWithInit(currentNode, goalNode);
-            RemoveSatisfiedByInit(currentNode, goalNode);
-
             currentNode.Print();
 
-            if (currentNode.isGoal(goalNode)) 
+            if (currentNode.isGoal(initNode)) 
             {
-                Debug.Log($"Goal in {i} steps");
+                Debug.Log($"Goal in {step} steps and {currentNode.GetDepth()} depth.");
                 return ReconstructPlan(currentNode); }
 
-            FindChildren(currentNode);
-            //Debug.Log($"Frontier size: {frontier.Count}");
-            i++;
+            if (!isLoopGoals(currentNode))
+                FindChildren(currentNode);
+                //Debug.Log($"Frontier size: {frontier.Count}");
+                visited.Add(currentNode);
+                step++;
         }
 
         return null; // No plan found
+    }
+
+    // NEXT: make it keep shortest path
+    public bool isLoop(Node node)
+    {
+        // Node is loop if it has the same state as a previously visited node
+        foreach (Node n in visited)
+            if (n.HasSameState(node))
+            {
+                Debug.Log("Found loop!");
+                return true;
+            }
+        return false;
+    }
+
+    public bool isLoopGoals(Node node)
+    {
+        // Node is loop if it has the same unastisfied goals as a previously visited node
+        foreach (Node n in visited)
+            if (n.HasSameGoals(node))
+            {
+                Debug.Log("Found loop!");
+                return true;
+            }
+        return false;
     }
 
     #region Init
@@ -119,7 +140,6 @@ public class BlockPlanner
             {
                 // DEEP COPY action for safety
                 Action actionCopy = action.CreateNew();
-                bool actionUnified = false;
                 List<Predicate> goalsToBeRemoved = new List<Predicate>();
 
                 // if action can unify with goal
@@ -129,59 +149,40 @@ public class BlockPlanner
                 {
                     if (canUnify(actionEffect, goalPredicate))
                     {
-                        actionUnified = true;
-
                         //Debug.Log($"Found unifying action:");
                         //actionCopy.Print();
 
                         // Unify effect and goal args 
                         Unify(actionEffect, goalPredicate);
+
+                        // NEXT: Search if action has INSTANTIATED effect that satisfies goal
                         goalsToBeRemoved.Add(goalPredicate);
-                    }
 
-                }
+                        // Create new state 
+                        WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
+                                                                                                                      // MAKE IT SO YOU DON'T ADD INIT PREDICATES
+                        newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
+                        newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
 
+                        // Create new node
+                        Node newNode = new Node(currentNode, newState, actionCopy);
 
-                if (actionUnified)
-                {
+                        //Init Preprocessing
+                        UnifyWithInit(newNode, initNode);
+                        RemoveSatisfiedByInit(newNode, initNode);
 
-                    // Try to unify it with the other goals
-                    // For all goals
-                    foreach (Predicate goalPredicate2 in currentNode.GetUnsatisfiedGoals())
-                    {
-                        // For all effect predicates
-                        foreach (Predicate actionEffect in actionCopy.GetEffects())
+                        if(!isLoopGoals(newNode) && !newNode.isContradiction())
                         {
-                            if (canUnify(actionEffect, goalPredicate2))
-                            {
-
-                                //Debug.Log($"Found unifying action:");
-                                //actionCopy.Print();
-
-                                // Unify effect and goal args 
-                                Unify(actionEffect, goalPredicate2);
-                                goalsToBeRemoved.Add(goalPredicate2);
-                            }
+                            frontier.Enqueue(newNode);
+                            childrenFound++;
                         }
-                    }
-
-                    // Create new state 
-                    WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
-                                                                                                                  // MAKE IT SO YOU DON'T ADD INIT PREDICATES
-                    newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
-                    newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
-
-                    // Create new node
-                    frontier.Enqueue(new Node(currentNode, newState, actionCopy));
-                    childrenFound++;
+                    }     
                 }
             }
         }
 
         Debug.Log($"Found {childrenFound} children!");
     }
-
-
 
     // Example: on(current, to) with on(B, A) 
     public bool canUnify(
@@ -193,6 +194,9 @@ public class BlockPlanner
 
         // If the argument lengths are different, return false
         if (p1.args.Count != p2.args.Count) return false;
+
+        // If both predicates already have values
+        if (p1.IsInstantiated() && p2.IsInstantiated()) return false;
 
         // Compare all arguments
         for (int i = 0; i < p1.args.Count; i++)

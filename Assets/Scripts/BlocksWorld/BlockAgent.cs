@@ -41,21 +41,22 @@ public class BlockAgent : MonoBehaviour
 
         // Init state
         currentState = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> { B }), // isClear(B)
+            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {B}), // isClear(B)
             new Predicate(PredicateLibrary.isClear, new List<SharedVar> {C}), // isClear(C)
+            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {E}), // isClear(E)
             new Predicate(PredicateLibrary.isOn, new List<SharedVar> {B, A}), // isOn(B, A)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, D }) // isOn(A, D)
+            new Predicate(PredicateLibrary.isOn, new List<SharedVar> {A, D}) // isOn(A, D)
         );
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            //new Predicate(PredicateLibrary.isOn, new List<SharedVar> { B, C }), // isOn(B, C)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, B }) //isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { B, C }), // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, B }) // isOn(A, B)
         );
 
         // Plan!
         currentPlan = planner.MakePlan(currentState, currentGoal, loops);
-        // Profit!!
+        // Print!!
         PrintPlan(currentPlan);
         // Execute !!
         ExecutePlan(currentPlan);

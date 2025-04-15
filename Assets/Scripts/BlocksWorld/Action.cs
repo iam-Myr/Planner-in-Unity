@@ -48,6 +48,11 @@ public class Predicate
         }
         return true;
     }
+    public bool IsInstantiated()
+    {
+        return args.All(arg => arg.value != null);
+    }
+
 
     public override string ToString()
     {

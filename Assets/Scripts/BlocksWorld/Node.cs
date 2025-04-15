@@ -8,8 +8,8 @@ public class Node
     private Node parent;
     private WorldState state;
     private Action action; // Action that got us here
-    private List<Predicate> unsatisfiedGoals;
-    private int depth;
+    private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
+    protected int depth;
 
     public Node(Node parent, WorldState state, Action action)
     {
@@ -22,7 +22,7 @@ public class Node
         unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
 
         if (parent == null) depth = 0;
-        else  depth = parent.GetDepth() + 1;
+        else  depth = parent.depth + 1;
     }
 
     // Node is goal if the current state atoms are a subset of the init state
@@ -53,19 +53,52 @@ public class Node
         return false;
     }
 
+    public bool HasSameState(Node other)
+    {
+        var thisPreds = this.GetState().GetPredicates();
+        var otherPreds = other.GetState().GetPredicates();
+
+        if (thisPreds.Count != otherPreds.Count)
+            return false;
+
+        foreach (Predicate p in thisPreds)
+        {
+            if (!otherPreds.Any(a => a.isSame(p)))
+                return false;
+        }
+
+        return true;
+    }
+
+    public bool HasSameGoals(Node other)
+    {
+        if (unsatisfiedGoals.Count != other.GetUnsatisfiedGoals().Count)
+            return false;
+
+        foreach (Predicate g in unsatisfiedGoals)
+        {
+            if (!other.GetUnsatisfiedGoals().Any(a => a.isSame(g)))
+                return false;
+        }
+        return true;
+    }
+
+
     public void Print()
     {
         Debug.Log("================================== ANALYSIS ====================================");
         Debug.Log($"Depth: {depth}");
+        Debug.Log("------------------ Previous Action ----------------- ");
+        if (action != null) Debug.Log(action.Print());
         Debug.Log($"----------------- Current State ------------------- ");
         if (state != null) state.Print();
         Debug.Log($"----------------- Unsatisfied Goals ------------------- ");
         if (unsatisfiedGoals != null) PrintGoals();
         Debug.Log($"Remaining Goals: {unsatisfiedGoals.Count}");
-        Debug.Log("------------------ Previous Action ----------------- ");
-        if (action != null) Debug.Log(action.Print());
         Debug.Log("================================== END ANALYSIS ====================================");
     }
+
+    public bool isContradiction() => state.IsContradiction();
 
     public void PrintGoals()
     {
