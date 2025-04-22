@@ -185,50 +185,40 @@ public class BlockPlanner
     }
 
     // Example: on(current, to) with on(B, A) 
-    public bool canUnify(
-    Predicate p1,
-    Predicate p2)
+    public bool canUnify(Predicate p1, Predicate p2)
     {
-        // If the function names do not match, return false
         if (p1.func.Method.Name != p2.func.Method.Name) return false;
-
-        // If the argument lengths are different, return false
         if (p1.args.Count != p2.args.Count) return false;
 
-        // If both predicates already have values
-        if (p1.IsInstantiated() && p2.IsInstantiated()) return false;
-
-        // Compare all arguments
         for (int i = 0; i < p1.args.Count; i++)
         {
-            SharedVar arg1 = p1.args[i];
-            SharedVar arg2 = p2.args[i];
+            var a = p1.args[i].Get();
+            var b = p2.args[i].Get();
 
-            // If both have values and those values don't match, return false
-            if (arg1.value != null && arg2.value != null && !arg1.value.Equals(arg2.value)) return false;
+            if (a != null && b != null && !a.Equals(b))
+                return false;
         }
-
-        // Log the match if found
-        Debug.Log($"MATCH FOUND: {p1.ToString()} and {p2.ToString()}");
 
         return true;
     }
 
 
+
     public void Unify(Predicate p1, Predicate p2)
     {
-        List<SharedVar> p1Args = p1.args;
-        List<SharedVar> p2Args = p2.args;
-
-        for (int i = 0; i < p1Args.Count; i++)
+        for (int i = 0; i < p1.args.Count; i++)
         {
-            // ??= only assigns if value is null MAYBE on(B, null) on(null, C)
-            if (p1Args[i].value == null) 
-                p1Args[i].value = p2Args[i].value; 
-            else if (p2Args[i].value == null)
-                p2Args[i].value = p1Args[i].value;
+            Pointer a = p1.args[i];
+            Pointer b = p2.args[i];
+
+            // If they are different, unify them by reference
+            if (a != b)
+            {
+                a.BindTo(b);
+            }
         }
     }
+
 
     // Chooses a goal atom. Currently returns the top one
     public Predicate ChooseGoalAtom(Node currentNode)

@@ -5,21 +5,22 @@ using UnityEngine;
 
 public class ActionMove : Action
 {
-    private SharedVar current, to, from;
+    private Pointer current, to, from;
 
     public ActionMove()
     {
         actionName = "Move";
 
-        current = new SharedVar();
-        to = new SharedVar();
-        from = new SharedVar();
+        this.current = new Pointer();
+        this.to = new Pointer();
+        this.from = new Pointer();
 
-        actionArgs = new List<SharedVar> { current, to, from };
+        actionArgs = new List<Pointer> { current, to, from };
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
+
 
     #region Preconditions
     // Preconditions
@@ -27,9 +28,9 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {current}), // isClear(current)
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {to}), // isClear(to)
-            new Predicate(PredicateLibrary.isOn, new List < SharedVar > {current, from}) // isOn(current, from)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}), // isClear(current)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}), // isClear(to)
+            new Predicate(PredicateLibrary.isOn, new List < Pointer > {current, from}) // isOn(current, from)
         };
     }
     #endregion
@@ -39,16 +40,17 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isClear, new List <SharedVar> {from}), // isClear(from)
-            new Predicate(PredicateLibrary.isOn, new List <SharedVar> {current, to}) // isOn(current, to)
+            new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}), // isClear(from)
+            new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}) // isOn(current, to)
         };
     }
 
+
     public override async Task Execute()
     {
-        if (to.value is Block toBlock &&
-            from.value is Block fromBlock &&
-            current.value is Block currentBlock)
+        if (to.Get() is Block toBlock &&
+            from.Get() is Block fromBlock &&
+            current.Get() is Block currentBlock)
         {
             // Logical update
             toBlock.SetAbove(currentBlock);

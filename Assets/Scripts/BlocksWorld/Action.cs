@@ -7,11 +7,11 @@ using UnityEngine;
 public class Predicate
 {
     public Func<object[], bool> func { get; private set; } // CHECK THIS OUT
-    public List<SharedVar> args { get; private set; }
+    public List<Pointer> args { get; private set; }
 
     public Predicate() {}
 
-    public Predicate(Func<object[], bool> func, List<SharedVar> args)
+    public Predicate(Func<object[], bool> func, List<Pointer> args)
     {
         this.func = func;
         this.args = args;
@@ -23,8 +23,8 @@ public class Predicate
         clone.func = func;
 
         // Args
-        clone.args = new List<SharedVar>();
-        foreach (SharedVar arg in args)
+        clone.args = new List<Pointer>();
+        foreach (Pointer arg in args)
             clone.args.Add(arg.Clone());
 
         return clone;
@@ -43,9 +43,13 @@ public class Predicate
         // Compare each argument
         for (int i = 0; i < this.args.Count; i++)
         {
-            if (!(this.args[i].value == sD.args[i].value))
+            Pointer a = this.args[i];
+            Pointer b = sD.args[i];
+            if (!a.isSameValue(b))
                 return false;
         }
+
+
         return true;
     }
     public bool IsInstantiated()
@@ -66,7 +70,7 @@ public class Predicate
 public class Action
 {
     protected string actionName;
-    protected List<SharedVar> actionArgs = new List<SharedVar>();
+    protected List<Pointer> actionArgs = new List<Pointer>();
     protected List<Predicate> preconditions = new List<Predicate>();
     protected List<Predicate> effects = new List<Predicate>();
 
@@ -90,17 +94,17 @@ public class Action
     public virtual Action Clone()
     {
         Action clone = (Action)Activator.CreateInstance(this.GetType());
-        Dictionary<SharedVar, SharedVar> varMap = new Dictionary<SharedVar, SharedVar>();
+        Dictionary<Pointer, Pointer> varMap = new Dictionary<Pointer, Pointer>();
 
-        clone.actionArgs = new List<SharedVar>();
-        foreach (SharedVar arg in this.actionArgs)
+        clone.actionArgs = new List<Pointer>();
+        foreach (Pointer arg in this.actionArgs)
             clone.actionArgs.Add(varMap[arg] = arg.Clone());
 
         clone.preconditions = new List<Predicate>();
         foreach (Predicate pre in this.preconditions)
         {
-            List<SharedVar> clonedArgs = new List<SharedVar>();
-            foreach (SharedVar arg in pre.args)
+            List<Pointer> clonedArgs = new List<Pointer>();
+            foreach (Pointer arg in pre.args)
             {
                 if (!varMap.ContainsKey(arg)) 
                     varMap[arg] = arg.Clone();
@@ -112,8 +116,8 @@ public class Action
         clone.effects = new List<Predicate>();
         foreach (Predicate eff in this.effects)
         {
-            List<SharedVar> clonedArgs = new List<SharedVar>();
-            foreach (SharedVar arg in eff.args)
+            List<Pointer> clonedArgs = new List<Pointer>();
+            foreach (Pointer arg in eff.args)
             {
                 if (!varMap.ContainsKey(arg)) 
                     varMap[arg] = arg.Clone();
@@ -134,8 +138,8 @@ public class Action
         Action clone = new Action();
 
         // Args
-        clone.actionArgs = new List<SharedVar>();
-        foreach(SharedVar arg in actionArgs) 
+        clone.actionArgs = new List<Pointer>();
+        foreach(Pointer arg in actionArgs) 
             clone.actionArgs.Add(arg.Clone());
 
         // Precnditions

@@ -29,7 +29,7 @@ public class Node
     public bool isGoal(Node initNode)
     {
         List<Predicate> initPreds = initNode.GetState().GetPredicates();
-        List<Predicate> nodePreds = state.GetPredicates();
+        List<Predicate> nodePreds = this.state.GetPredicates();
 
         foreach (Predicate p in nodePreds)
         {

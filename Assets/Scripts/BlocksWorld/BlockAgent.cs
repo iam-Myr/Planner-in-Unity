@@ -17,6 +17,7 @@ public class BlockAgent : MonoBehaviour
 
     private void Start()
     {
+
         // ACtion init
         actionList = new List<Action>
         {
@@ -27,11 +28,11 @@ public class BlockAgent : MonoBehaviour
         planner = new BlockPlanner(actionList);
         
         // Blocks
-        SharedVar A = new SharedVar();
-        SharedVar B = new SharedVar();
-        SharedVar C = new SharedVar();
-        SharedVar D = new SharedVar();
-        SharedVar E = new SharedVar();
+        Pointer A = new Pointer();
+        Pointer B = new Pointer();
+        Pointer C = new Pointer();
+        Pointer D = new Pointer();
+        Pointer E = new Pointer();
 
         A.value = blockA;
         B.value = blockB;
@@ -41,17 +42,17 @@ public class BlockAgent : MonoBehaviour
 
         // Init state
         currentState = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {B}), // isClear(B)
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {C}), // isClear(C)
-            new Predicate(PredicateLibrary.isClear, new List<SharedVar> {E}), // isClear(E)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> {B, A}), // isOn(B, A)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> {A, D}) // isOn(A, D)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {B}), // isClear(B)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {C}), // isClear(C)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {E}), // isClear(E)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, A}), // isOn(B, A)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, D}) // isOn(A, D)
         );
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { B, C }), // isOn(B, C)
-            new Predicate(PredicateLibrary.isOn, new List<SharedVar> { A, B }) // isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { B, E }) // isOn(B, C)
+            //new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }) // isOn(A, B)
         );
 
         // Plan!
