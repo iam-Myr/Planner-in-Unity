@@ -1,10 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.Rendering.VolumeComponent;
 
 public class WorldState 
 {
@@ -23,7 +19,6 @@ public class WorldState
         }
         return this;
     }
-
 
     public WorldState RemovePredicates(params Predicate[] args)
     {

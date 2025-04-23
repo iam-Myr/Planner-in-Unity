@@ -67,10 +67,11 @@ public class Predicate
 
 }
 
+
 public class Action
 {
     protected string actionName;
-    protected List<Pointer> actionArgs = new List<Pointer>();
+    public List<Pointer> actionArgs = new List<Pointer>();
     protected List<Predicate> preconditions = new List<Predicate>();
     protected List<Predicate> effects = new List<Predicate>();
 

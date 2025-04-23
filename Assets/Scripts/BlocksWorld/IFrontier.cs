@@ -1,9 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
-using UnityEngine.InputSystem.LowLevel;
 
 
 public interface IFrontier<T>
