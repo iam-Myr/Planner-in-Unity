@@ -4,9 +4,7 @@ using UnityEngine;
 
 // TO DO
 // [X] Goal Set: A set of unsatisfied goals
-// [X] Different action matches: All possible actions for a state
 // [X] Rewrite findChildren
-// [X] Visited: Prevent Loops ASAP
 // [] BFS and DFS using IFrontier
 // [] AllDifferent
 // [] Node cost: For heuristic, could be number of goals satisfied
@@ -127,56 +125,78 @@ public class BlockPlanner
 
         // For all goals
         foreach (Predicate goalPredicate in currentNode.GetUnsatisfiedGoals())
-            
         {
-             // For all actions
+            // For all actions
             foreach (Action action in allActions)
             {
-                // DEEP COPY action for safety
                 Action actionCopy = action.CreateNew();
-                List<Predicate> goalsToBeRemoved = new List<Predicate>();
+                List<Predicate> matchedGoals;
 
-                // if action can unify with goal
-
-                // For all effect predicates
-                foreach (Predicate actionEffect in actionCopy.GetEffects())
+                // Check if this action helps satisfy the current goal
+                if (TryUnifyEffectsWithGoals(actionCopy, new List<Predicate> { goalPredicate }, out matchedGoals))
                 {
-                    if (canUnify(actionEffect, goalPredicate))
+                    // Now match it with any instantiated goals as well
+                    TryUnifyEffectsWithGoals(actionCopy, currentNode.GetInstantiatedGoals(), out List<Predicate> instantiatedMatchedGoals);
+
+                    // Merge matched goals
+                    matchedGoals.AddRange(instantiatedMatchedGoals);
+
+                    Node newNode = CreateNewNode(currentNode, actionCopy, matchedGoals);
+                    UnifyWithInit(newNode, initNode);
+                    RemoveSatisfiedByInit(newNode, initNode);
+
+                    if (!isLoopGoals(newNode))
                     {
-                        //Debug.Log($"Found unifying action:");
-                        //actionCopy.Print();
-
-                        // Unify effect and goal args 
-                        Unify(actionEffect, goalPredicate);
-
-                        // NEXT: Search if action has INSTANTIATED effect that satisfies goal
-                        goalsToBeRemoved.Add(goalPredicate);
-
-                        // Create new state 
-                        WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
-                                                                                                                      // MAKE IT SO YOU DON'T ADD INIT PREDICATES
-                        newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
-                        newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
-
-                        // Create new node
-                        Node newNode = new Node(currentNode, newState, actionCopy);
-
-                        //Init Preprocessing
-                        UnifyWithInit(newNode, initNode);
-                        RemoveSatisfiedByInit(newNode, initNode);
-
-                        if(!isLoopGoals(newNode) && !newNode.isContradiction())
-                        {
-                            frontier.Enqueue(newNode);
-                            childrenFound++;
-                        }
-                    }     
+                        frontier.Enqueue(newNode);
+                        childrenFound++;
+                    }
                 }
             }
+
         }
 
         Debug.Log($"Found {childrenFound} children!");
     }
+
+
+    // A more general-purpose unification function
+    private bool TryUnifyEffectsWithGoals(Action action, IEnumerable<Predicate> goals, out List<Predicate> matchedGoals)
+    {
+        matchedGoals = new List<Predicate>();
+
+        foreach (Predicate goal in goals)
+        {
+            foreach (Predicate effect in action.GetEffects())
+            {
+                if (canUnify(effect, goal))
+                {
+                    Unify(effect, goal);
+
+                    // Avoid duplicates
+                    if (!matchedGoals.Contains(goal))
+                        matchedGoals.Add(goal);
+
+                    break; // avoid matching the same goal multiple times
+                }
+            }
+        }
+
+        return matchedGoals.Count > 0;
+    }
+
+
+
+    // Function to create a new state with action preconditions and goals removed
+    private Node CreateNewNode(Node currentNode, Action actionCopy, List<Predicate> goalsToBeRemoved)
+    {
+        WorldState newState = new WorldState().AddPredicates(currentNode.GetState().GetPredicates().ToArray()); // Copy current state
+        newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
+        newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove satisfied goals
+        return new Node(currentNode, newState, actionCopy); ;
+    }
+
+
+
 
     // Example: on(current, to) with on(B, A) 
     public bool canUnify(Predicate p1, Predicate p2)

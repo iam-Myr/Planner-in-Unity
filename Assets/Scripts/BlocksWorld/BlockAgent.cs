@@ -51,8 +51,8 @@ public class BlockAgent : MonoBehaviour
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, B}), // isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}) // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}), // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, B}) // isOn(A, B)
         );
 
         // Plan!

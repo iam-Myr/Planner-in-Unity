@@ -97,6 +97,24 @@ public class Node
         Debug.Log("================================== END ANALYSIS ====================================");
     }
 
+    public List<Predicate> GetInstantiatedGoals()
+    {
+        List<Predicate> instantiatedGoals = new List<Predicate>();
+
+        // Iterate over all unsatisfied goals and check if they are instantiated
+        foreach (Predicate goal in unsatisfiedGoals)
+        {
+            if (goal.IsInstantiated()) // Check if all arguments are non-null
+            {
+                instantiatedGoals.Add(goal);
+            }
+        }
+
+        return instantiatedGoals;
+    }
+
+
+
     public bool isContradiction() => state.IsContradiction();
 
     public void PrintGoals()
