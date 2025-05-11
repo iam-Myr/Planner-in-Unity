@@ -6,6 +6,11 @@ public class Pointer
     public object value; // Can be a direct value or another Pointer (logical alias)
 
     public Pointer() { }
+    public Pointer(object value)
+    {
+        this.value = value;
+    }
+
 
 
     /// Gets the final value by recursively resolving any Pointer chain.

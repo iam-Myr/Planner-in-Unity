@@ -28,17 +28,11 @@ public class BlockAgent : MonoBehaviour
         planner = new BlockPlanner(actionList);
         
         // Blocks
-        Pointer A = new Pointer();
-        Pointer B = new Pointer();
-        Pointer C = new Pointer();
-        Pointer D = new Pointer();
-        Pointer E = new Pointer();
-
-        A.value = blockA;
-        B.value = blockB;
-        C.value = blockC;
-        D.value = blockD;
-        E.value = blockE;
+        Pointer A = new Pointer(blockA);
+        Pointer B = new Pointer(blockB);
+        Pointer C = new Pointer(blockC);
+        Pointer D = new Pointer(blockD);
+        Pointer E = new Pointer(blockE);
 
         // Init state
         currentState = new WorldState().AddPredicates(
@@ -61,7 +55,6 @@ public class BlockAgent : MonoBehaviour
         PrintPlan(currentPlan);
         // Execute !!
         ExecutePlan(currentPlan);
-
     }
 
     public void PrintPlan(List<Action> plan)

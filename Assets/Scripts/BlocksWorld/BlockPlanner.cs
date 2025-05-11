@@ -82,23 +82,6 @@ public class BlockPlanner
 
     #region Init
 
-    public void RemoveSatisfiedByInit(Node node, Node init)
-    {
-        WorldState currentState = node.GetState();
-        List<Predicate> currentPredicates = currentState.GetPredicates();
-        List<Predicate> initAtoms = init.GetState().GetPredicates();
-
-        // Remove goals already satisfied by init state
-        foreach (Predicate currentPredicate in currentPredicates.ToList()) // Use ToList to safely modify the list while iterating
-        {
-            foreach(Predicate initAtom in initAtoms.ToList())
-            if (currentPredicate.isSame(initAtom)) // If goal atom is already satisfied by the init state
-            {
-                Debug.Log($"Found goal satisfied by init: {currentPredicate.ToString()}");
-                node.RemoveGoal(currentPredicate); // Remove satisfied predicate from the goal list
-            }
-        }
-    }
 
     public void UnifyWithInit(Node node, Node init)
     {
@@ -125,78 +108,72 @@ public class BlockPlanner
 
         // For all goals
         foreach (Predicate goalPredicate in currentNode.GetUnsatisfiedGoals())
+
         {
             // For all actions
             foreach (Action action in allActions)
             {
+                // DEEP COPY action for safety
                 Action actionCopy = action.CreateNew();
-                List<Predicate> matchedGoals;
+                List<Predicate> goalsToBeRemoved = new List<Predicate>();
 
-                // Check if this action helps satisfy the current goal
-                if (TryUnifyEffectsWithGoals(actionCopy, new List<Predicate> { goalPredicate }, out matchedGoals))
+                // if action can unify with goal (is useful)
+                foreach (Predicate actionEffect in actionCopy.GetEffects())
                 {
-                    // Now match it with any instantiated goals as well
-                    TryUnifyEffectsWithGoals(actionCopy, currentNode.GetInstantiatedGoals(), out List<Predicate> instantiatedMatchedGoals);
-
-                    // Merge matched goals
-                    matchedGoals.AddRange(instantiatedMatchedGoals);
-
-                    Node newNode = CreateNewNode(currentNode, actionCopy, matchedGoals);
-                    UnifyWithInit(newNode, initNode);
-                    RemoveSatisfiedByInit(newNode, initNode);
-
-                    if (!isLoopGoals(newNode))
+                    if (canUnify(actionEffect, goalPredicate)) // action is useful
                     {
-                        frontier.Enqueue(newNode);
-                        childrenFound++;
+
+                        // Unify effect and goal args 
+                        Unify(actionEffect, goalPredicate);
+                        goalsToBeRemoved.Add(goalPredicate);
+                        break;
                     }
                 }
+         
+                // Create new state 
+                WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
+                                                                                                                      // MAKE IT SO YOU DON'T ADD INIT PREDICATES
+                newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
+
+                // Unify state with init too
+                foreach (Predicate p in newState.GetPredicates())
+                {
+                    foreach (Predicate p_i in initNode.GetState().GetPredicates())
+                    {
+                        if (canUnify(p, p_i)) // action is useful
+                        {
+                            // Unify effect and goal args 
+                            Unify(p, p_i);
+                        }
+                    }
+                }
+
+                // check new goals that can be satisfied
+                 // if action can unify with goal (is useful)
+                foreach (Predicate p_e in actionCopy.GetEffects())
+                {
+                    foreach (Predicate p_g in currentNode.GetUnsatisfiedGoals())
+                    if (p_e.isSame(p_g)) 
+                    {
+                        goalsToBeRemoved.Add(p_g);
+                    }
+                }
+
+
+                newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
+
+                // Create new node
+                Node newNode = new Node(currentNode, newState, actionCopy);
+
+                if (!isLoopGoals(newNode))// && !newNode.isContradiction())
+                {
+                    frontier.Enqueue(newNode);
+                    childrenFound++;
+                }    
             }
-
         }
-
         Debug.Log($"Found {childrenFound} children!");
     }
-
-
-    // A more general-purpose unification function
-    private bool TryUnifyEffectsWithGoals(Action action, IEnumerable<Predicate> goals, out List<Predicate> matchedGoals)
-    {
-        matchedGoals = new List<Predicate>();
-
-        foreach (Predicate goal in goals)
-        {
-            foreach (Predicate effect in action.GetEffects())
-            {
-                if (canUnify(effect, goal))
-                {
-                    Unify(effect, goal);
-
-                    // Avoid duplicates
-                    if (!matchedGoals.Contains(goal))
-                        matchedGoals.Add(goal);
-
-                    break; // avoid matching the same goal multiple times
-                }
-            }
-        }
-
-        return matchedGoals.Count > 0;
-    }
-
-
-
-    // Function to create a new state with action preconditions and goals removed
-    private Node CreateNewNode(Node currentNode, Action actionCopy, List<Predicate> goalsToBeRemoved)
-    {
-        WorldState newState = new WorldState().AddPredicates(currentNode.GetState().GetPredicates().ToArray()); // Copy current state
-        newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
-        newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove satisfied goals
-        return new Node(currentNode, newState, actionCopy); ;
-    }
-
-
-
 
     // Example: on(current, to) with on(B, A) 
     public bool canUnify(Predicate p1, Predicate p2)
@@ -215,7 +192,6 @@ public class BlockPlanner
 
         return true;
     }
-
 
 
     public void Unify(Predicate p1, Predicate p2)
