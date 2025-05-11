@@ -21,7 +21,9 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            new ActionMove()
+            //new ActionMove()
+            new ActionDrop(),
+            new ActionPickup()
         };
 
         // Init planner with all actions
@@ -40,13 +42,14 @@ public class BlockAgent : MonoBehaviour
             new Predicate(PredicateLibrary.isClear, new List<Pointer> {C}), // isClear(C)
             new Predicate(PredicateLibrary.isClear, new List<Pointer> {E}), // isClear(E)
             new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, A}), // isOn(B, A)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, D}) // isOn(A, D)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, D}), // isOn(A, D)
+            new Predicate(PredicateLibrary.isHandEmpty, new List<Pointer> {}) 
         );
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}), // isOn(B, C)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, B}) // isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }), // isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}) // isOn(B, C)
         );
 
         // Plan!

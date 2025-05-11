@@ -10,4 +10,15 @@ public static class PredicateLibrary
     {
         return true;
     }
+
+    public static bool isHolding(object[] args)
+    {
+        return true;
+    }
+
+    public static bool isHandEmpty(object[] args)
+    {
+        return true;
+    }
 }
+
