@@ -27,9 +27,9 @@ public class ActionPickup : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}), // isClear(current)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {current, from}), // isOn(current, from)
-            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}) 
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}, true), // isClear(current)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {current, from}, true), // isOn(current, from)
+            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true) 
         };
     }
     #endregion
@@ -39,8 +39,9 @@ public class ActionPickup : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isHolding, new List <Pointer> {current}), // isClear(from)
-            new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}) // isClear(from)
+            new Predicate(PredicateLibrary.isHolding, new List <Pointer> {current}, true), // isClear(from)
+            new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}, true), // isClear(from)
+            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, false)
         };
     }
 

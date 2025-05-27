@@ -21,9 +21,9 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            //new ActionMove()
-            new ActionDrop(),
-            new ActionPickup()
+            //new ActionDrop(),
+            //new ActionPickup(),
+            new ActionMove()
         };
 
         // Init planner with all actions
@@ -38,18 +38,18 @@ public class BlockAgent : MonoBehaviour
 
         // Init state
         currentState = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {B}), // isClear(B)
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {C}), // isClear(C)
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {E}), // isClear(E)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, A}), // isOn(B, A)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, D}), // isOn(A, D)
-            new Predicate(PredicateLibrary.isHandEmpty, new List<Pointer> {}) 
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {B}, true), // isClear(B)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {C}, true), // isClear(C)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {E}, true), // isClear(E)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, A}, true), // isOn(B, A)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, D}, true), // isOn(A, D)
+            new Predicate(PredicateLibrary.isHandEmpty, new List<Pointer> {}, true) 
         );
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }), // isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}) // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, C}, true), // isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, E}, true) // isOn(B, C)
         );
 
         // Plan!

@@ -8,13 +8,15 @@ public class Predicate
 {
     public Func<object[], bool> func { get; private set; } // CHECK THIS OUT
     public List<Pointer> args { get; private set; }
+    public bool not_negated { get; private set; }
 
     public Predicate() {}
 
-    public Predicate(Func<object[], bool> func, List<Pointer> args)
+    public Predicate(Func<object[], bool> func, List<Pointer> args, bool neg)
     {
         this.func = func;
         this.args = args;
+        this.not_negated = neg;
     }
 
     internal Predicate Clone()
@@ -194,7 +196,6 @@ public class Action
 
 
     }
-
 
 
     public bool isValid()

@@ -97,6 +97,14 @@ public class BlockPlanner
         }
     }
 
+    public bool IsRemovingGoal(Action action, List<Predicate> goals)
+    {
+        foreach (Predicate g in goals)
+        {
+            
+        }
+    }
+
     #endregion
 
 
@@ -158,7 +166,6 @@ public class BlockPlanner
                         goalsToBeRemoved.Add(p_g);
                     }
                 }
-
 
                 newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
 

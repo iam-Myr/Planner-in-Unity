@@ -27,8 +27,8 @@ public class ActionDrop : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isHolding, new List<Pointer> {current}), // isClear(current)
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}), // isClear(to)
+            new Predicate(PredicateLibrary.isHolding, new List<Pointer> {current}, true), // isClear(current)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}, true), // isClear(to)
         };
     }
     #endregion
@@ -38,7 +38,9 @@ public class ActionDrop : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}) // isOn(current, to)
+            new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
+            new Predicate(PredicateLibrary.isHolding, new List<Pointer> {current}, false),
+            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true)
         };
     }
 

@@ -28,9 +28,9 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}), // isClear(current)
-            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}), // isClear(to)
-            new Predicate(PredicateLibrary.isOn, new List < Pointer > {current, from}) // isOn(current, from)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}, true), // isClear(current)
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}, true), // isClear(to)
+            new Predicate(PredicateLibrary.isOn, new List < Pointer > {current, from}, true) // isOn(current, from)
         };
     }
     #endregion
@@ -40,8 +40,8 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}), // isClear(from)
-            new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}) // isOn(current, to)
+            new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}, true), // isClear(from)
+            new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}, true) // isOn(current, to)
         };
     }
 
