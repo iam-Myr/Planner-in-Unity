@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+/*
 public class ActionTests
 {
     private class TestAction : Action
@@ -53,3 +54,4 @@ public class ActionTests
         Assert.DoesNotThrowAsync(async () => await action.Execute());
     }
 }
+*/

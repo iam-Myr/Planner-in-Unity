@@ -113,7 +113,7 @@ public class Action
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.preconditions.Add(new Predicate(pre.func, clonedArgs));
+            clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.not_negated));
         }
 
         clone.effects = new List<Predicate>();
@@ -126,7 +126,7 @@ public class Action
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.effects.Add(new Predicate(eff.func, clonedArgs));
+            clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.not_negated));
         }
 
         clone.actionName = this.actionName;
@@ -196,6 +196,58 @@ public class Action
 
 
     }
+
+    public bool IsUseful(Node node)
+    {
+        var unsatisfiedGoals = node.GetUnsatisfiedGoals();
+        foreach (Predicate goal in unsatisfiedGoals)
+        {
+            if (effects.Any(effect => Unification.CanUnify(effect, goal)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<Predicate> SatisfyOtherGoals(List<Predicate> unsatisfiedGoals)
+    {
+        List<Predicate> satisfiedGoals = new List<Predicate>();
+
+        foreach (Predicate effect in effects)
+        {
+            foreach (Predicate goal in unsatisfiedGoals)
+            {
+                // Check if goal is fully instantiated and matches the effect
+                if (goal.IsInstantiated() && effect.isSame(goal))
+                {
+                    satisfiedGoals.Add(goal);
+                }
+            }
+        }
+
+        return satisfiedGoals;
+    }
+
+    public bool IsRemovingGoal(List<Predicate> goals)
+    {
+        foreach (Predicate effect in effects)
+        {
+            foreach (Predicate goal in goals)
+            {
+                if (effect.isSame(goal))
+                {
+                    // If predicates are same but negation differs, effect removes the goal
+                    if (effect.not_negated != goal.not_negated)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
 
     public bool isValid()

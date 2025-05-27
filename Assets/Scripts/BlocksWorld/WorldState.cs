@@ -24,10 +24,11 @@ public class WorldState
     {
         foreach (var atom in args)
         {
-            predicates.Remove(atom);
+            predicates.RemoveAll(p => p.isSame(atom));
         }
         return this;
     }
+
 
     public bool IsContradiction()
     {
@@ -55,6 +56,21 @@ public class WorldState
 
         return false;
     }
+
+    public void UnifyWith(WorldState other)
+    {
+        foreach (Predicate p in this.predicates)
+        {
+            foreach (Predicate otherP in other.predicates)
+            {
+                if (Unification.CanUnify(p, otherP))
+                {
+                    Unification.Unify(p, otherP);
+                }
+            }
+        }
+    }
+
 
 
     public void Print()

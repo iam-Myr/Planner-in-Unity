@@ -3,6 +3,7 @@ using System.Linq;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System;
+
 public class BlockAgent : MonoBehaviour
 {
     private BlockPlanner planner;
@@ -21,9 +22,9 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            //new ActionDrop(),
-            //new ActionPickup(),
-            new ActionMove()
+            new ActionMove(),
+            new ActionDrop(),
+            new ActionPickup()
         };
 
         // Init planner with all actions
@@ -48,8 +49,8 @@ public class BlockAgent : MonoBehaviour
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {A, C}, true), // isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, E}, true) // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true), // isOn(A, B)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}, true) // isOn(B, C)
         );
 
         // Plan!

@@ -113,8 +113,6 @@ public class Node
         return instantiatedGoals;
     }
 
-
-
     public bool isContradiction() => state.IsContradiction();
 
     public void PrintGoals()

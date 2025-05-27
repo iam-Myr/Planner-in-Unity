@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using SysDiag = System.Diagnostics;
+
+
 
 // TO DO
 // [X] Goal Set: A set of unsatisfied goals
@@ -25,11 +28,11 @@ public class BlockPlanner
 
     public List<Action> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
     {
+        SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
+
 
         Node rootNode = new Node(null, goalState, null);
         initNode = new Node(null, initState, null);
-        //Debug.Log("GOAL");
-        //goalNode.Print();
 
         frontier.Enqueue(rootNode);
         Node currentNode;
@@ -40,20 +43,28 @@ public class BlockPlanner
             currentNode = frontier.Dequeue();
             currentNode.Print();
 
-            if (currentNode.isGoal(initNode)) 
+            if (currentNode.isGoal(initNode))
             {
-                Debug.Log($"Goal in {step} steps and {currentNode.GetDepth()} depth.");
-                return ReconstructPlan(currentNode); }
+                stopwatch.Stop();
+                Debug.Log($"Goal found in {step} steps and {currentNode.GetDepth()} depth.");
+                Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+                return ReconstructPlan(currentNode);
+            }
 
             if (!isLoopGoals(currentNode))
                 FindChildren(currentNode);
-                //Debug.Log($"Frontier size: {frontier.Count}");
-                visited.Add(currentNode);
-                step++;
+
+            visited.Add(currentNode);
+            step++;
         }
+
+        stopwatch.Stop();
+        Debug.Log($"Planning stopped after {step} steps.");
+        Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
 
         return null; // No plan found
     }
+
 
     // NEXT: make it keep shortest path
     public bool isLoop(Node node)
@@ -91,19 +102,13 @@ public class BlockPlanner
         foreach (Predicate p in currentPredicates)
         {
             foreach (Predicate init_p in initAtoms) {
-                if (canUnify(p, init_p))
-                    Unify(p, init_p);
+                if (Unification.CanUnify(p, init_p))
+                    Unification.Unify(p, init_p);
             }
         }
     }
 
-    public bool IsRemovingGoal(Action action, List<Predicate> goals)
-    {
-        foreach (Predicate g in goals)
-        {
-            
-        }
-    }
+  
 
     #endregion
 
@@ -128,46 +133,36 @@ public class BlockPlanner
                 // if action can unify with goal (is useful)
                 foreach (Predicate actionEffect in actionCopy.GetEffects())
                 {
-                    if (canUnify(actionEffect, goalPredicate)) // action is useful
+                    if (Unification.CanUnify(actionEffect, goalPredicate)) // action is useful
                     {
 
                         // Unify effect and goal args 
-                        Unify(actionEffect, goalPredicate);
+                        Unification.Unify(actionEffect, goalPredicate);
                         goalsToBeRemoved.Add(goalPredicate);
                         break;
                     }
                 }
-         
+
+                // **NEW CHECK: skip action if it removes any goal**
+                if (actionCopy.IsRemovingGoal(currentNode.GetUnsatisfiedGoals()))
+                {
+                    // Skip this action since it removes a goal
+                    continue;
+                }
+
                 // Create new state 
                 WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
                                                                                                                       // MAKE IT SO YOU DON'T ADD INIT PREDICATES
                 newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
 
                 // Unify state with init too
-                foreach (Predicate p in newState.GetPredicates())
-                {
-                    foreach (Predicate p_i in initNode.GetState().GetPredicates())
-                    {
-                        if (canUnify(p, p_i)) // action is useful
-                        {
-                            // Unify effect and goal args 
-                            Unify(p, p_i);
-                        }
-                    }
-                }
+                newState.UnifyWith(initNode.GetState());
 
-                // check new goals that can be satisfied
-                 // if action can unify with goal (is useful)
-                foreach (Predicate p_e in actionCopy.GetEffects())
-                {
-                    foreach (Predicate p_g in currentNode.GetUnsatisfiedGoals())
-                    if (p_e.isSame(p_g)) 
-                    {
-                        goalsToBeRemoved.Add(p_g);
-                    }
-                }
 
-                newState.RemovePredicates(goalsToBeRemoved.ToArray()); // Remove previous goal atom
+                // CHECK IF THE USEFUL ACTION CAN SATISFY ANY OTHER FULLY INSTANTIATED GOALS (THIS IS VERY IMPORTANT!)
+                goalsToBeRemoved.AddRange(actionCopy.SatisfyOtherGoals(currentNode.GetUnsatisfiedGoals()));
+
+                newState.RemovePredicates(goalsToBeRemoved.ToArray()); 
 
                 // Create new node
                 Node newNode = new Node(currentNode, newState, actionCopy);
@@ -182,39 +177,6 @@ public class BlockPlanner
         Debug.Log($"Found {childrenFound} children!");
     }
 
-    // Example: on(current, to) with on(B, A) 
-    public bool canUnify(Predicate p1, Predicate p2)
-    {
-        if (p1.func.Method.Name != p2.func.Method.Name) return false;
-        if (p1.args.Count != p2.args.Count) return false;
-
-        for (int i = 0; i < p1.args.Count; i++)
-        {
-            var a = p1.args[i].Get();
-            var b = p2.args[i].Get();
-
-            if (a != null && b != null && !a.Equals(b))
-                return false;
-        }
-
-        return true;
-    }
-
-
-    public void Unify(Predicate p1, Predicate p2)
-    {
-        for (int i = 0; i < p1.args.Count; i++)
-        {
-            Pointer a = p1.args[i];
-            Pointer b = p2.args[i];
-
-            // If they are different, unify them by reference
-            if (a != b)
-            {
-                a.BindTo(b);
-            }
-        }
-    }
 
 
     // Chooses a goal atom. Currently returns the top one
