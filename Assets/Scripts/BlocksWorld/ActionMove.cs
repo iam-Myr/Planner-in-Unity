@@ -21,6 +21,20 @@ public class ActionMove : Action
         effects.AddRange(InitEffects());
     }
 
+    public ActionMove(List<Pointer> args) : base(args)
+    {
+        actionName = "Move";
+
+        // Extract meaningful references from the list
+        this.current = args[0];
+        this.to = args[1];
+        this.from = args[2];
+    }
+
+    public override Action CreateNew(List<Pointer> args)
+    {
+        return new ActionMove(args);
+    }
 
     #region Preconditions
     // Preconditions
@@ -44,6 +58,8 @@ public class ActionMove : Action
             new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}, true) // isOn(current, to)
         };
     }
+
+
 
 
     public override async Task Execute()

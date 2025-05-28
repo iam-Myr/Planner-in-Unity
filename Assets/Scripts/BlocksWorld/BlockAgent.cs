@@ -22,13 +22,10 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            new ActionMove(),
-            new ActionDrop(),
-            new ActionPickup()
+            new ActionMove()
+            //new ActionDrop(),
+            //new ActionPickup()
         };
-
-        // Init planner with all actions
-        planner = new BlockPlanner(actionList);
         
         // Blocks
         Pointer A = new Pointer(blockA);
@@ -52,6 +49,24 @@ public class BlockAgent : MonoBehaviour
             new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true), // isOn(A, B)
             new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}, true) // isOn(B, C)
         );
+
+        // Create list of all pointers
+        List<Pointer> allPointers = new() { A, B, C, D, E };
+
+        // Generate grounded actions from templates
+        List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, allPointers);
+
+        foreach(Action a in groundedActions)
+        {
+            a.Print();
+        }
+
+        // Pass them to planner
+        //planner = new BlockPlanner(groundedActions);
+
+
+        // Init planner with all actions
+        planner = new BlockPlanner(actionList);
 
         // Plan!
         currentPlan = planner.MakePlan(currentState, currentGoal, loops);
@@ -86,4 +101,6 @@ public class BlockAgent : MonoBehaviour
             await action.Execute();
         }
     }
+
+
 }

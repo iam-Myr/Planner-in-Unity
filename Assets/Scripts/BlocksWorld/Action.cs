@@ -23,6 +23,7 @@ public class Predicate
     {
         Predicate clone = new Predicate();
         clone.func = func;
+        clone.not_negated = not_negated;
 
         // Args
         clone.args = new List<Pointer>();
@@ -66,16 +67,29 @@ public class Predicate
         string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
         return $"{funcName}({argsString})";
     }
-
 }
-
 
 public class Action
 {
     protected string actionName;
     public List<Pointer> actionArgs = new List<Pointer>();
-    protected List<Predicate> preconditions = new List<Predicate>();
+    protected List<Predicate> preconditions = new List<Predicate>(); 
     protected List<Predicate> effects = new List<Predicate>();
+
+    public Action() { }
+
+    public Action(List<Pointer> args)
+    {
+        actionArgs = args;
+
+        preconditions.AddRange(InitPreconditions());
+        effects.AddRange(InitEffects());
+    }
+
+    public virtual Action CreateNew(List<Pointer> args)
+    {
+        return new Action(args);
+    }
 
     public virtual List<Predicate> InitPreconditions() => new();
     public virtual List<Predicate> InitEffects() => new();
@@ -133,7 +147,7 @@ public class Action
         return clone;
     }
 
-    public virtual Action CreateNew() => (Action)Activator.CreateInstance(this.GetType());
+    public virtual Action CreateEmpty() => (Action)Activator.CreateInstance(this.GetType());
 
     // Cool ChatGPT code probably super inefficient 
     public virtual Action Clone1()
@@ -247,7 +261,6 @@ public class Action
         }
         return false;
     }
-
 
 
     public bool isValid()

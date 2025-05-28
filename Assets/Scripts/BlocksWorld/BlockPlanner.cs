@@ -94,20 +94,6 @@ public class BlockPlanner
     #region Init
 
 
-    public void UnifyWithInit(Node node, Node init)
-    {
-        List<Predicate> currentPredicates = node.GetUnsatisfiedGoals();
-        List<Predicate> initAtoms = init.GetState().GetPredicates();
-
-        foreach (Predicate p in currentPredicates)
-        {
-            foreach (Predicate init_p in initAtoms) {
-                if (Unification.CanUnify(p, init_p))
-                    Unification.Unify(p, init_p);
-            }
-        }
-    }
-
   
 
     #endregion
@@ -121,13 +107,12 @@ public class BlockPlanner
 
         // For all goals
         foreach (Predicate goalPredicate in currentNode.GetUnsatisfiedGoals())
-
         {
             // For all actions
             foreach (Action action in allActions)
             {
                 // DEEP COPY action for safety
-                Action actionCopy = action.CreateNew();
+                Action actionCopy = action.CreateEmpty();
                 List<Predicate> goalsToBeRemoved = new List<Predicate>();
 
                 // if action can unify with goal (is useful)
