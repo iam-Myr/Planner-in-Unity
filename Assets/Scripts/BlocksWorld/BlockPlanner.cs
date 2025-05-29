@@ -46,7 +46,7 @@ public class BlockPlanner
             if (currentNode.isGoal(initNode))
             {
                 stopwatch.Stop();
-                Debug.Log($"Goal found in {step} steps and {currentNode.GetDepth()} depth.");
+                Debug.Log($"Goal found in {step} steps and depth {currentNode.GetDepth()}.");
                 Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
                 return ReconstructPlan(currentNode);
             }

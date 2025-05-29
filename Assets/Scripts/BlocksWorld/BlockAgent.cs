@@ -14,7 +14,7 @@ public class BlockAgent : MonoBehaviour
 
     public Block blockA, blockB, blockC, blockD, blockE;
 
-    public int loops;
+    public const int loops = 1000;
 
     private void Start()
     {
@@ -22,7 +22,7 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            new ActionMove(),
+            //new ActionMove(),
             new ActionDrop(),
             new ActionPickup()
         };
@@ -49,8 +49,9 @@ public class BlockAgent : MonoBehaviour
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true), // isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}, true) // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { B, C }, true), // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true) // isOn(A, B)
+            
         );
 
         // Plan!
