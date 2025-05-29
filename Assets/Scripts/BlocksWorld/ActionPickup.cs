@@ -20,6 +20,22 @@ public class ActionPickup : Action
         effects.AddRange(InitEffects());
     }
 
+    public ActionPickup(List<Pointer> args) : base(args)
+    {
+        actionName = "Pickup";
+
+        // Extract meaningful references from the list
+        this.current = args[0];
+        this.from = args[1];
+
+        preconditions.AddRange(InitPreconditions());
+        effects.AddRange(InitEffects());
+    }
+
+    public override Action CreateNew(List<Pointer> args)
+    {
+        return new ActionPickup(args);
+    }
 
     #region Preconditions
     // Preconditions
@@ -29,7 +45,7 @@ public class ActionPickup : Action
         {
             new Predicate(PredicateLibrary.isClear, new List<Pointer> {current}, true), // isClear(current)
             new Predicate(PredicateLibrary.isOn, new List<Pointer> {current, from}, true), // isOn(current, from)
-            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true) 
+            new Predicate(PredicateLibrary.isHandEmpty, new List <Pointer> {}, true) 
         };
     }
     #endregion
@@ -41,7 +57,7 @@ public class ActionPickup : Action
         {
             new Predicate(PredicateLibrary.isHolding, new List <Pointer> {current}, true), // isClear(from)
             new Predicate(PredicateLibrary.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, false)
+            new Predicate(PredicateLibrary.isHandEmpty, new List <Pointer> {}, false)
         };
     }
 

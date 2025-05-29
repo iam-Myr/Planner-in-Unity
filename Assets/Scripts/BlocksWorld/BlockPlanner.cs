@@ -1,57 +1,44 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
-
-
-
-// TO DO
-// [X] Goal Set: A set of unsatisfied goals
-// [X] Rewrite findChildren
-// [] BFS and DFS using IFrontier
-// [] AllDifferent
-// [] Node cost: For heuristic, could be number of goals satisfied
-// [] Scriptable Objects
 
 public class BlockPlanner
 {
     private List<Action> allActions;
     private Queue<Node> frontier = new Queue<Node>();
-    List<Node> visited = new List<Node>();
-    Node initNode;
+    private List<Node> visited = new List<Node>();
+    private Node initNode;
 
-    public BlockPlanner(List<Action> actions)
+    public BlockPlanner(List<Action> groundedActions)
     {
-        Debug.Log("Planner woke up");
-        allActions = actions;
+        Debug.Log("Planner initialized (grounded-only)");
+        allActions = groundedActions;
     }
 
     public List<Action> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
     {
         SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
-
         Node rootNode = new Node(null, goalState, null);
         initNode = new Node(null, initState, null);
 
         frontier.Enqueue(rootNode);
-        Node currentNode;
         int step = 0;
 
         while (frontier.Count > 0 && step < maxSteps)
         {
-            currentNode = frontier.Dequeue();
+            Node currentNode = frontier.Dequeue();
             currentNode.Print();
 
             if (currentNode.isGoal(initNode))
             {
                 stopwatch.Stop();
-                Debug.Log($"Goal found in {step} steps and {currentNode.GetDepth()} depth.");
+                Debug.Log($"Goal found in {step} steps and depth {currentNode.GetDepth()}");
                 Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
                 return ReconstructPlan(currentNode);
             }
 
-            if (!isLoopGoals(currentNode))
+            if (!IsLoop(currentNode))
                 FindChildren(currentNode);
 
             visited.Add(currentNode);
@@ -61,116 +48,59 @@ public class BlockPlanner
         stopwatch.Stop();
         Debug.Log($"Planning stopped after {step} steps.");
         Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
-
-        return null; // No plan found
+        return null;
     }
 
-
-    // NEXT: make it keep shortest path
-    public bool isLoop(Node node)
+    private bool IsLoop(Node node)
     {
-        // Node is loop if it has the same state as a previously visited node
-        foreach (Node n in visited)
-            if (n.HasSameState(node))
-            {
-                Debug.Log("Found loop!");
-                return true;
-            }
-        return false;
-    }
-
-    public bool isLoopGoals(Node node)
-    {
-        // Node is loop if it has the same unastisfied goals as a previously visited node
         foreach (Node n in visited)
             if (n.HasSameGoals(node))
-            {
-                Debug.Log("Found loop!");
                 return true;
-            }
         return false;
     }
 
-    #region Init
-
-
-  
-
-    #endregion
-
-
-    // !!! SPAGHETTI CODE WARNING !!!!
-    public void FindChildren(Node currentNode)
+    private void FindChildren(Node currentNode)
     {
         WorldState currentState = currentNode.GetState();
+        List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
         int childrenFound = 0;
 
-        // For all goals
-        foreach (Predicate goalPredicate in currentNode.GetUnsatisfiedGoals())
+        foreach (Predicate goal in currentGoals)
         {
-            // For all actions
             foreach (Action action in allActions)
             {
-                // DEEP COPY action for safety
-                Action actionCopy = action.CreateEmpty();
-                List<Predicate> goalsToBeRemoved = new List<Predicate>();
+                // Skip actions that don't achieve the goal exactly
+                if (!action.GetEffects().Contains(goal)) continue;
 
-                // if action can unify with goal (is useful)
-                foreach (Predicate actionEffect in actionCopy.GetEffects())
+                // Ensure action doesn't remove any current goals
+                if (action.IsRemovingGoal(currentGoals)) continue;
+
+                // Build new state by regressing: replace goal with preconditions
+                WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
+                newState.AddPredicates(action.GetPreconditions().ToArray());
+                newState.RemovePredicates(goal); // remove achieved goal
+
+                // Optionally remove other goals that are also satisfied by this action
+                foreach (Predicate effect in action.GetEffects())
                 {
-                    if (Unification.CanUnify(actionEffect, goalPredicate)) // action is useful
-                    {
-
-                        // Unify effect and goal args 
-                        Unification.Unify(actionEffect, goalPredicate);
-                        goalsToBeRemoved.Add(goalPredicate);
-                        break;
-                    }
+                    if (currentGoals.Contains(effect) && effect != goal)
+                        newState.RemovePredicates(effect);
                 }
-
-                // **NEW CHECK: skip action if it removes any goal**
-                if (actionCopy.IsRemovingGoal(currentNode.GetUnsatisfiedGoals()))
-                {
-                    // Skip this action since it removes a goal
-                    continue;
-                }
-
-                // Create new state 
-                WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray()); // Copy current state
-                                                                                                                      // MAKE IT SO YOU DON'T ADD INIT PREDICATES
-                newState.AddPredicates(actionCopy.GetPreconditions().ToArray()); // Add action preconditions
-
-                // Unify state with init too
-                newState.UnifyWith(initNode.GetState());
-
-
-                // CHECK IF THE USEFUL ACTION CAN SATISFY ANY OTHER FULLY INSTANTIATED GOALS (THIS IS VERY IMPORTANT!)
-                goalsToBeRemoved.AddRange(actionCopy.SatisfyOtherGoals(currentNode.GetUnsatisfiedGoals()));
-
-                newState.RemovePredicates(goalsToBeRemoved.ToArray()); 
 
                 // Create new node
-                Node newNode = new Node(currentNode, newState, actionCopy);
+                Node newNode = new Node(currentNode, newState, action);
 
-                if (!isLoopGoals(newNode))// && !newNode.isContradiction())
+                if (!IsLoop(newNode))
                 {
                     frontier.Enqueue(newNode);
                     childrenFound++;
-                }    
+                }
             }
         }
-        Debug.Log($"Found {childrenFound} children!");
+
+        Debug.Log($"Found {childrenFound} children.");
     }
 
-
-
-    // Chooses a goal atom. Currently returns the top one
-    public Predicate ChooseGoalAtom(Node currentNode)
-    {
-       return currentNode.GetUnsatisfiedGoals()[0];
-    }
-
-    // Using the final node, traces path back to root to create plan
     private List<Action> ReconstructPlan(Node node)
     {
         List<Action> result = new List<Action>();

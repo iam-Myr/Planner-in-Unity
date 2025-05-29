@@ -2,58 +2,78 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-/*
 public class PredicateTests
 {
-    // Sample predicate function to test with
-    private bool isOnTable(object[] args)
+    // Helper to create a Predicate with simple func name and args
+    private Predicate CreatePredicate(string funcName, params Pointer[] args)
     {
-        return args.Length == 1 && args[0]?.ToString() == "BlockA";
+        Func<object[], bool> dummyFunc = _ => true; // dummy function
+        // Override func.Method.Name with reflection is complex, so let's simulate with a wrapper class or just use dummyFunc.
+
+        var pred = new Predicate(dummyFunc, new List<Pointer>(args), true);
+
+        // Ideally, you'd want to set func.Method.Name, but this is a readonly property.
+        // Instead, you could differentiate predicates by some other means in your real Equals implementation.
+        // For this test, we assume func is the same dummyFunc for all predicates.
+
+        return pred;
     }
+    // Dummy function shared among predicates
+    static Func<object[], bool> dummyFunc = args => true;
 
     [Test]
-    public void Predicate_IsSame_ReturnsTrueForEqualPredicates()
+    public void Contains_ShouldFindEqualPredicate()
     {
-        var p1 = new Pointer(); p1.Set("A");
-        var pred1 = new Predicate(PredicateLibrary.isClear, new List<Pointer> { p1 }, true);
+        Func<object[], bool> dummyFunc = args => true;
 
-        var p2 = new Pointer(); p2.Set("A");
-        var pred2 = new Predicate(PredicateLibrary.isClear, new List<Pointer> { p2 }, true);
+        var pointer1 = new Pointer("A");
+        var pointer2 = new Pointer("B");
 
-        Assert.IsTrue(pred1.isSame(pred2));
+        var pred1 = new Predicate(dummyFunc, new List<Pointer> { pointer1, pointer2 }, true);
+        var pred2 = new Predicate(dummyFunc, new List<Pointer> { pointer1.Clone(), pointer2.Clone() }, true);
+
+        var list = new List<Predicate> { pred1 };
+
+        Assert.IsTrue(list.Contains(pred2)); // Should pass now
     }
+
 
     [Test]
-    public void Predicate_IsSame_ReturnsFalseForDifferentFunctions()
+    public void Contains_ShouldNotFindDifferentPredicate()
     {
-        var p = new Pointer(); p.Set("A");
+        var pointer1 = new Pointer("A");
+        var pointer2 = new Pointer("B");
+        var pointer3 = new Pointer("C");
 
-        var pred1 = new Predicate((args) => true, new List<Pointer> { p });
-        var pred2 = new Predicate((args) => false, new List<Pointer> { p });
+        var pred1 = CreatePredicate("func1", pointer1, pointer2);
+        var pred2 = CreatePredicate("func1", pointer1, pointer3); // different args
 
-        Assert.IsFalse(pred1.isSame(pred2));
+        var list = new List<Predicate> { pred1 };
+
+        Assert.IsFalse(list.Contains(pred2), "List should not contain a different predicate");
     }
-
     [Test]
-    public void Predicate_IsInstantiated_WorksCorrectly()
+    public void Contains_ShouldFindEqualPredicate_InListOfMany()
     {
-        var p1 = new Pointer(); p1.Set("BlockA");
-        var p2 = new Pointer();
+        // Setup pointers
+        var p1 = new Pointer("X");
+        var p2 = new Pointer("Y");
+        var p3 = new Pointer("Z");
 
-        var pred = new Predicate(isOnTable, new List<Pointer> { p1 });
-        var pred2 = new Predicate(isOnTable, new List<Pointer> { p2 });
+        // Create several predicates with different args and negation flags
+        var predA = new Predicate(dummyFunc, new List<Pointer> { p1, p2 }, true);
+        var predB = new Predicate(dummyFunc, new List<Pointer> { p2, p3 }, false);
+        var predC = new Predicate(dummyFunc, new List<Pointer> { p1, p3 }, true);
 
-        Assert.IsTrue(pred.IsInstantiated());
-        Assert.IsFalse(pred2.IsInstantiated());
+        // Add them to list
+        var list = new List<Predicate> { predA, predB, predC };
+
+        // Create a new predicate equal to predA (clone args, same func, same negation)
+        var predToFind = new Predicate(dummyFunc, new List<Pointer> { p1.Clone(), p2.Clone() }, true);
+
+        // Check contains
+        bool contains = list.Contains(predToFind);
+
+        Assert.IsTrue(contains, "List should contain an equal Predicate to predToFind");
     }
-
-    [Test]
-    public void Predicate_ToString_FormatsCorrectly()
-    {
-        var p = new Pointer(); p.Set("BlockA");
-        var pred = new Predicate(isOnTable, new List<Pointer> { p });
-
-        string str = pred.ToString();
-        Assert.IsTrue(str.Contains("isOnTable") && str.Contains("BlockA"));
-    }
-} */
+}

@@ -12,7 +12,7 @@ public class WorldState
         foreach (Predicate p in args)
         {
             // Avoid adding duplicates (based on isSame)
-            if (!predicates.Any(existing => existing.isSame(p)))
+            if (!predicates.Any(existing => existing.Equals(p)))
             {
                 predicates.Add(p);
             }
@@ -24,7 +24,7 @@ public class WorldState
     {
         foreach (var atom in args)
         {
-            predicates.RemoveAll(p => p.isSame(atom));
+            predicates.RemoveAll(p => p.Equals(atom));
         }
         return this;
     }

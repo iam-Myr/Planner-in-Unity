@@ -123,7 +123,14 @@ public class Pointer
         object.Equals(this.Get(), p.Get());
 
     /// Creates a fresh, unbound logical variable (deep copy without value).
-    public Pointer Clone() => new Pointer();
+    public Pointer Clone()
+    {
+        if (value is Pointer p)
+            return p.Clone(); // Deep clone chain
+
+        return new Pointer(value); // Clone with current value
+    }
+
 
     /// Returns the resolved value as a string for debugging.
     public override string ToString() => Get()?.ToString() ?? "null";

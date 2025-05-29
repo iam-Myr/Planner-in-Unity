@@ -20,6 +20,23 @@ public class ActionDrop : Action
         effects.AddRange(InitEffects());
     }
 
+    public ActionDrop(List<Pointer> args) : base(args)
+    {
+        actionName = "Drop";
+
+        // Extract meaningful references from the list
+        this.current = args[0];
+        this.to = args[1];
+
+        preconditions.AddRange(InitPreconditions());
+        effects.AddRange(InitEffects());
+    }
+
+    public override Action CreateNew(List<Pointer> args)
+    {
+        return new ActionDrop(args);
+    }
+
 
     #region Preconditions
     // Preconditions
@@ -43,7 +60,6 @@ public class ActionDrop : Action
             new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true)
         };
     }
-
 
     public override async Task Execute()
     {

@@ -14,7 +14,7 @@ public class BlockAgent : MonoBehaviour
 
     public Block blockA, blockB, blockC, blockD, blockE;
 
-    public int loops;
+    public const int MAXSTEPS =  1000000;
 
     private void Start()
     {
@@ -22,9 +22,9 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            new ActionMove()
-            //new ActionDrop(),
-            //new ActionPickup()
+            new ActionMove(),
+            new ActionDrop(),
+            new ActionPickup()
         };
         
         // Blocks
@@ -46,8 +46,8 @@ public class BlockAgent : MonoBehaviour
 
         // Goal state
         currentGoal = new WorldState().AddPredicates(
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true), // isOn(A, B)
-            new Predicate(PredicateLibrary.isOn, new List<Pointer> {B, C}, true) // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { B, C }, true), // isOn(B, C)
+            new Predicate(PredicateLibrary.isOn, new List<Pointer> { A, B }, true) // isOn(A, B)
         );
 
         // Create list of all pointers
@@ -56,20 +56,18 @@ public class BlockAgent : MonoBehaviour
         // Generate grounded actions from templates
         List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, allPointers);
 
-        foreach(Action a in groundedActions)
+        Debug.Log(groundedActions[0].Print());
+        foreach(Predicate e in groundedActions[0].GetEffects())
         {
-            a.Print();
+            Debug.Log(e.ToString());
         }
 
         // Pass them to planner
-        //planner = new BlockPlanner(groundedActions);
-
-
-        // Init planner with all actions
-        planner = new BlockPlanner(actionList);
+        planner = new BlockPlanner(groundedActions);
+        //planner = new BlockPlanner(actionList);
 
         // Plan!
-        currentPlan = planner.MakePlan(currentState, currentGoal, loops);
+        currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
         // Print!!
         PrintPlan(currentPlan);
         // Execute !!
@@ -91,7 +89,6 @@ public class BlockAgent : MonoBehaviour
         }
         Debug.Log($"==== {plan.Count} steps ====");
     }
-
 
     public async void ExecutePlan(List<Action> plan)
     {

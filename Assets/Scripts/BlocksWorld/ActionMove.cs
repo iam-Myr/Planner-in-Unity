@@ -29,6 +29,9 @@ public class ActionMove : Action
         this.current = args[0];
         this.to = args[1];
         this.from = args[2];
+
+        preconditions.AddRange(InitPreconditions());
+        effects.AddRange(InitEffects());
     }
 
     public override Action CreateNew(List<Pointer> args)
@@ -58,9 +61,6 @@ public class ActionMove : Action
             new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}, true) // isOn(current, to)
         };
     }
-
-
-
 
     public override async Task Execute()
     {

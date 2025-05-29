@@ -43,7 +43,7 @@ public class Node
     {
         foreach (Predicate p_list in pList)
         {
-            if (p.isSame(p_list))
+            if (p.Equals(p_list))
             {
                 return true;
             }
@@ -62,7 +62,7 @@ public class Node
 
         foreach (Predicate p in thisPreds)
         {
-            if (!otherPreds.Any(a => a.isSame(p)))
+            if (!otherPreds.Any(a => a.Equals(p)))
                 return false;
         }
 
@@ -76,7 +76,7 @@ public class Node
 
         foreach (Predicate g in unsatisfiedGoals)
         {
-            if (!other.GetUnsatisfiedGoals().Any(a => a.isSame(g)))
+            if (!other.GetUnsatisfiedGoals().Any(a => a.Equals(g)))
                 return false;
         }
         return true;

@@ -4,71 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Predicate
-{
-    public Func<object[], bool> func { get; private set; } // CHECK THIS OUT
-    public List<Pointer> args { get; private set; }
-    public bool not_negated { get; private set; }
-
-    public Predicate() {}
-
-    public Predicate(Func<object[], bool> func, List<Pointer> args, bool neg)
-    {
-        this.func = func;
-        this.args = args;
-        this.not_negated = neg;
-    }
-
-    internal Predicate Clone()
-    {
-        Predicate clone = new Predicate();
-        clone.func = func;
-        clone.not_negated = not_negated;
-
-        // Args
-        clone.args = new List<Pointer>();
-        foreach (Pointer arg in args)
-            clone.args.Add(arg.Clone());
-
-        return clone;
-    }
-
-    public bool isSame(Predicate sD)
-    {
-        // Check if the functions are the same by comparing their method names
-        if (this.func.Method.Name != sD.func.Method.Name)
-            return false;
-
-        // Check if the arguments list is the same length
-        if (this.args.Count != sD.args.Count)
-            return false;
-
-        // Compare each argument
-        for (int i = 0; i < this.args.Count; i++)
-        {
-            Pointer a = this.args[i];
-            Pointer b = sD.args[i];
-            if (!a.isSameValue(b))
-                return false;
-        }
-
-
-        return true;
-    }
-    public bool IsInstantiated()
-    {
-        return args.All(arg => arg.value != null);
-    }
-
-
-    public override string ToString()
-    {
-        string funcName = func?.Method.Name ?? "null";
-        string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
-        return $"{funcName}({argsString})";
-    }
-}
-
 public class Action
 {
     protected string actionName;
@@ -81,9 +16,6 @@ public class Action
     public Action(List<Pointer> args)
     {
         actionArgs = args;
-
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
     }
 
     public virtual Action CreateNew(List<Pointer> args)
@@ -233,7 +165,7 @@ public class Action
             foreach (Predicate goal in unsatisfiedGoals)
             {
                 // Check if goal is fully instantiated and matches the effect
-                if (goal.IsInstantiated() && effect.isSame(goal))
+                if (goal.IsInstantiated() && effect.Equals(goal))
                 {
                     satisfiedGoals.Add(goal);
                 }
@@ -249,13 +181,10 @@ public class Action
         {
             foreach (Predicate goal in goals)
             {
-                if (effect.isSame(goal))
+                if (effect.IsOpposite(goal) &&
+                    effect.not_negated != goal.not_negated)
                 {
-                    // If predicates are same but negation differs, effect removes the goal
-                    if (effect.not_negated != goal.not_negated)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
