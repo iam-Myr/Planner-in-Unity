@@ -19,8 +19,8 @@ public class BlockPlanner
     {
         SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
-        Node rootNode = new Node(null, goalState, null);
         initNode = new Node(null, initState, null);
+        Node rootNode = new Node(null, goalState, null);
 
         frontier.Enqueue(rootNode);
         int step = 0;
@@ -30,16 +30,23 @@ public class BlockPlanner
             Node currentNode = frontier.Dequeue();
             currentNode.Print();
 
-            if (currentNode.isGoal(initNode))
-            {
-                stopwatch.Stop();
-                Debug.Log($"Goal found in {step} steps and depth {currentNode.GetDepth()}");
-                Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
-                return ReconstructPlan(currentNode);
-            }
-
             if (!IsLoop(currentNode))
-                FindChildren(currentNode);
+            {
+                List<Node> children = FindChildren(currentNode);
+
+                foreach (Node child in children)
+                {
+                    if (child.isGoal(initNode))
+                    {
+                        stopwatch.Stop();
+                        Debug.Log($"Goal found in {step} steps and depth {child.GetDepth()}");
+                        Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+                        return ReconstructPlan(child);
+                    }
+
+                    frontier.Enqueue(child);
+                }
+            }
 
             visited.Add(currentNode);
             step++;
@@ -51,6 +58,7 @@ public class BlockPlanner
         return null;
     }
 
+
     private bool IsLoop(Node node)
     {
         foreach (Node n in visited)
@@ -59,47 +67,39 @@ public class BlockPlanner
         return false;
     }
 
-    private void FindChildren(Node currentNode)
+    private List<Node> FindChildren(Node currentNode)
     {
+        var children = new List<Node>();
         WorldState currentState = currentNode.GetState();
         List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
-        int childrenFound = 0;
 
         foreach (Predicate goal in currentGoals)
         {
             foreach (Action action in allActions)
             {
-                // Skip actions that don't achieve the goal exactly
-                if (!action.GetEffects().Contains(goal)) continue;
-
-                // Ensure action doesn't remove any current goals
+                if (!action.GetEffects().Contains(goal)) continue; // If action is not useful
                 if (action.IsRemovingGoal(currentGoals)) continue;
 
-                // Build new state by regressing: replace goal with preconditions
                 WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
                 newState.AddPredicates(action.GetPreconditions().ToArray());
-                newState.RemovePredicates(goal); // remove achieved goal
+                newState.RemovePredicates(goal);
 
-                // Optionally remove other goals that are also satisfied by this action
                 foreach (Predicate effect in action.GetEffects())
                 {
                     if (currentGoals.Contains(effect) && effect != goal)
                         newState.RemovePredicates(effect);
                 }
 
-                // Create new node
                 Node newNode = new Node(currentNode, newState, action);
 
-                if (!IsLoop(newNode))
-                {
-                    frontier.Enqueue(newNode);
-                    childrenFound++;
-                }
+                children.Add(newNode);
+                
             }
         }
 
-        Debug.Log($"Found {childrenFound} children.");
+        return children;
     }
+
 
     private List<Action> ReconstructPlan(Node node)
     {
