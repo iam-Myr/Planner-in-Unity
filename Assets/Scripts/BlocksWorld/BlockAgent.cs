@@ -22,7 +22,7 @@ public class BlockAgent : MonoBehaviour
         // ACtion init
         actionList = new List<Action>
         {
-            new ActionMove(),
+            //new ActionMove(),
             new ActionDrop(),
             new ActionPickup()
         };

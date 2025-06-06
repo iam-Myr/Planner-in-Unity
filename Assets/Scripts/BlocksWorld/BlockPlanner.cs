@@ -5,7 +5,7 @@ using SysDiag = System.Diagnostics;
 public class BlockPlanner
 {
     private List<Action> allActions;
-    private Queue<Node> frontier = new Queue<Node>();
+    private List<Node> frontier = new List<Node>();
     private List<Node> visited = new List<Node>();
     private Node initNode;
 
@@ -22,12 +22,14 @@ public class BlockPlanner
         initNode = new Node(null, initState, null);
         Node rootNode = new Node(null, goalState, null);
 
-        frontier.Enqueue(rootNode);
+        frontier.Add(rootNode);
         int step = 0;
 
         while (frontier.Count > 0 && step < maxSteps)
         {
-            Node currentNode = frontier.Dequeue();
+            frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
+            Node currentNode = frontier[0];
+            frontier.RemoveAt(0);
             currentNode.Print();
 
             if (!IsLoop(currentNode))
@@ -44,7 +46,7 @@ public class BlockPlanner
                         return ReconstructPlan(child);
                     }
 
-                    frontier.Enqueue(child);
+                    frontier.Add(child);
                 }
             }
 

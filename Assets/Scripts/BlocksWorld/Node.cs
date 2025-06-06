@@ -129,6 +129,20 @@ public class Node
     {
         this.state = state;
     }
+
+    // Cost Function g(n)
+    public int GetCost() => depth;
+
+    // Heuristic Function h(n)
+    public int GetHeuristic()
+    {
+        // Simple heuristic: number of unsatisfied goals
+        return unsatisfiedGoals.Count;
+    }
+
+    // f(n)
+    public int GetTotalCost() => GetCost() + GetHeuristic();
+
     public int GetDepth() => depth;
     public WorldState GetState() => state;
     public Action GetAction() => action;

@@ -57,7 +57,8 @@ public class ActionDrop : Action
         {
             new Predicate(PredicateLibrary.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
             new Predicate(PredicateLibrary.isHolding, new List<Pointer> {current}, false),
-            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true)
+            new Predicate(PredicateLibrary.isHandEmpty, new List < Pointer > {}, true),
+            new Predicate(PredicateLibrary.isClear, new List<Pointer> {to}, false), // isClear(to)
         };
     }
 
