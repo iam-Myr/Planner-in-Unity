@@ -47,7 +47,7 @@ public static class Problem
         );
 
         GoalState = new WorldState().AddPredicates(
-            new Predicate(Domain.isOn, new List<Pointer> { B, C }, true),
+            //new Predicate(Domain.isOn, new List<Pointer> { B, C }, true),
             new Predicate(Domain.isOn, new List<Pointer> { A, B }, true)
         );
     }
