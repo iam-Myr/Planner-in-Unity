@@ -3,32 +3,30 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ActionMove : Action
+public class ActionDrop : Action
 {
-    private Pointer current, to, from;
+    private Pointer current, to;
 
-    public ActionMove()
+    public ActionDrop()
     {
-        actionName = "Move";
+        actionName = "Drop";
 
         this.current = new Pointer();
         this.to = new Pointer();
-        this.from = new Pointer();
 
-        actionArgs = new List<Pointer> { current, to, from };
+        actionArgs = new List<Pointer> { current, to};
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public ActionMove(List<Pointer> args) : base(args)
+    public ActionDrop(List<Pointer> args) : base(args)
     {
-        actionName = "Move";
+        actionName = "Drop";
 
         // Extract meaningful references from the list
         this.current = args[0];
         this.to = args[1];
-        this.from = args[2];
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
@@ -36,8 +34,9 @@ public class ActionMove : Action
 
     public override Action CreateNew(List<Pointer> args)
     {
-        return new ActionMove(args);
+        return new ActionDrop(args);
     }
+
 
     #region Preconditions
     // Preconditions
@@ -45,9 +44,8 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isClear, new List<Pointer> {current}, true), // isClear(current)
+            new Predicate(Domain.isHolding, new List<Pointer> {current}, true), // isClear(current)
             new Predicate(Domain.isClear, new List<Pointer> {to}, true), // isClear(to)
-            new Predicate(Domain.isOn, new List < Pointer > {current, from}, true) // isOn(current, from)
         };
     }
     #endregion
@@ -57,20 +55,20 @@ public class ActionMove : Action
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(Domain.isOn, new List <Pointer> {current, to}, true) // isOn(current, to)
+            new Predicate(Domain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
+            new Predicate(Domain.isHolding, new List<Pointer> {current}, false),
+            new Predicate(Domain.isHandEmpty, new List < Pointer > {}, true),
+            new Predicate(Domain.isClear, new List<Pointer> {to}, false), // isClear(to)
         };
     }
 
     public override async Task Execute()
     {
         if (to.Get() is Block toBlock &&
-            from.Get() is Block fromBlock &&
             current.Get() is Block currentBlock)
         {
             // Logical update
             toBlock.SetAbove(currentBlock);
-            fromBlock.SetAbove(null);
             currentBlock.SetBelow(toBlock);
 
             // Visual update

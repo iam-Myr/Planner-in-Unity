@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class Block : MonoBehaviour
@@ -7,20 +8,23 @@ public class Block : MonoBehaviour
     public Block above;
     public Block below;
 
-    public void MoveTo(Vector3 targetPosition, float speed = 2f)
+    public async Task MoveToAsync(Vector3 targetPosition, float speed = 2f)
     {
-        StopAllCoroutines(); // In case another movement is happening
-        StartCoroutine(MoveSmoothly(targetPosition, speed));
+        var tcs = new TaskCompletionSource<bool>();
+        StartCoroutine(MoveSmoothly(targetPosition, speed, tcs));
+        await tcs.Task;
     }
 
-    private IEnumerator MoveSmoothly(Vector3 targetPosition, float speed)
+    private IEnumerator MoveSmoothly(Vector3 targetPosition, float speed, TaskCompletionSource<bool> tcs)
     {
         while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
         {
             transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
             yield return null;
         }
-        transform.position = targetPosition; // Snap exactly to the target
+
+        transform.position = targetPosition; // Snap to exact position
+        tcs.SetResult(true);
     }
 
 

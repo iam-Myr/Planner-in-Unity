@@ -1,122 +1,85 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
-
-public class SharedDelegate
-{
-    public Func<object[], bool> func { get; private set; } // CHECK THIS OUT
-    public List<SharedVar> args { get; private set; }
-
-    public SharedDelegate()
-    {
-    }
-
-    public SharedDelegate(Func<object[], bool> func, List<SharedVar> args)
-    {
-        this.func = func;
-        this.args = args;
-    }
-
-    internal SharedDelegate Clone()
-    {
-        SharedDelegate clone = new SharedDelegate();
-        clone.func = func;
-
-        // Args
-        clone.args = new List<SharedVar>();
-        foreach (SharedVar arg in args)
-            clone.args.Add(arg.Clone());
-
-        return clone;
-    }
-
-    public bool isSame(SharedDelegate sD)
-    {
-
-        // Check if the functions are the same by comparing their method names
-        if (this.func.Method.Name != sD.func.Method.Name)
-            return false;
-
-        // Check if the arguments list is the same length
-        if (this.args.Count != sD.args.Count)
-            return false;
-
-        // Compare each argument
-        for (int i = 0; i < this.args.Count; i++)
-        {
-            if (!this.args[i].value.Equals(sD.args[i].value))
-                return false;
-        }
-
-        return true;
-    }
-
-}
 
 public class Action
 {
     protected string actionName;
-    protected List<SharedVar> actionArgs = new List<SharedVar>();
-    protected List<SharedDelegate> preconditions = new List<SharedDelegate>();
-    protected List<SharedDelegate> effects = new List<SharedDelegate>();
+    public List<Pointer> actionArgs = new List<Pointer>();
+    protected List<Predicate> preconditions = new List<Predicate>(); 
+    protected List<Predicate> effects = new List<Predicate>();
 
-    public virtual List<SharedDelegate> InitPreconditions() => new();
-    public virtual List<SharedDelegate> InitEffects() => new();
-    public virtual void Execute() { }
+    public Action() { }
 
-    public List<SharedDelegate> GetPreconditions() => preconditions; 
-    public List<SharedDelegate> GetEffects() => effects;
+    public Action(List<Pointer> args)
+    {
+        actionArgs = args;
+    }
 
-    public void Print()
+    public virtual Action CreateNew(List<Pointer> args)
+    {
+        return new Action(args);
+    }
+
+    public virtual List<Predicate> InitPreconditions() => new();
+    public virtual List<Predicate> InitEffects() => new();
+    public virtual async Task Execute() { await Task.CompletedTask; }
+
+    public List<Predicate> GetPreconditions() => preconditions; 
+    public List<Predicate> GetEffects() => effects;
+
+    public string Print()
     {
         string[] args = new string[actionArgs.Count];
         for (int i = 0; i < actionArgs.Count; i++)
         {
             args[i] = actionArgs[i]?.Get()?.ToString() ?? "null";
         }
-        Debug.Log($"{actionName}({string.Join(",", args)})");
+        return $"{actionName}({string.Join(",", args)})"; // Use string interpolation
     }
+
     public virtual Action Clone()
     {
         Action clone = (Action)Activator.CreateInstance(this.GetType());
-        Dictionary<SharedVar, SharedVar> varMap = new Dictionary<SharedVar, SharedVar>();
+        Dictionary<Pointer, Pointer> varMap = new Dictionary<Pointer, Pointer>();
 
-        clone.actionArgs = new List<SharedVar>();
-        foreach (SharedVar arg in this.actionArgs)
+        clone.actionArgs = new List<Pointer>();
+        foreach (Pointer arg in this.actionArgs)
             clone.actionArgs.Add(varMap[arg] = arg.Clone());
 
-        clone.preconditions = new List<SharedDelegate>();
-        foreach (SharedDelegate pre in this.preconditions)
+        clone.preconditions = new List<Predicate>();
+        foreach (Predicate pre in this.preconditions)
         {
-            List<SharedVar> clonedArgs = new List<SharedVar>();
-            foreach (SharedVar arg in pre.args)
+            List<Pointer> clonedArgs = new List<Pointer>();
+            foreach (Pointer arg in pre.args)
             {
                 if (!varMap.ContainsKey(arg)) 
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.preconditions.Add(new SharedDelegate(pre.func, clonedArgs));
+            clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.not_negated));
         }
 
-        clone.effects = new List<SharedDelegate>();
-        foreach (SharedDelegate eff in this.effects)
+        clone.effects = new List<Predicate>();
+        foreach (Predicate eff in this.effects)
         {
-            List<SharedVar> clonedArgs = new List<SharedVar>();
-            foreach (SharedVar arg in eff.args)
+            List<Pointer> clonedArgs = new List<Pointer>();
+            foreach (Pointer arg in eff.args)
             {
                 if (!varMap.ContainsKey(arg)) 
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.effects.Add(new SharedDelegate(eff.func, clonedArgs));
+            clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.not_negated));
         }
 
         clone.actionName = this.actionName;
         return clone;
     }
 
-    public virtual Action CreateNew() => (Action)Activator.CreateInstance(this.GetType());
+    public virtual Action CreateEmpty() => (Action)Activator.CreateInstance(this.GetType());
 
     // Cool ChatGPT code probably super inefficient 
     public virtual Action Clone1()
@@ -124,18 +87,18 @@ public class Action
         Action clone = new Action();
 
         // Args
-        clone.actionArgs = new List<SharedVar>();
-        foreach(SharedVar arg in actionArgs) 
+        clone.actionArgs = new List<Pointer>();
+        foreach(Pointer arg in actionArgs) 
             clone.actionArgs.Add(arg.Clone());
 
         // Precnditions
-        clone.preconditions = new List<SharedDelegate>();
-        foreach (SharedDelegate arg in preconditions)
+        clone.preconditions = new List<Predicate>();
+        foreach (Predicate arg in preconditions)
             clone.preconditions.Add(arg.Clone());
 
         // Effects
-        clone.effects = new List<SharedDelegate>();
-        foreach (SharedDelegate arg in effects)
+        clone.effects = new List<Predicate>();
+        foreach (Predicate arg in effects)
             clone.effects.Add(arg.Clone());
 
         clone.actionName = actionName;
@@ -180,7 +143,53 @@ public class Action
 
     }
 
+    public bool IsUseful(Node node)
+    {
+        var unsatisfiedGoals = node.GetUnsatisfiedGoals();
+        foreach (Predicate goal in unsatisfiedGoals)
+        {
+            if (effects.Any(effect => Unification.CanUnify(effect, goal)))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public List<Predicate> SatisfyOtherGoals(List<Predicate> unsatisfiedGoals)
+    {
+        List<Predicate> satisfiedGoals = new List<Predicate>();
+
+        foreach (Predicate effect in effects)
+        {
+            foreach (Predicate goal in unsatisfiedGoals)
+            {
+                // Check if goal is fully instantiated and matches the effect
+                if (goal.IsInstantiated() && effect.Equals(goal))
+                {
+                    satisfiedGoals.Add(goal);
+                }
+            }
+        }
+
+        return satisfiedGoals;
+    }
+
+    public bool IsRemovingGoal(List<Predicate> goals)
+    {
+        foreach (Predicate effect in effects)
+        {
+            foreach (Predicate goal in goals)
+            {
+                if (effect.IsOpposite(goal) &&
+                    effect.not_negated != goal.not_negated)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     public bool isValid()
     {
