@@ -1,5 +1,18 @@
-public static class PredicateLibrary
+using System.Collections.Generic;
+
+public static class Domain
 {
+    public static List<Action> ActionTemplates = new List<Action>
+        {
+        new ActionMove(),
+        new ActionPickup(),
+        new ActionDrop()
+        };
+
+    // Actions
+    public static List<Action> GetActions() => ActionTemplates;
+
+    // Predicates
     public static bool isClear(object[] args)
     {
         Block block = args[0] as Block;

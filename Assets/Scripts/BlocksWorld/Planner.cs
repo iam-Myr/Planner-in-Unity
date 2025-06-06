@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
 
-public class BlockPlanner
+public class Planner
 {
     private List<Action> allActions;
     private List<Node> frontier = new List<Node>();
     private List<Node> visited = new List<Node>();
     private Node initNode;
 
-    public BlockPlanner(List<Action> groundedActions)
+    public Planner(List<Action> groundedActions)
     {
         Debug.Log("Planner initialized (grounded-only)");
         allActions = groundedActions;
