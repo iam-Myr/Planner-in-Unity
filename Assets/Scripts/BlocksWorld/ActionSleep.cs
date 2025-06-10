@@ -40,10 +40,11 @@ public class ActionSleep : Action
         };
     }
 
-    public override async Task Execute()
+    public override async Task Execute(Agent agent)
     {
         // Logical update
         Debug.Log("Sleeping...");
-        
+        Sim sim = agent.GetComponent<Sim>();
+        sim.Sleep();
     }
 }

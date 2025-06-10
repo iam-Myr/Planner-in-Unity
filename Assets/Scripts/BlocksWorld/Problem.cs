@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class Problem
 {
-    // Pointers created from blocks
+    // Pointers created from areas
     public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());
     public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<Area>());
     public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<Area>());
@@ -16,7 +16,7 @@ public static class Problem
 
     public static WorldState InitialState = new WorldState().AddPredicates(
             new Predicate(Domain.isAt, new List<Pointer> {Spawn}, true),
-            new Predicate(Domain.isSleepy, new List<Pointer> {}, true)
+            new Predicate(Domain.isSleepy, new List<Pointer> {}, true) // isSleepy
         );
 
     public static List<WorldState> goalList = new List<WorldState>

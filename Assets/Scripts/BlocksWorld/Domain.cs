@@ -1,7 +1,6 @@
 using System.Collections.Generic;
+using UnityEngine;
 
-
-// IS SINGLETON?
 public static class Domain
 {
     // Actions
@@ -12,15 +11,21 @@ public static class Domain
         };
 
     // Predicates
-    public static bool isAt(object[] args)
+
+    public static bool isSleepy(List<object> args)
     {
-        //Area area = args[0] as Area;
-        return true;
+        if (args[0] is float sleep && args[1] is float t)
+            return sleep < t;
+        return false;
     }
 
-    public static bool isSleepy(object[] args)
+    public static bool isAt(List<object> args)
     {
-        return true;
+        if (args[0] is Agent agent && args[1] is Area area)
+        {
+            return area.Contains(agent.transform);
+        }
+        return false;
     }
+
 }
-

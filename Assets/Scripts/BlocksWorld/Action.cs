@@ -25,7 +25,7 @@ public class Action
 
     public virtual List<Predicate> InitPreconditions() => new();
     public virtual List<Predicate> InitEffects() => new();
-    public virtual async Task Execute() { await Task.CompletedTask; }
+    public virtual async Task Execute(Agent agent) { await Task.CompletedTask; }
 
     public List<Predicate> GetPreconditions() => preconditions; 
     public List<Predicate> GetEffects() => effects;
@@ -59,7 +59,7 @@ public class Action
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.not_negated));
+            clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.evaluation));
         }
 
         clone.effects = new List<Predicate>();
@@ -72,7 +72,7 @@ public class Action
                     varMap[arg] = arg.Clone();
                 clonedArgs.Add(varMap[arg]);
             }
-            clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.not_negated));
+            clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.evaluation));
         }
 
         clone.actionName = this.actionName;
@@ -182,7 +182,7 @@ public class Action
             foreach (Predicate goal in goals)
             {
                 if (effect.IsOpposite(goal) &&
-                    effect.not_negated != goal.not_negated)
+                    effect.evaluation != goal.evaluation)
                 {
                     return true;
                 }

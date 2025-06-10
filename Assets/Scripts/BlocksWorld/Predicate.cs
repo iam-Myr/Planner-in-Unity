@@ -6,24 +6,26 @@ using UnityEngine;
 
 public class Predicate
 {
-    public Func<object[], bool> func { get; private set; } // CHECK THIS OUT
+    public Func<List<object>, bool> func { get; private set; }
+    // CHECK THIS OUT
     public List<Pointer> args { get; private set; }
-    public bool not_negated { get; private set; }
+    public bool evaluation { get; private set; }
 
     public Predicate() { }
 
-    public Predicate(Func<object[], bool> func, List<Pointer> args, bool neg)
+    public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool neg)
     {
         this.func = func;
         this.args = args;
-        this.not_negated = neg;
+        this.evaluation = neg;
     }
+
 
     internal Predicate Clone()
     {
         Predicate clone = new Predicate();
         clone.func = func;
-        clone.not_negated = not_negated;
+        clone.evaluation = evaluation;
 
         // Args
         clone.args = new List<Pointer>();
@@ -37,7 +39,7 @@ public class Predicate
     public override int GetHashCode()
     {
         int hash = func?.Method.Name.GetHashCode() ?? 0;
-        hash = (hash * 397) ^ not_negated.GetHashCode();
+        hash = (hash * 397) ^ evaluation.GetHashCode();
         foreach (var arg in args)
             hash = (hash * 397) ^ (arg.value?.GetHashCode() ?? 0);
         return hash;
@@ -54,7 +56,7 @@ public class Predicate
             return false;
 
         // Check negation
-        if (this.not_negated != other.not_negated)
+        if (this.evaluation != other.evaluation)
             return false;
 
         // Check argument count
@@ -81,7 +83,7 @@ public class Predicate
     {
         string funcName = func?.Method.Name ?? "null";
         string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
-        return $"{funcName}({argsString}) - {not_negated}";
+        return $"{funcName}({argsString}) - {evaluation}";
     }
 
     public bool IsOpposite(Predicate other)
@@ -99,7 +101,7 @@ public class Predicate
         }
 
         // Return true if structure matches and negation is opposite
-        return this.not_negated != other.not_negated;
+        return this.evaluation != other.evaluation;
     }
 
 }

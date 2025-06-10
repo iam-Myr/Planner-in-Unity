@@ -62,7 +62,7 @@ public class ActionPickup : Action
     }
 
 
-    public override async Task Execute()
+    public override async Task Execute(Agent agent)
     {
         if (from.Get() is Block fromBlock &&
             current.Get() is Block currentBlock)

@@ -61,12 +61,22 @@ public class ActionMoveTo : Action
         };
     }
 
-    public override async Task Execute()
+    public override async Task Execute(Agent agent)
     {
         if (area.Get() is Area target)
         {
-            // Logical update
-            Debug.Log("Moving to " + target.areaName + " at " + target.GetPosition().ToString());
+            Debug.Log("Moving to " + target.areaName);
+            Vector3 destination = target.GetPosition();
+            Transform t = agent.transform;
+
+            while (Vector3.Distance(t.position, destination) > 0.1f)
+            {
+                t.position = Vector3.MoveTowards(t.position, destination, agent.moveSpeed * Time.deltaTime);
+                await Task.Yield();  // wait for next frame
+            }
+
+            Debug.Log("Arrived at " + target.areaName);
         }
     }
+
 }

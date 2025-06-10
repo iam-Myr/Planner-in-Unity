@@ -62,7 +62,7 @@ public class ActionDrop : Action
         };
     }
 
-    public override async Task Execute()
+    public override async Task Execute(Agent agent)
     {
         if (to.Get() is Block toBlock &&
             current.Get() is Block currentBlock)

@@ -6,7 +6,6 @@ public class Planner
 {
     private List<Action> allActions;
     private List<Node> frontier = new List<Node>();
-    private List<Node> visited = new List<Node>();
     private Node initNode;
 
     public Planner(List<Action> groundedActions)
@@ -17,6 +16,7 @@ public class Planner
 
     public List<Action> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
     {
+        List<Node> visited = new List<Node>();
         SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
         initNode = new Node(null, initState, null);
@@ -30,9 +30,9 @@ public class Planner
             frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
             Node currentNode = frontier[0];
             frontier.RemoveAt(0);
-            currentNode.Print();
+            //currentNode.Print();
 
-            if (!IsLoop(currentNode))
+            if (!IsLoop(currentNode, visited))
             {
                 List<Node> children = FindChildren(currentNode);
 
@@ -61,7 +61,7 @@ public class Planner
     }
 
 
-    private bool IsLoop(Node node)
+    private bool IsLoop(Node node, List<Node> visited)
     {
         foreach (Node n in visited)
             if (n.HasSameGoals(node))

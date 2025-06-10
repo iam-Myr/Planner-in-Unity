@@ -71,8 +71,6 @@ public class WorldState
         }
     } */
 
-
-
     public void Print()
     {
         foreach (Predicate sP in predicates)

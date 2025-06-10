@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
-using System.Linq;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
-
-// WIll need an Observations Manager when I get ChatGPT again
-public class Agent : MonoBehaviour
+public class Agent : MonoBehaviour, IObservable
 {
     private Planner planner;
     private List<Action> currentPlan;
@@ -14,13 +11,24 @@ public class Agent : MonoBehaviour
     private WorldState currentGoal;
     private List<Action> actionList;
 
-    public const int MAXSTEPS =  1000000;
+    public const int MAXSTEPS = 1000000;
 
-    private void Start()
+    // Movement
+    public float moveSpeed;
+
+    // Observation cooldown (seconds)
+    public float observeCooldown = 2f;
+    private float observeTimer = 0f;
+
+    void Awake()
+    {
+        Register();
+    }
+
+    void Start()
     {
         // Load Goal
         currentGoal = ChooseGoal(Problem.goalList);
-        currentState = GetCurrentState();
 
         // Load actions
         actionList = Domain.ActionTemplates;
@@ -31,23 +39,48 @@ public class Agent : MonoBehaviour
         // Initialize planner
         planner = new Planner(groundedActions);
 
-        // Create plan
-        currentPlan = planner.MakePlan(Problem.InitialState, currentGoal, MAXSTEPS);
+        // Start with no current plan
+        currentPlan = null;
+    }
 
-        // Print and execute
-        PrintPlan(currentPlan);
-        ExecutePlan(currentPlan);
+    void Update()
+    {
+        // If currently executing a plan, do nothing here
+        if (currentPlan != null)
+        {
+            return;
+        }
+
+        // Decrement timer
+        observeTimer -= Time.deltaTime;
+
+        if (observeTimer <= 0f)
+        {
+            observeTimer = observeCooldown;  // reset cooldown timer
+
+            // Observe current world state
+            currentState = ObservationManager.Observe();
+
+            // Make plan from current state towards goal
+            currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
+
+            if (currentPlan != null && currentPlan.Count > 0)
+            {
+                PrintPlan(currentPlan);
+                ExecutePlan(currentPlan);
+            }
+            else
+            {
+                Debug.Log("No plan generated.");
+                currentPlan = null;
+            }
+        }
     }
 
     public WorldState ChooseGoal(List<WorldState> list)
     {
         // Chooses first goal for now. Maybe sort?
         return list[0];
-    }
-
-    public WorldState GetCurrentState()
-    {
-        return Problem.InitialState;
     }
 
     public void PrintPlan(List<Action> plan)
@@ -70,10 +103,23 @@ public class Agent : MonoBehaviour
     {
         foreach (Action action in plan)
         {
-            // is action possible? yes
-            await action.Execute();
+            await action.Execute(this);
         }
+        // Plan finished, allow replanning next update
+        currentPlan = null;
     }
 
+    public List<Predicate> GetState()
+    {
+        bool eval = Domain.isAt(new List<object> { this, Problem.Spawn.Get() });
 
+        return new List<Predicate> {
+            new Predicate(Domain.isAt, new List<Pointer> { Problem.Spawn }, eval)
+        };
+    }
+
+    public void Register()
+    {
+        ObservationManager.Register(this);
+    }
 }

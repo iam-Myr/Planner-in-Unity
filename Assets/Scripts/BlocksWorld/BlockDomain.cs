@@ -13,23 +13,22 @@ public static class BlockDomain
         };
 
     // Predicates
-    public static bool isClear(object[] args)
-    {
-        Block block = args[0] as Block;
-        return block != null && block.isClear();
-    }
-
-    public static bool isOn(object[] args)
+    public static bool isClear(List<object> args)
     {
         return true;
     }
 
-    public static bool isHolding(object[] args)
+    public static bool isOn(List<object> args)
     {
         return true;
     }
 
-    public static bool isHandEmpty(object[] args)
+    public static bool isHolding(List<object> args)
+    {
+        return true;
+    }
+
+    public static bool isHandEmpty(List<object> args)
     {
         return true;
     }
