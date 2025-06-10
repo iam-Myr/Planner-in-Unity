@@ -4,6 +4,8 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System;
 
+
+// WIll need an Observations Manager when I get ChatGPT again
 public class Agent : MonoBehaviour
 {
     private Planner planner;
