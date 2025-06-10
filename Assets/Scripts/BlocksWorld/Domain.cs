@@ -10,6 +10,12 @@ public static class Domain
         new ActionSleep()
         };
 
+    // Goals
+    public static List<WorldState> goalList = new List<WorldState>
+        {
+        new GoalRested()
+        };
+
     // Predicates
 
     public static bool isSleepy(List<object> args)
@@ -27,5 +33,14 @@ public static class Domain
         }
         return false;
     }
+
+    // Pointers 
+    public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());
+    public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<Area>());
+    public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<Area>());
+    public static Pointer Spawn = new Pointer(GameObject.Find("Spawn").GetComponent<Area>());
+
+
+    public static List<Pointer> AllPointers = new List<Pointer> { Food, Water, Sleep, Spawn };
 
 }

@@ -28,13 +28,13 @@ public class Agent : MonoBehaviour, IObservable
     void Start()
     {
         // Load Goal
-        currentGoal = ChooseGoal(Problem.goalList);
+        currentGoal = ChooseGoal(Domain.goalList);
 
         // Load actions
         actionList = Domain.ActionTemplates;
 
         // Ground actions
-        List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Problem.AllPointers);
+        List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Domain.AllPointers);
 
         // Initialize planner
         planner = new Planner(groundedActions);
@@ -111,10 +111,10 @@ public class Agent : MonoBehaviour, IObservable
 
     public List<Predicate> GetState()
     {
-        bool eval = Domain.isAt(new List<object> { this, Problem.Spawn.Get() });
+        bool eval = Domain.isAt(new List<object> { this, Domain.Spawn.Get() });
 
         return new List<Predicate> {
-            new Predicate(Domain.isAt, new List<Pointer> { Problem.Spawn }, eval)
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Spawn }, eval)
         };
     }
 

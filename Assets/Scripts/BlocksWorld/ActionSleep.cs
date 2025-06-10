@@ -25,7 +25,7 @@ public class ActionSleep : Action
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isAt, new List<Pointer> {Problem.Sleep}, true), // isAt(sleep)  
+            new Predicate(Domain.isAt, new List<Pointer> {Domain.Sleep}, true), // isAt(sleep)  
             new Predicate(Domain.isSleepy, new List<Pointer> {}, true)
         };
     }
