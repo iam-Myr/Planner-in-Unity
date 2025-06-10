@@ -81,7 +81,7 @@ public class Predicate
     {
         string funcName = func?.Method.Name ?? "null";
         string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
-        return $"{funcName}({argsString})";
+        return $"{funcName}({argsString}) - {not_negated}";
     }
 
     public bool IsOpposite(Predicate other)

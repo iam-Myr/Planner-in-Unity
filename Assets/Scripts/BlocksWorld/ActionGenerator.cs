@@ -11,6 +11,11 @@ public static class ActionGenerator
         foreach (var template in actionTemplates)
         {
             int arity = template.actionArgs.Count; // how many arguments this action expects
+            if (arity == 0) // Action has no args
+            {
+                groundedActions.Add(template.CreateNew(new List<Pointer> { }));
+                continue;
+            }
 
             // Get all permutations of pointers of length = arity
             var pointerPermutations = GetPermutations(pointers, arity);

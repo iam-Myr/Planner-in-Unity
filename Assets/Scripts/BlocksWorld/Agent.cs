@@ -16,11 +16,12 @@ public class Agent : MonoBehaviour
 
     private void Start()
     {
-        // Initialize everything from scene
-        Problem.InitFromScene();
+        // Load Goal
+        currentGoal = ChooseGoal(Problem.goalList);
+        currentState = GetCurrentState();
 
         // Load actions
-        actionList = Domain.GetActions();
+        actionList = Domain.ActionTemplates;
 
         // Ground actions
         List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Problem.AllPointers);
@@ -29,13 +30,23 @@ public class Agent : MonoBehaviour
         planner = new Planner(groundedActions);
 
         // Create plan
-        currentPlan = planner.MakePlan(Problem.InitialState, Problem.GoalState, MAXSTEPS);
+        currentPlan = planner.MakePlan(Problem.InitialState, currentGoal, MAXSTEPS);
 
         // Print and execute
         PrintPlan(currentPlan);
         ExecutePlan(currentPlan);
     }
 
+    public WorldState ChooseGoal(List<WorldState> list)
+    {
+        // Chooses first goal for now. Maybe sort?
+        return list[0];
+    }
+
+    public WorldState GetCurrentState()
+    {
+        return Problem.InitialState;
+    }
 
     public void PrintPlan(List<Action> plan)
     {

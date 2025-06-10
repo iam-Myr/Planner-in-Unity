@@ -29,7 +29,7 @@ public class WorldState
         return this;
     }
 
-
+    /*
     public bool IsContradiction()
     {
         for (int i = 0; i < predicates.Count; i++)
@@ -55,7 +55,7 @@ public class WorldState
         }
 
         return false;
-    }
+    } 
 
     public void UnifyWith(WorldState other)
     {
@@ -69,7 +69,7 @@ public class WorldState
                 }
             }
         }
-    }
+    } */
 
 
 
@@ -77,7 +77,7 @@ public class WorldState
     {
         foreach (Predicate sP in predicates)
         {
-            Debug.Log($"{sP.func.Method.Name}({string.Join(", ", sP.args.Select(a => a?.value?.ToString() ?? "null"))})");
+            Debug.Log($"{sP.ToString()}");
         }
     }
 

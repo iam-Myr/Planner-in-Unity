@@ -1,35 +1,24 @@
 using System.Collections.Generic;
 
+
+// IS SINGLETON?
 public static class Domain
 {
+    // Actions
     public static List<Action> ActionTemplates = new List<Action>
         {
-        new ActionMove(),
-        new ActionPickup(),
-        new ActionDrop()
+        new ActionMoveTo(),
+        new ActionSleep()
         };
 
-    // Actions
-    public static List<Action> GetActions() => ActionTemplates;
-
     // Predicates
-    public static bool isClear(object[] args)
+    public static bool isAt(object[] args)
     {
-        Block block = args[0] as Block;
-        return block != null && block.isClear();
-    }
-
-    public static bool isOn(object[] args)
-    {
+        //Area area = args[0] as Area;
         return true;
     }
 
-    public static bool isHolding(object[] args)
-    {
-        return true;
-    }
-
-    public static bool isHandEmpty(object[] args)
+    public static bool isSleepy(object[] args)
     {
         return true;
     }
