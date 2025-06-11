@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+
 
 public static class Domain
 {
@@ -7,32 +9,55 @@ public static class Domain
     public static List<PlanAction> ActionTemplates = new List<PlanAction>
         {
         new ActionMoveTo(),
-        new ActionSleep()
+        new ActionSleep(),
+        new ActionEat(),
+        new ActionDrink()
         };
 
     // Goals
     public static List<WorldState> goalList = new List<WorldState>
         {
-        new GoalRested()
+        new GoalHydrated(),
+        new GoalRested(),
+        new GoalSated(),
+        //new GoalHydrated()
         };
-
-    // Predicates
 
     public static bool isSleepy(List<object> args)
     {
-        if (args[0] is float sleep && args[1] is float t)
-            return sleep < t;
-        return false;
+        if (args.Count != 2)
+            throw new ArgumentException("isSleepy expects 2 arguments: [float sleep, float threshold]");
+
+        if (args[0] is float sleep && args[1] is float threshold)
+            return sleep < threshold;
+
+        throw new ArgumentException("isSleepy expects arguments of type float, float");
+    }
+
+    public static bool isHungry(List<object> args)
+    {
+        if (args[0] is float hungry && args[1] is float threshold)
+            return hungry < threshold;
+
+        throw new ArgumentException("isHungry wrong args");
+    }
+
+    public static bool isThirsty(List<object> args)
+    {
+        if (args[0] is float water && args[1] is float threshold)
+            return water < threshold;
+
+        throw new ArgumentException("isThirsty wrong args");
     }
 
     public static bool isAt(List<object> args)
     {
         if (args[0] is Agent agent && args[1] is Area area)
-        {
             return area.Contains(agent.transform);
-        }
-        return false;
+
+        throw new ArgumentException("isAt wrong args");
     }
+
 
     // Pointers 
     public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());

@@ -6,6 +6,7 @@ public class SimUI : MonoBehaviour
     public Slider sleepBar;
     public Slider hungerBar;
     public Slider waterBar;
+
     public Image sleepBarFill;
     public Sim sim;
 

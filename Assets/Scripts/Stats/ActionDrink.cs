@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ActionSleep : PlanAction
+public class ActionDrink : PlanAction
 {
-    public ActionSleep()
+    public ActionDrink()
     {
-        actionName = "Sleep";
+        actionName = "Drink";
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
@@ -15,7 +15,7 @@ public class ActionSleep : PlanAction
 
     public override PlanAction CreateNew(List<Pointer> args)
     {
-        return new ActionSleep();
+        return new ActionDrink();
     }
 
     #region Preconditions
@@ -24,8 +24,8 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isAt, new List<Pointer> {Domain.Sleep}, true), // isAt(sleep)  
-            new Predicate(Domain.isSleepy, new List<Pointer> {}, true)
+            new Predicate(Domain.isAt, new List<Pointer> {Domain.Water}, true), // isAt(food)  
+            new Predicate(Domain.isThirsty, new List<Pointer> {}, true)
         };
     }
     #endregion
@@ -35,15 +35,15 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(Domain.isSleepy, new List<Pointer> {}, false) //not isSleepy
+           new Predicate(Domain.isThirsty, new List<Pointer> {}, false) //not isHungry
         };
     }
 
     public override async Task Execute(Agent agent)
     {
         // Logical update
-        Debug.Log("Sleeping...");
+        Debug.Log("Drinking!!!");
         Sim sim = agent.GetComponent<Sim>();
-        sim.Sleep();
+        sim.Drink();
     }
 }

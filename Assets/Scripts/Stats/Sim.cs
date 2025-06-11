@@ -39,13 +39,27 @@ public class Sim : MonoBehaviour, IObservable
         sleep = sleepMAX;
     }
 
+    public void Eat()
+    {
+        hunger = hungerMAX;
+    }
+
+    public void Drink()
+    {
+        water = waterMAX;
+    }
+
     public List<Predicate> GetState()
     {
-        bool eval = Domain.isSleepy(new List<object> {sleep, threshold});
+        bool evalSleep = Domain.isSleepy(new List<object> {sleep, threshold});
+        bool evalHunger = Domain.isHungry(new List<object> { hunger, threshold });
+        bool evalThirst = Domain.isThirsty(new List<object> { water, threshold });
 
 
         return new List<Predicate> {
-            new Predicate(Domain.isSleepy, new List<Pointer> { }, eval)
+            new Predicate(Domain.isSleepy, new List<Pointer> { }, evalSleep),
+            new Predicate(Domain.isHungry, new List<Pointer> { }, evalHunger),
+            new Predicate(Domain.isThirsty, new List<Pointer> { }, evalThirst)
             };
     }
 
