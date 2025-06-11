@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ActionMove : Action
+public class ActionMove : PlanAction
 {
     private Pointer current, to, from;
 
@@ -34,7 +34,7 @@ public class ActionMove : Action
         effects.AddRange(InitEffects());
     }
 
-    public override Action CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<Pointer> args)
     {
         return new ActionMove(args);
     }

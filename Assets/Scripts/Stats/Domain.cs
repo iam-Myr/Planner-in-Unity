@@ -4,7 +4,7 @@ using UnityEngine;
 public static class Domain
 {
     // Actions
-    public static List<Action> ActionTemplates = new List<Action>
+    public static List<PlanAction> ActionTemplates = new List<PlanAction>
         {
         new ActionMoveTo(),
         new ActionSleep()

@@ -3,8 +3,12 @@ using UnityEngine;
 public class Area : MonoBehaviour
 {
     public string areaName;
-    public Collider2D areaCollider;
+    private Collider2D areaCollider;
 
+    private void Start()
+    {
+        areaCollider = GetComponent<Collider2D>();  
+    }
     public Vector3 GetPosition() => transform.position;
 
     public bool Contains(Transform target)

@@ -4,17 +4,17 @@ using SysDiag = System.Diagnostics;
 
 public class Planner
 {
-    private List<Action> allActions;
+    private List<PlanAction> allActions;
     private List<Node> frontier = new List<Node>();
     private Node initNode;
 
-    public Planner(List<Action> groundedActions)
+    public Planner(List<PlanAction> groundedActions)
     {
         Debug.Log("Planner initialized (grounded-only)");
         allActions = groundedActions;
     }
 
-    public List<Action> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
+    public List<PlanAction> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
     {
         List<Node> visited = new List<Node>();
         SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
@@ -77,7 +77,7 @@ public class Planner
 
         foreach (Predicate goal in currentGoals)
         {
-            foreach (Action action in allActions)
+            foreach (PlanAction action in allActions)
             {
                 if (!action.GetEffects().Contains(goal)) continue; // If action is not useful
                 if (action.IsRemovingGoal(currentGoals)) continue;
@@ -103,9 +103,9 @@ public class Planner
     }
 
 
-    private List<Action> ReconstructPlan(Node node)
+    private List<PlanAction> ReconstructPlan(Node node)
     {
-        List<Action> result = new List<Action>();
+        List<PlanAction> result = new List<PlanAction>();
         while (node != null && node.GetAction() != null)
         {
             result.Add(node.GetAction());

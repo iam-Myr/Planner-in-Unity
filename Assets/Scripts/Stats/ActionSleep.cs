@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 // How can we raise the sleep stat from here?
-public class ActionSleep : Action
+public class ActionSleep : PlanAction
 {
     public ActionSleep()
     {
@@ -14,7 +14,7 @@ public class ActionSleep : Action
         effects.AddRange(InitEffects());
     }
 
-    public override Action CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<Pointer> args)
     {
         return new ActionSleep();
     }

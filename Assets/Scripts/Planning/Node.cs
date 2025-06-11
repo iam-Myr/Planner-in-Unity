@@ -6,11 +6,11 @@ public class Node
 {
     private Node parent;
     private WorldState state;
-    private Action action; // Action that got us here
+    private PlanAction action; // Action that got us here
     private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
     protected int depth;
 
-    public Node(Node parent, WorldState state, Action action)
+    public Node(Node parent, WorldState state, PlanAction action)
     {
         this.parent = parent;
         this.state = state;
@@ -143,7 +143,7 @@ public class Node
 
     public int GetDepth() => depth;
     public WorldState GetState() => state;
-    public Action GetAction() => action;
+    public PlanAction GetAction() => action;
     public Node GetParent() => parent;
 
     public List<Predicate> GetUnsatisfiedGoals() => unsatisfiedGoals;

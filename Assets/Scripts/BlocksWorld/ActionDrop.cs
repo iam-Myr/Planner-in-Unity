@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class ActionDrop : Action
+public class ActionDrop : PlanAction
 {
     private Pointer current, to;
 
@@ -32,7 +32,7 @@ public class ActionDrop : Action
         effects.AddRange(InitEffects());
     }
 
-    public override Action CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<Pointer> args)
     {
         return new ActionDrop(args);
     }

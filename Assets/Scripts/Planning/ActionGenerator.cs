@@ -4,9 +4,9 @@ using System.Linq;
 public static class ActionGenerator
 {
     // Generate all grounded actions from templates and pointers
-    public static List<Action> GenerateAllGroundedActions(List<Action> actionTemplates, List<Pointer> pointers)
+    public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<Pointer> pointers)
     {
-        List<Action> groundedActions = new List<Action>();
+        List<PlanAction> groundedActions = new List<PlanAction>();
 
         foreach (var template in actionTemplates)
         {
@@ -23,7 +23,7 @@ public static class ActionGenerator
             foreach (var args in pointerPermutations)
             {
                 // Instantiate new grounded action with these args
-                Action groundedAction = template.CreateNew(args.ToList());
+                PlanAction groundedAction = template.CreateNew(args.ToList());
                 groundedActions.Add(groundedAction);
             }
         }

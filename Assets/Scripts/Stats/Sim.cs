@@ -7,12 +7,12 @@ public class Sim : MonoBehaviour, IObservable
     public float sleepMAX;
     public float waterMAX;
 
-    private float hunger;
-    private float sleep;
-    private float water;
+    public float hunger;
+    public float sleep;
+    public float water;
 
-    private float degrationRate = 0.01f;
-    private float threshold = 20f;
+    private float degrationRate = 5f;
+    public float threshold = 40f;
 
     void Awake()
     {
@@ -29,9 +29,9 @@ public class Sim : MonoBehaviour, IObservable
     // Update is called once per frame
     void Update()
     {
-        hunger *= degrationRate * Time.deltaTime;
-        sleep *= degrationRate * Time.deltaTime;
-        water *= degrationRate * Time.deltaTime;
+        hunger -= degrationRate * Time.deltaTime;
+        sleep -= degrationRate * Time.deltaTime;
+        water -= degrationRate * Time.deltaTime;
     }
 
     public void Sleep()

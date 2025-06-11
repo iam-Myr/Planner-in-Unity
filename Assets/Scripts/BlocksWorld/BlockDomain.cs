@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public static class BlockDomain
 {
     // Actions
-    public static List<Action> ActionTemplates = new List<Action>
+    public static List<PlanAction> ActionTemplates = new List<PlanAction>
         {
         new ActionMove(),
         new ActionPickup(),

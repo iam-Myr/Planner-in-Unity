@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 // How can we move the agent??
-public class ActionMoveTo : Action
+public class ActionMoveTo : PlanAction
 {
     private Pointer area;
     private Pointer from;
@@ -35,7 +35,7 @@ public class ActionMoveTo : Action
         effects.AddRange(InitEffects());
     }
 
-    public override Action CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<Pointer> args)
     {
         return new ActionMoveTo(args);
     }

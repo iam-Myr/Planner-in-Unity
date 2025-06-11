@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 public class Agent : MonoBehaviour, IObservable
 {
     private Planner planner;
-    private List<Action> currentPlan;
+    private List<PlanAction> currentPlan;
     private WorldState currentState;
     private WorldState currentGoal;
-    private List<Action> actionList;
+    private List<PlanAction> actionList;
 
     public const int MAXSTEPS = 1000000;
 
@@ -34,7 +34,7 @@ public class Agent : MonoBehaviour, IObservable
         actionList = Domain.ActionTemplates;
 
         // Ground actions
-        List<Action> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Domain.AllPointers);
+        List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Domain.AllPointers);
 
         // Initialize planner
         planner = new Planner(groundedActions);
@@ -83,7 +83,7 @@ public class Agent : MonoBehaviour, IObservable
         return list[0];
     }
 
-    public void PrintPlan(List<Action> plan)
+    public void PrintPlan(List<PlanAction> plan)
     {
         if (plan == null || plan.Count == 0)
         {
@@ -99,9 +99,9 @@ public class Agent : MonoBehaviour, IObservable
         Debug.Log($"==== {plan.Count} steps ====");
     }
 
-    public async void ExecutePlan(List<Action> plan)
+    public async void ExecutePlan(List<PlanAction> plan)
     {
-        foreach (Action action in plan)
+        foreach (PlanAction action in plan)
         {
             await action.Execute(this);
         }

@@ -4,23 +4,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Action
+public class PlanAction
 {
     protected string actionName;
     public List<Pointer> actionArgs = new List<Pointer>();
     protected List<Predicate> preconditions = new List<Predicate>(); 
     protected List<Predicate> effects = new List<Predicate>();
 
-    public Action() { }
+    public PlanAction() { }
 
-    public Action(List<Pointer> args)
+    public PlanAction(List<Pointer> args)
     {
         actionArgs = args;
     }
 
-    public virtual Action CreateNew(List<Pointer> args)
+    public virtual PlanAction CreateNew(List<Pointer> args)
     {
-        return new Action(args);
+        return new PlanAction(args);
     }
 
     public virtual List<Predicate> InitPreconditions() => new();
@@ -40,9 +40,9 @@ public class Action
         return $"{actionName}({string.Join(",", args)})"; // Use string interpolation
     }
 
-    public virtual Action Clone()
+    public virtual PlanAction Clone()
     {
-        Action clone = (Action)Activator.CreateInstance(this.GetType());
+        PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
         Dictionary<Pointer, Pointer> varMap = new Dictionary<Pointer, Pointer>();
 
         clone.actionArgs = new List<Pointer>();
@@ -79,12 +79,12 @@ public class Action
         return clone;
     }
 
-    public virtual Action CreateEmpty() => (Action)Activator.CreateInstance(this.GetType());
+    public virtual PlanAction CreateEmpty() => (PlanAction)Activator.CreateInstance(this.GetType());
 
     // Cool ChatGPT code probably super inefficient 
-    public virtual Action Clone1()
+    public virtual PlanAction Clone1()
     {
-        Action clone = new Action();
+        PlanAction clone = new PlanAction();
 
         // Args
         clone.actionArgs = new List<Pointer>();
