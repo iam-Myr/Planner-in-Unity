@@ -60,6 +60,8 @@ public class Agent : MonoBehaviour, IObservable
 
             // Observe current world state
             currentState = ObservationManager.Observe();
+            Debug.Log("Current State: ");
+            currentState.Print();
 
             // Make plan from current state towards goal
             currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
@@ -111,10 +113,16 @@ public class Agent : MonoBehaviour, IObservable
 
     public List<Predicate> GetState()
     {
-        bool eval = Domain.isAt(new List<object> { this, Domain.Spawn.Get() });
+        bool evalSpawn = Domain.isAt(new List<object> { this, Domain.Spawn.Get() });
+        bool evalFood = Domain.isAt(new List<object> { this, Domain.Food.Get() });
+        bool evalWater = Domain.isAt(new List<object> { this, Domain.Water.Get() });
+        bool evalSleep = Domain.isAt(new List<object> { this, Domain.Sleep.Get() });
 
         return new List<Predicate> {
-            new Predicate(Domain.isAt, new List<Pointer> { Domain.Spawn }, eval)
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Spawn }, evalSpawn),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Food }, evalFood),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Water }, evalWater),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Sleep }, evalSleep)
         };
     }
 
