@@ -42,7 +42,7 @@ public class ActionDrink : PlanAction
     public override async Task Execute(Agent agent)
     {
         // Logical update
-        Debug.Log("Drinking!!!");
+        //Debug.Log("Drinking!!!");
         Sim sim = agent.GetComponent<Sim>();
         sim.Drink();
     }

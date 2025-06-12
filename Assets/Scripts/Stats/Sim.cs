@@ -11,7 +11,7 @@ public class Sim : MonoBehaviour, IObservable
     public float sleep;
     public float water;
 
-    private float degrationRate = 5f;
+    public float degrationRate = 5f;
     public float threshold = 40f;
 
     void Awake()
@@ -49,17 +49,26 @@ public class Sim : MonoBehaviour, IObservable
         water = waterMAX;
     }
 
+    // Predicates that are relevant to Sim. What about the irrelevant ones?
     public List<Predicate> GetState()
     {
-        bool evalSleep = Domain.isSleepy(new List<object> {sleep, threshold});
+        bool evalSleepy = Domain.isSleepy(new List<object> {sleep, threshold});
         bool evalHunger = Domain.isHungry(new List<object> { hunger, threshold });
         bool evalThirst = Domain.isThirsty(new List<object> { water, threshold });
 
+        bool evalSpawn = Domain.isAt(new List<object> { this, Domain.Spawn.Get() });
+        bool evalFood = Domain.isAt(new List<object> { this, Domain.Food.Get() });
+        bool evalWater = Domain.isAt(new List<object> { this, Domain.Water.Get() });
+        bool evalSleep = Domain.isAt(new List<object> { this, Domain.Sleep.Get() });
 
         return new List<Predicate> {
-            new Predicate(Domain.isSleepy, new List<Pointer> { }, evalSleep),
+            new Predicate(Domain.isSleepy, new List<Pointer> { }, evalSleepy),
             new Predicate(Domain.isHungry, new List<Pointer> { }, evalHunger),
-            new Predicate(Domain.isThirsty, new List<Pointer> { }, evalThirst)
+            new Predicate(Domain.isThirsty, new List<Pointer> { }, evalThirst),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Spawn }, evalSpawn),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Food }, evalFood),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Water }, evalWater),
+            new Predicate(Domain.isAt, new List<Pointer> { Domain.Sleep }, evalSleep)
             };
     }
 

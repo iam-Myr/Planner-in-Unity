@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 
-public class Agent : MonoBehaviour, IObservable
+public class Agent : MonoBehaviour
 {
     private Planner planner;
     private List<PlanAction> currentPlan;
@@ -19,11 +19,6 @@ public class Agent : MonoBehaviour, IObservable
     // Observation cooldown (seconds)
     public float observeCooldown = 2f;
     private float observeTimer = 0f;
-
-    void Awake()
-    {
-        Register();
-    }
 
     void Start()
     {
@@ -60,8 +55,7 @@ public class Agent : MonoBehaviour, IObservable
 
             // Observe current world state
             currentState = ObservationManager.Observe();
-            Debug.Log("Current State: ");
-            currentState.Print();
+            currentGoal = ChooseGoal(Domain.goalList);
 
             // Make plan from current state towards goal
             currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
@@ -81,8 +75,8 @@ public class Agent : MonoBehaviour, IObservable
 
     public WorldState ChooseGoal(List<WorldState> list)
     {
-        // Chooses first goal for now. Maybe sort?
-        return list[0];
+        int index = UnityEngine.Random.Range(0, list.Count);
+        return list[index];
     }
 
     public void PrintPlan(List<PlanAction> plan)
@@ -109,25 +103,5 @@ public class Agent : MonoBehaviour, IObservable
         }
         // Plan finished, allow replanning next update
         currentPlan = null;
-    }
-
-    public List<Predicate> GetState()
-    {
-        bool evalSpawn = Domain.isAt(new List<object> { this, Domain.Spawn.Get() });
-        bool evalFood = Domain.isAt(new List<object> { this, Domain.Food.Get() });
-        bool evalWater = Domain.isAt(new List<object> { this, Domain.Water.Get() });
-        bool evalSleep = Domain.isAt(new List<object> { this, Domain.Sleep.Get() });
-
-        return new List<Predicate> {
-            new Predicate(Domain.isAt, new List<Pointer> { Domain.Spawn }, evalSpawn),
-            new Predicate(Domain.isAt, new List<Pointer> { Domain.Food }, evalFood),
-            new Predicate(Domain.isAt, new List<Pointer> { Domain.Water }, evalWater),
-            new Predicate(Domain.isAt, new List<Pointer> { Domain.Sleep }, evalSleep)
-        };
-    }
-
-    public void Register()
-    {
-        ObservationManager.Register(this);
     }
 }

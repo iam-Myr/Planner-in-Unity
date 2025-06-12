@@ -41,8 +41,8 @@ public class Planner
                     if (child.isGoal(initNode))
                     {
                         stopwatch.Stop();
-                        Debug.Log($"Goal found in {step} steps and depth {child.GetDepth()}");
-                        Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+                        //Debug.Log($"Goal found in {step} steps and depth {child.GetDepth()}");
+                        //Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
                         return ReconstructPlan(child);
                     }
 
@@ -55,8 +55,8 @@ public class Planner
         }
 
         stopwatch.Stop();
-        Debug.Log($"Planning stopped after {step} steps.");
-        Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+        //Debug.Log($"Planning stopped after {step} steps.");
+        //Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
         return null;
     }
 

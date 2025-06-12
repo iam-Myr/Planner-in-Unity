@@ -42,7 +42,7 @@ public class ActionEat : PlanAction
     public override async Task Execute(Agent agent)
     {
         // Logical update
-        Debug.Log("Eating..!");
+        //Debug.Log("Eating..!");
         Sim sim = agent.GetComponent<Sim>();
         sim.Eat();
     }

@@ -8,6 +8,9 @@ public class SimUI : MonoBehaviour
     public Slider waterBar;
 
     public Image sleepBarFill;
+    public Image hungerBarFill;
+    public Image waterBarFill;
+
     public Sim sim;
 
     void Start()
@@ -23,9 +26,8 @@ public class SimUI : MonoBehaviour
         hungerBar.value = sim.hunger;
         waterBar.value = sim.water;
 
-        if (sleepBar.value < sim.threshold)
-            sleepBarFill.color = Color.red;
-        else
-            sleepBarFill.color = Color.green;
+        sleepBarFill.color = sim.sleep < sim.threshold ? Color.red : Color.green;
+        hungerBarFill.color = sim.hunger < sim.threshold ? Color.red : Color.green;
+        waterBarFill.color = sim.water < sim.threshold ? Color.red : Color.green;
     }
 }

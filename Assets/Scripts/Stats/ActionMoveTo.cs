@@ -65,7 +65,7 @@ public class ActionMoveTo : PlanAction
     {
         if (area.Get() is Area target)
         {
-            Debug.Log("Moving to " + target.areaName);
+            //Debug.Log("Moving to " + target.areaName);
             Vector3 destination = target.GetPosition();
             Transform t = agent.transform;
 
@@ -75,7 +75,7 @@ public class ActionMoveTo : PlanAction
                 await Task.Yield();  // wait for next frame
             }
 
-            Debug.Log("Arrived at " + target.areaName);
+            //Debug.Log("Arrived at " + target.areaName);
         }
     }
 
