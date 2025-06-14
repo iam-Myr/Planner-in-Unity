@@ -24,8 +24,8 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isAt, new List<Pointer> {Domain.Sleep}, true), // isAt(sleep)  
-            new Predicate(Domain.isSleepy, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
+            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
         };
     }
     #endregion
@@ -35,7 +35,7 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(Domain.isSleepy, new List<Pointer> {}, false) //not isSleepy
+           new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
         };
     }
 
@@ -43,7 +43,7 @@ public class ActionSleep : PlanAction
     {
         // Logical update
         //Debug.Log("Sleeping...");
-        Sim sim = agent.GetComponent<Sim>();
-        sim.Sleep();
+
+        if (agent is SimAgent sim) sim.Sleep();
     }
 }

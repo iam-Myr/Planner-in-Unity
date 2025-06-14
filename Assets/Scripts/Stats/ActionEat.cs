@@ -24,8 +24,8 @@ public class ActionEat : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isAt, new List<Pointer> {Domain.Food}, true), // isAt(food)  
-            new Predicate(Domain.isHungry, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Food}, true), // isAt(food)  
+            new Predicate(SimDomain.isHungry, new List<Pointer> {}, true)
         };
     }
     #endregion
@@ -35,7 +35,7 @@ public class ActionEat : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(Domain.isHungry, new List<Pointer> {}, false) //not isHungry
+           new Predicate(SimDomain.isHungry, new List<Pointer> {}, false) //not isHungry
         };
     }
 
@@ -43,7 +43,6 @@ public class ActionEat : PlanAction
     {
         // Logical update
         //Debug.Log("Eating..!");
-        Sim sim = agent.GetComponent<Sim>();
-        sim.Eat();
+        if (agent is SimAgent sim) sim.Eat();
     }
 }

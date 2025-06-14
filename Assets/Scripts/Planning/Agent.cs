@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 
-public class Agent : MonoBehaviour
+public abstract class Agent : MonoBehaviour, IObservable
 {
     private Planner planner;
     private List<PlanAction> currentPlan;
@@ -13,51 +13,66 @@ public class Agent : MonoBehaviour
 
     public const int MAXSTEPS = 1000000;
 
-    // Movement
-    public float moveSpeed;
-
     // Observation cooldown (seconds)
     public float observeCooldown = 2f;
     private float observeTimer = 0f;
 
-    void Start()
+    // Abstract domain-specific data to be provided by derived classes
+    protected abstract List<WorldState> DomainGoals { get; }
+    protected abstract List<PlanAction> DomainActions { get; }
+    protected abstract List<Pointer> DomainPointers { get; }
+
+    protected virtual void Awake()
     {
-        // Load Goal
-        currentGoal = ChooseGoal(Domain.goalList);
+        Register();
+    }
 
-        // Load actions
-        actionList = Domain.ActionTemplates;
+    public void Register()
+    {
+        ObservationManager.Register(this);
+    }
 
-        // Ground actions
-        List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, Domain.AllPointers);
+    public virtual List<Predicate> GetState() => new List<Predicate>();
 
-        // Initialize planner
+    protected virtual void Start()
+    {
+        // Choose initial goal from the domain's goals
+        currentGoal = ChooseGoal(DomainGoals);
+
+        // Load action templates from domain
+        actionList = DomainActions;
+
+
+        // Generate grounded actions from domain pointers
+        List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, DomainPointers);
+
+        // Initialize the planner with grounded actions
         planner = new Planner(groundedActions);
 
-        // Start with no current plan
+        // No plan at start
         currentPlan = null;
     }
 
-    void Update()
+    protected virtual void Update()
     {
-        // If currently executing a plan, do nothing here
+        // If executing a plan, don't replan
         if (currentPlan != null)
-        {
             return;
-        }
 
-        // Decrement timer
+        // Countdown observe timer
         observeTimer -= Time.deltaTime;
 
         if (observeTimer <= 0f)
         {
-            observeTimer = observeCooldown;  // reset cooldown timer
+            observeTimer = observeCooldown; // Reset cooldown
 
-            // Observe current world state
+            // Get current world state from observation manager
             currentState = ObservationManager.Observe();
-            currentGoal = ChooseGoal(Domain.goalList);
 
-            // Make plan from current state towards goal
+            // Select a goal to plan for
+            currentGoal = ChooseGoal(DomainGoals);
+
+            // Ask planner to generate a plan from current state to goal
             currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
 
             if (currentPlan != null && currentPlan.Count > 0)
@@ -75,6 +90,9 @@ public class Agent : MonoBehaviour
 
     public WorldState ChooseGoal(List<WorldState> list)
     {
+        if (list == null || list.Count == 0)
+            throw new InvalidOperationException("Cannot choose a goal: the goal list is null or empty.");
+
         int index = UnityEngine.Random.Range(0, list.Count);
         return list[index];
     }
@@ -101,7 +119,7 @@ public class Agent : MonoBehaviour
         {
             await action.Execute(this);
         }
-        // Plan finished, allow replanning next update
+        // Finished plan; allow replanning next update
         currentPlan = null;
     }
 }

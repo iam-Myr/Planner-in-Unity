@@ -46,7 +46,7 @@ public class ActionMoveTo : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(Domain.isAt, new List<Pointer> {from}, true) // isAt(from)  
+            new Predicate(SimDomain.isAt, new List<Pointer> {from}, true) // isAt(from)  
         };
     }
     #endregion
@@ -56,14 +56,14 @@ public class ActionMoveTo : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(Domain.isAt, new List<Pointer> {area}, true), // isAt(area)  
-           new Predicate(Domain.isAt, new List<Pointer> {from}, false)
+           new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
+           new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
         };
     }
 
     public override async Task Execute(Agent agent)
     {
-        if (area.Get() is Area target)
+        if (area.Get() is Area target && agent is SimAgent simAgent)
         {
             //Debug.Log("Moving to " + target.areaName);
             Vector3 destination = target.GetPosition();
@@ -71,7 +71,7 @@ public class ActionMoveTo : PlanAction
 
             while (Vector3.Distance(t.position, destination) > 0.1f)
             {
-                t.position = Vector3.MoveTowards(t.position, destination, agent.moveSpeed * Time.deltaTime);
+                t.position = Vector3.MoveTowards(t.position, destination, simAgent.moveSpeed * Time.deltaTime);
                 await Task.Yield();  // wait for next frame
             }
 

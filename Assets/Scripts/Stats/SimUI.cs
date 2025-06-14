@@ -11,7 +11,7 @@ public class SimUI : MonoBehaviour
     public Image hungerBarFill;
     public Image waterBarFill;
 
-    public Sim sim;
+    public SimAgent sim;
 
     void Start()
     {

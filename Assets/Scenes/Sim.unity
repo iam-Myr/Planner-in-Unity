@@ -648,7 +648,9 @@ MonoBehaviour:
   hungerBar: {fileID: 1236570572}
   waterBar: {fileID: 802891419}
   sleepBarFill: {fileID: 1215346419}
-  sim: {fileID: 1595836990}
+  hungerBarFill: {fileID: 1679567696}
+  waterBarFill: {fileID: 170048089}
+  sim: {fileID: 1595836992}
 --- !u!1 &454940828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1772,9 +1774,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1595836988}
   - component: {fileID: 1595836987}
-  - component: {fileID: 1595836989}
-  - component: {fileID: 1595836990}
   - component: {fileID: 1595836991}
+  - component: {fileID: 1595836992}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -1846,45 +1847,12 @@ Transform:
   m_GameObject: {fileID: 1595836986}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.6, y: -2.49, z: 0}
+  m_LocalPosition: {x: 1.8, y: -2.56, z: 0}
   m_LocalScale: {x: 1, y: 0.9673, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1595836989
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1595836986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4af2424cf47a94349ab02c4c856af093, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  observeCooldown: 2
---- !u!114 &1595836990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1595836986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 223899471e480a84abf582f598bbeeb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hungerMAX: 200
-  sleepMAX: 100
-  waterMAX: 50
-  hunger: 0
-  sleep: 0
-  water: 0
-  threshold: 40
 --- !u!70 &1595836991
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1922,6 +1890,28 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1.22, y: 2.34}
   m_Direction: 0
+--- !u!114 &1595836992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1595836986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04717ac1264ee914aad81074435e7da9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  observeCooldown: 2
+  moveSpeed: 5
+  hungerMAX: 100
+  sleepMAX: 200
+  waterMAX: 50
+  hunger: 0
+  sleep: 0
+  water: 0
+  degrationRate: 5
+  threshold: 40
 --- !u!1 &1679567694
 GameObject:
   m_ObjectHideFlags: 0

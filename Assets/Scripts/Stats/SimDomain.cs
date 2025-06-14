@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public static class Domain
+public static class SimDomain
 {
     // Actions
     public static List<PlanAction> ActionTemplates = new List<PlanAction>
@@ -75,7 +75,7 @@ public static class Domain
 
     public static bool isAt(List<object> args)
     {
-        if (args[0] is Sim sim && args[1] is Area area)
+        if (args[0] is Agent sim && args[1] is Area area)
             return area.Contains(sim.transform);
 
         throw new ArgumentException("isAt wrong args.");
