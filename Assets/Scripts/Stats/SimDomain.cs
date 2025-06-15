@@ -4,24 +4,6 @@ using System;
 
 public static class SimDomain
 {
-    // Actions
-    public static List<PlanAction> ActionTemplates = new List<PlanAction>
-    {
-        new ActionMoveTo(),
-        new ActionSleep(),
-        new ActionEat(),
-        new ActionDrink()
-    };
-
-    // Goals
-    public static List<WorldState> goalList = new List<WorldState>
-    {
-        //new GoalRested(),
-        //new GoalSated(),
-        //new GoalHydrated(),
-        new GoalHappy()
-    };
-
     // Objects
     public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());
     public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<Area>());
@@ -80,4 +62,22 @@ public static class SimDomain
 
         throw new ArgumentException("isAt wrong args.");
     }
+
+    // Actions
+    public static List<PlanAction> ActionTemplates = new List<PlanAction>
+    {
+        new ActionMoveTo(),
+        new ActionSleep(),
+        new ActionEat(),
+        new ActionDrink()
+    };
+
+    // Goals
+    public static List<WorldState> goalList = new List<WorldState>
+    {
+        //new GoalRested(),
+        //new GoalSated(),
+        //new GoalHydrated(),
+        new GoalHappy()
+    };
 }

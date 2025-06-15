@@ -6,18 +6,7 @@ using UnityEngine;
 // IS SINGLETON?
 public static class BlockDomain
 {
-    // Actions
-    public static List<PlanAction> ActionTemplates = new List<PlanAction>
-    {
-        new ActionMove(),
-        new ActionPickup(),
-        new ActionDrop()
-    };
-
-    public static List<WorldState> goalList = new List<WorldState>
-    {
-        new GoalBlocks()
-    };
+    
 
     // Pointers created from blocks
     public static Pointer A = new Pointer(GameObject.Find("A").GetComponent<Block>());
@@ -57,5 +46,19 @@ public static class BlockDomain
     {
         return true;
     }
+
+
+    // Actions
+    public static List<PlanAction> ActionTemplates = new List<PlanAction>
+    {
+        new ActionMove(),
+        new ActionPickup(),
+        new ActionDrop()
+    };
+
+    public static List<WorldState> goalList = new List<WorldState>
+    {
+        new GoalBlocks()
+    };
 }
 
