@@ -5,13 +5,13 @@ using System;
 public static class SimDomain
 {
     // Objects
-    public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());
-    public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<Area>());
-    public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<Area>());
-    public static Pointer Spawn = new Pointer(GameObject.Find("Spawn").GetComponent<Area>());
+    public static Area Food = GameObject.Find("Food").GetComponent<Area>();
+    public static Area Water = GameObject.Find("Water").GetComponent<Area>();
+    public static Area Sleep = GameObject.Find("Sleep").GetComponent<Area>();
+    public static Area Spawn = GameObject.Find("Spawn").GetComponent<Area>();
 
 
-    public static List<Pointer> AllPointers = new List<Pointer> { Food, Water, Sleep, Spawn };
+    public static List<object> AllObjects = new List<object> { Food, Water, Sleep, Spawn };
 
     // Atoms
     public static bool isSleepy(List<object> args)

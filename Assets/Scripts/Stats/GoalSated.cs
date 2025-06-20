@@ -6,7 +6,7 @@ public class GoalSated : WorldState
     public GoalSated()
     {
         AddPredicates(
-            new Predicate(SimDomain.isHungry, new List<Pointer> { }, false)
+            new Predicate(SimDomain.isHungry, new List<object> { }, false)
         );
     }
 }

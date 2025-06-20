@@ -102,7 +102,6 @@ public class Planner
         return children;
     }
 
-
     private List<PlanAction> ReconstructPlan(Node node)
     {
         List<PlanAction> result = new List<PlanAction>();

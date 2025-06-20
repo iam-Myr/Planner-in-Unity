@@ -5,22 +5,22 @@ using UnityEngine;
 
 public class ActionDrop : PlanAction
 {
-    private Pointer current, to;
+    private object current, to;
 
     public ActionDrop()
     {
         actionName = "Drop";
 
-        this.current = new Pointer();
-        this.to = new Pointer();
+        this.current = new object();
+        this.to = new object();
 
-        actionArgs = new List<Pointer> { current, to};
+        actionArgs = new List<object> { current, to};
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public ActionDrop(List<Pointer> args) : base(args)
+    public ActionDrop(List<object> args) : base(args)
     {
         actionName = "Drop";
 
@@ -32,7 +32,7 @@ public class ActionDrop : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionDrop(args);
     }
@@ -44,8 +44,8 @@ public class ActionDrop : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, true), // isClear(to)
+            new Predicate(BlockDomain.isHolding, new List<object> {current}, true), // isClear(current)
+            new Predicate(BlockDomain.isClear, new List<object> {to}, true), // isClear(to)
         };
     }
     #endregion
@@ -55,17 +55,17 @@ public class ActionDrop : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
-            new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, false),
-            new Predicate(BlockDomain.isHandEmpty, new List < Pointer > {}, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, false), // isClear(to)
+            new Predicate(BlockDomain.isOn, new List <object> {current, to}, true), // isOn(current, to)
+            new Predicate(BlockDomain.isHolding, new List<object> {current}, false),
+            new Predicate(BlockDomain.isHandEmpty, new List < object > {}, true),
+            new Predicate(BlockDomain.isClear, new List<object> {to}, false), // isClear(to)
         };
     }
 
     public override async Task Execute(Agent agent)
     {
-        if (to.Get() is Block toBlock &&
-            current.Get() is Block currentBlock)
+        if (to is Block toBlock &&
+            current is Block currentBlock)
         {
             // Logical update
             toBlock.SetAbove(currentBlock);

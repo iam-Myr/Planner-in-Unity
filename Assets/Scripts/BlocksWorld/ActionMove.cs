@@ -5,23 +5,23 @@ using UnityEngine;
 
 public class ActionMove : PlanAction
 {
-    private Pointer current, to, from;
+    private object current, to, from;
 
     public ActionMove()
     {
         actionName = "Move";
 
-        this.current = new Pointer();
-        this.to = new Pointer();
-        this.from = new Pointer();
+        this.current = new object();
+        this.to = new object();
+        this.from = new object();
 
-        actionArgs = new List<Pointer> { current, to, from };
+        actionArgs = new List<object> { current, to, from };
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public ActionMove(List<Pointer> args) : base(args)
+    public ActionMove(List<object> args) : base(args)
     {
         actionName = "Move";
 
@@ -34,7 +34,7 @@ public class ActionMove : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionMove(args);
     }
@@ -45,9 +45,9 @@ public class ActionMove : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isClear, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, true), // isClear(to)
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, from}, true) // isOn(current, from)
+            new Predicate(BlockDomain.isClear, new List<object> {current}, true), // isClear(current)
+            new Predicate(BlockDomain.isClear, new List<object> {to}, true), // isClear(to)
+            new Predicate(BlockDomain.isOn, new List <object> {current, from}, true) // isOn(current, from)
         };
     }
     #endregion
@@ -57,18 +57,18 @@ public class ActionMove : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
-            new Predicate(  BlockDomain.isOn, new List <Pointer> {current, from}, false),
-            new Predicate(BlockDomain.isClear, new List <Pointer> {to}, false)
+            new Predicate(BlockDomain.isClear, new List <object> {from}, true), // isClear(from)
+            new Predicate(BlockDomain.isOn, new List <object> {current, to}, true), // isOn(current, to)
+            new Predicate(  BlockDomain.isOn, new List <object> {current, from}, false),
+            new Predicate(BlockDomain.isClear, new List <object> {to}, false)
         };
     }
 
     public override async Task Execute(Agent agent)
     {
-        if (to.Get() is Block toBlock &&
-            from.Get() is Block fromBlock &&
-            current.Get() is Block currentBlock)
+        if (to is Block toBlock &&
+            from is Block fromBlock &&
+            current is Block currentBlock)
         {
             // Logical update
             toBlock.SetAbove(currentBlock);

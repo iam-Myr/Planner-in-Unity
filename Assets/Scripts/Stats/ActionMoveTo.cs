@@ -7,23 +7,23 @@ using UnityEngine;
 // How can we move the agent??
 public class ActionMoveTo : PlanAction
 {
-    private Pointer area;
-    private Pointer from;
+    private object area;
+    private object from;
 
     public ActionMoveTo()
     {
         actionName = "MoveTo";
 
-        this.area = new Pointer();
-        this.from = new Pointer();
+        this.area = new object();
+        this.from = new object();
 
-        actionArgs = new List<Pointer> {area, from};
+        actionArgs = new List<object> {area, from};
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public ActionMoveTo(List<Pointer> args) : base(args)
+    public ActionMoveTo(List<object> args) : base(args)
     {
         actionName = "MoveTo";
 
@@ -35,7 +35,7 @@ public class ActionMoveTo : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionMoveTo(args);
     }
@@ -46,7 +46,7 @@ public class ActionMoveTo : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(SimDomain.isAt, new List<Pointer> {from}, true) // isAt(from)  
+            new Predicate(SimDomain.isAt, new List<object> {from}, true) // isAt(from)  
         };
     }
     #endregion
@@ -56,14 +56,14 @@ public class ActionMoveTo : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
-           new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
+           new Predicate(SimDomain.isAt, new List<object> {area}, true), // isAt(area)  
+           new Predicate(SimDomain.isAt, new List<object> {from}, false)
         };
     }
 
     public override async Task Execute(Agent agent)
     {
-        if (area.Get() is Area target && agent is SimAgent simAgent)
+        if (area is Area target && agent is SimAgent simAgent)
         {
             //Debug.Log("Moving to " + target.areaName);
             Vector3 destination = target.GetPosition();
@@ -78,5 +78,4 @@ public class ActionMoveTo : PlanAction
             //Debug.Log("Arrived at " + target.areaName);
         }
     }
-
 }

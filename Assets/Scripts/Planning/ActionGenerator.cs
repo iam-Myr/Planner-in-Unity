@@ -4,7 +4,7 @@ using System.Linq;
 public static class ActionGenerator
 {
     // Generate all grounded actions from templates and pointers
-    public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<Pointer> pointers)
+    public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<object> pointers)
     {
         List<PlanAction> groundedActions = new List<PlanAction>();
 
@@ -13,7 +13,7 @@ public static class ActionGenerator
             int arity = template.actionArgs.Count; // how many arguments this action expects
             if (arity == 0) // Action has no args
             {
-                groundedActions.Add(template.CreateNew(new List<Pointer> { }));
+                groundedActions.Add(template.CreateNew(new List<object> { }));
                 continue;
             }
 

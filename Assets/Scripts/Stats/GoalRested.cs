@@ -6,7 +6,7 @@ public class GoalRested : WorldState
     public GoalRested()
     {
         AddPredicates(
-            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false)
+            new Predicate(SimDomain.isSleepy, new List<object> {}, false)
         );
     }
 }

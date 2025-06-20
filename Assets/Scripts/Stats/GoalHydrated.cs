@@ -6,7 +6,7 @@ public class GoalHydrated : WorldState
     public GoalHydrated()
     {
         AddPredicates(
-            new Predicate(SimDomain.isThirsty, new List<Pointer> { }, false)
+            new Predicate(SimDomain.isThirsty, new List<object> { }, false)
         );
     }
 }

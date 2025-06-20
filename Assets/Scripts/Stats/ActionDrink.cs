@@ -13,7 +13,7 @@ public class ActionDrink : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionDrink();
     }
@@ -24,8 +24,8 @@ public class ActionDrink : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Water}, true), // isAt(food)  
-            new Predicate(SimDomain.isThirsty, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<object> {SimDomain.Water}, true), // isAt(food)  
+            new Predicate(SimDomain.isThirsty, new List<object> {}, true)
         };
     }
     #endregion
@@ -35,7 +35,7 @@ public class ActionDrink : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(SimDomain.isThirsty, new List<Pointer> {}, false) //not isHungry
+           new Predicate(SimDomain.isThirsty, new List<object> {}, false) //not isHungry
         };
     }
 

@@ -20,7 +20,7 @@ public abstract class Agent : MonoBehaviour, IObservable
     // Abstract domain-specific data to be provided by derived classes
     protected abstract List<WorldState> DomainGoals { get; }
     protected abstract List<PlanAction> DomainActions { get; }
-    protected abstract List<Pointer> DomainPointers { get; }
+    protected abstract List<object> DomainObjects { get; }
 
     protected virtual void Awake()
     {
@@ -44,7 +44,7 @@ public abstract class Agent : MonoBehaviour, IObservable
 
 
         // Generate grounded actions from domain pointers
-        List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, DomainPointers);
+        List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, DomainObjects);
 
         // Initialize the planner with grounded actions
         planner = new Planner(groundedActions);
@@ -117,6 +117,7 @@ public abstract class Agent : MonoBehaviour, IObservable
     {
         foreach (PlanAction action in plan)
         {
+           // if (!action.isValid()) return;
             await action.Execute(this);
         }
         // Finished plan; allow replanning next update

@@ -5,22 +5,22 @@ using UnityEngine;
 
 public class ActionPickup : PlanAction
 {
-    private Pointer current, from;
+    private object current, from;
 
     public ActionPickup()
     {
         actionName = "Pick Up";
 
-        this.current = new Pointer();
-        this.from = new Pointer();
+        this.current = new object();
+        this.from = new object();
 
-        actionArgs = new List<Pointer> { current, from };
+        actionArgs = new List<object> { current, from };
 
         preconditions.AddRange(InitPreconditions());
         effects.AddRange(InitEffects());
     }
 
-    public ActionPickup(List<Pointer> args) : base(args)
+    public ActionPickup(List<object> args) : base(args)
     {
         actionName = "Pickup";
 
@@ -32,7 +32,7 @@ public class ActionPickup : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionPickup(args);
     }
@@ -43,9 +43,9 @@ public class ActionPickup : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isClear, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isOn, new List<Pointer> {current, from}, true), // isOn(current, from)
-            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, true) 
+            new Predicate(BlockDomain.isClear, new List<object> {current}, true), // isClear(current)
+            new Predicate(BlockDomain.isOn, new List<object> {current, from}, true), // isOn(current, from)
+            new Predicate(BlockDomain.isHandEmpty, new List <object> {}, true) 
         };
     }
     #endregion
@@ -55,17 +55,17 @@ public class ActionPickup : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(BlockDomain.isHolding, new List <Pointer> {current}, true), // isClear(from)
-            new Predicate(BlockDomain.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, false)
+            new Predicate(BlockDomain.isHolding, new List <object   > {current}, true), // isClear(from)
+            new Predicate(BlockDomain.isClear, new List <object> {from}, true), // isClear(from)
+            new Predicate(BlockDomain.isHandEmpty, new List <object> {}, false)
         };
     }
 
 
     public override async Task Execute(Agent agent)
     {
-        if (from.Get() is Block fromBlock &&
-            current.Get() is Block currentBlock)
+        if (from is Block fromBlock &&
+            current is Block currentBlock)
         {
             // Logical update
             

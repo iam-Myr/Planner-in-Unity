@@ -13,7 +13,7 @@ public class ActionSleep : PlanAction
         effects.AddRange(InitEffects());
     }
 
-    public override PlanAction CreateNew(List<Pointer> args)
+    public override PlanAction CreateNew(List<object> args)
     {
         return new ActionSleep();
     }
@@ -24,8 +24,8 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
-            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<object> {SimDomain.Sleep}, true), // isAt(sleep)  
+            new Predicate(SimDomain.isSleepy, new List<object> {}, true)
         };
     }
     #endregion
@@ -35,7 +35,7 @@ public class ActionSleep : PlanAction
     {
         return new List<Predicate>
         {
-           new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
+           new Predicate(SimDomain.isSleepy, new List<object> {}, false) //not isSleepy
         };
     }
 

@@ -8,19 +8,19 @@ public class Predicate
 {
     public Func<List<object>, bool> func { get; private set; }
     // CHECK THIS OUT
-    public List<Pointer> args { get; private set; }
+    public List<object> args { get; private set; }
     public bool evaluation { get; private set; }
 
     public Predicate() { }
 
-    public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool neg)
+    public Predicate(Func<List<object>, bool> func, List<object> args, bool neg)
     {
         this.func = func;
         this.args = args;
         this.evaluation = neg;
     }
 
-
+    /*
     internal Predicate Clone()
     {
         Predicate clone = new Predicate();
@@ -28,20 +28,20 @@ public class Predicate
         clone.evaluation = evaluation;
 
         // Args
-        clone.args = new List<Pointer>();
-        foreach (Pointer arg in args)
+        clone.args = new List<object>();
+        foreach (object arg in args)
             clone.args.Add(arg.Clone());
 
         return clone;
-    }
+    }*/
 
     // How to use .Contains correctly :)
     public override int GetHashCode()
     {
-        int hash = func?.Method.Name.GetHashCode() ?? 0;
+        int hash = func.Method.Name.GetHashCode();
         hash = (hash * 397) ^ evaluation.GetHashCode();
         foreach (var arg in args)
-            hash = (hash * 397) ^ (arg.value?.GetHashCode() ?? 0);
+            hash = (hash * 397) ^ (arg.GetHashCode());
         return hash;
     }
 
@@ -66,7 +66,7 @@ public class Predicate
         // Check each argument
         for (int i = 0; i < this.args.Count; i++)
         {
-            if (!this.args[i].isSameValue(other.args[i]))
+            if (!this.args[i].Equals(other.args[i]))
                 return false;
         }
 
@@ -75,14 +75,14 @@ public class Predicate
 
     public bool IsInstantiated()
     {
-        return args.All(arg => arg.value != null);
+        return args.All(arg => arg != null);
     }
 
 
     public override string ToString()
     {
         string funcName = func?.Method.Name ?? "null";
-        string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
+        string argsString = string.Join(", ", args.Select(arg => arg.ToString() ?? "null"));
         return $"{funcName}({argsString}) - {evaluation}";
     }
 
@@ -96,12 +96,34 @@ public class Predicate
 
         for (int i = 0; i < this.args.Count; i++)
         {
-            if (!this.args[i].isSameValue(other.args[i]))
+            if (!this.args[i].Equals(other.args[i]))
                 return false;
         }
 
         // Return true if structure matches and negation is opposite
         return this.evaluation != other.evaluation;
     }
+
+    public bool EvaluatePredicate()
+    {
+        if (func == null)
+        {
+            Debug.LogError("Predicate function is null.");
+            return false;
+        }
+
+        try
+        {
+            bool result = func.Invoke(args);
+
+            return result == evaluation;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to evaluate predicate {this}: {ex.Message}");
+            return false;
+        }
+    }
+
 
 }

@@ -5,7 +5,7 @@ public class BlockAgent : Agent
 {
     protected override List<WorldState> DomainGoals => BlockDomain.goalList;
     protected override List<PlanAction> DomainActions => BlockDomain.ActionTemplates;
-    protected override List<Pointer> DomainPointers => BlockDomain.AllPointers;
+    protected override List<object> DomainObjects => BlockDomain.AllObjects;
 
     public override List<Predicate> GetState()
     {

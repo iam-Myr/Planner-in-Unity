@@ -9,21 +9,21 @@ public static class BlockDomain
     
 
     // Pointers created from blocks
-    public static Pointer A = new Pointer(GameObject.Find("A").GetComponent<Block>());
-    public static Pointer B = new Pointer(GameObject.Find("B").GetComponent<Block>());
-    public static Pointer C = new Pointer(GameObject.Find("C").GetComponent<Block>());
-    public static Pointer D = new Pointer(GameObject.Find("D").GetComponent<Block>());
-    public static Pointer E = new Pointer(GameObject.Find("E").GetComponent<Block>());
+    public static Block A = GameObject.Find("A").GetComponent<Block>();
+    public static Block B = GameObject.Find("B").GetComponent<Block>();
+    public static Block C = GameObject.Find("C").GetComponent<Block>();
+    public static Block D = GameObject.Find("D").GetComponent<Block>();
+    public static Block E = GameObject.Find("E").GetComponent<Block>();
 
-    public static List<Pointer> AllPointers = new List<Pointer> { A, B, C, D, E };
+    public static List<object> AllObjects = new List<object> { A, B, C, D, E };
 
     public static List<Predicate> InitialState = new List<Predicate> {
-            new Predicate(BlockDomain.isClear, new List<Pointer> { B }, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> { C }, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> { E }, true),
-            new Predicate(BlockDomain.isOn, new List<Pointer> { B, A }, true),
-            new Predicate(BlockDomain.isOn, new List<Pointer> { A, D }, true),
-            new Predicate(BlockDomain.isHandEmpty, new List<Pointer>(), true)
+            new Predicate(BlockDomain.isClear, new List<object> { B }, true),
+            new Predicate(BlockDomain.isClear, new List<object> { C }, true),
+            new Predicate(BlockDomain.isClear, new List<object> { E }, true),
+            new Predicate(BlockDomain.isOn, new List<object> { B, A }, true),
+            new Predicate(BlockDomain.isOn, new List<object> { A, D }, true),
+            new Predicate(BlockDomain.isHandEmpty, new List<object>(), true)
             };
 
     // Predicates
