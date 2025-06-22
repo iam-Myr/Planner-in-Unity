@@ -2,48 +2,52 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Planning;
 
-public class ActionSleep : PlanAction
+namespace SimWorld
 {
-    public ActionSleep()
+    public class ActionSleep : PlanAction
     {
-        actionName = "Sleep";
+        public ActionSleep()
+        {
+            actionName = "Sleep";
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-    public override PlanAction CreateNew(List<Pointer> args)
-    {
-        return new ActionSleep();
-    }
+        public override PlanAction CreateNew(List<Pointer> args)
+        {
+            return new ActionSleep();
+        }
 
-    #region Preconditions
-    // Preconditions
-    public override List<Predicate> InitPreconditions()
-    {
-        return new List<Predicate>
+        #region Preconditions
+        // Preconditions
+        public override List<Predicate> InitPreconditions()
+        {
+            return new List<Predicate>
         {
             new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
             new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
         };
-    }
-    #endregion
+        }
+        #endregion
 
-    // Effects
-    public override List<Predicate> InitEffects()
-    {
-        return new List<Predicate>
+        // Effects
+        public override List<Predicate> InitEffects()
+        {
+            return new List<Predicate>
         {
            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
         };
-    }
+        }
 
-    public override async Task Execute(Agent agent)
-    {
-        // Logical update
-        //Debug.Log("Sleeping...");
+        public override async Task Execute(Agent agent)
+        {
+            // Logical update
+            //Debug.Log("Sleeping...");
 
-        if (agent is SimAgent sim) sim.Sleep();
+            if (agent is SimAgent sim) sim.Sleep();
+        }
     }
 }

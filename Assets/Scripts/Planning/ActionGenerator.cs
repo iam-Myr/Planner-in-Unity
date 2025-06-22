@@ -1,56 +1,59 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public static class ActionGenerator
+namespace Planning
 {
-    // Generate all grounded actions from templates and pointers
-    public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<Pointer> pointers)
+    public static class ActionGenerator
     {
-        List<PlanAction> groundedActions = new List<PlanAction>();
-
-        foreach (var template in actionTemplates)
+        // Generate all grounded actions from templates and pointers
+        public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<Pointer> pointers)
         {
-            int arity = template.actionArgs.Count; // how many arguments this action expects
-            if (arity == 0) // Action has no args
+            List<PlanAction> groundedActions = new List<PlanAction>();
+
+            foreach (var template in actionTemplates)
             {
-                groundedActions.Add(template.CreateNew(new List<Pointer> { }));
-                continue;
-            }
-
-            // Get all permutations of pointers of length = arity
-            var pointerPermutations = GetPermutations(pointers, arity);
-
-            foreach (var args in pointerPermutations)
-            {
-                // Instantiate new grounded action with these args
-                PlanAction groundedAction = template.CreateNew(args.ToList());
-                groundedActions.Add(groundedAction);
-            }
-        }
-
-        return groundedActions;
-    }
-
-    private static List<List<T>> GetPermutations<T>(IEnumerable<T> list, int length)
-    {
-        if (length == 1)
-            return list.Select(t => new List<T> { t }).ToList();
-
-        var perms = GetPermutations(list, length - 1);
-        var result = new List<List<T>>();
-
-        foreach (var perm in perms)
-        {
-            foreach (var item in list)
-            {
-                if (!perm.Contains(item))
+                int arity = template.actionArgs.Count; // how many arguments this action expects
+                if (arity == 0) // Action has no args
                 {
-                    var newPerm = new List<T>(perm) { item };
-                    result.Add(newPerm);
+                    groundedActions.Add(template.CreateNew(new List<Pointer> { }));
+                    continue;
+                }
+
+                // Get all permutations of pointers of length = arity
+                var pointerPermutations = GetPermutations(pointers, arity);
+
+                foreach (var args in pointerPermutations)
+                {
+                    // Instantiate new grounded action with these args
+                    PlanAction groundedAction = template.CreateNew(args.ToList());
+                    groundedActions.Add(groundedAction);
                 }
             }
-        }
-        return result;
-    }
 
+            return groundedActions;
+        }
+
+        private static List<List<T>> GetPermutations<T>(IEnumerable<T> list, int length)
+        {
+            if (length == 1)
+                return list.Select(t => new List<T> { t }).ToList();
+
+            var perms = GetPermutations(list, length - 1);
+            var result = new List<List<T>>();
+
+            foreach (var perm in perms)
+            {
+                foreach (var item in list)
+                {
+                    if (!perm.Contains(item))
+                    {
+                        var newPerm = new List<T>(perm) { item };
+                        result.Add(newPerm);
+                    }
+                }
+            }
+            return result;
+        }
+
+    }
 }

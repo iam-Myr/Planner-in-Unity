@@ -1,12 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Planning;
 
-public class GoalSated : WorldState
+namespace SimWorld
 {
-    public GoalSated()
+    public class GoalSated : WorldState
     {
-        AddPredicates(
-            new Predicate(SimDomain.isHungry, new List<Pointer> { }, false)
-        );
+        public GoalSated()
+        {
+            AddPredicates(
+                new Predicate(SimDomain.isHungry, new List<Pointer> { }, false)
+            );
+        }
     }
 }

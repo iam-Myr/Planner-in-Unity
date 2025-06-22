@@ -1,13 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Planning;
 
-public class GoalBlocks : WorldState
+namespace BlocksWorld
 {
-    public GoalBlocks()
+
+    public class GoalBlocks : WorldState
     {
-        AddPredicates(
-            new Predicate(BlockDomain.isOn, new List<Pointer> {BlockDomain.B, BlockDomain.E}, true),
-            new Predicate(BlockDomain.isOn, new List<Pointer> {BlockDomain.A, BlockDomain.B}, true)
-        );
+        public GoalBlocks()
+        {
+            AddPredicates(
+                new Predicate(BlockDomain.isOn, new List<Pointer> { BlockDomain.B, BlockDomain.A }, true),
+                new Predicate(BlockDomain.isOn, new List<Pointer> { BlockDomain.A, BlockDomain.B }, true)
+            );
+        }
     }
 }

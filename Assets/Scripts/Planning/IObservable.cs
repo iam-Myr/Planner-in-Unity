@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 
-public interface IObservable
+namespace Planning
 {
-    List<Predicate> GetState();
-    void Register();
+    public interface IObservable
+    {
+        List<Predicate> GetState();
+        void Register();
+    }
 }

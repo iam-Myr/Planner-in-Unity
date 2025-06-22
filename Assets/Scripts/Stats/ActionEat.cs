@@ -2,47 +2,51 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Planning;
 
-public class ActionEat : PlanAction
+namespace SimWorld
 {
-    public ActionEat()
+    public class ActionEat : PlanAction
     {
-        actionName = "Eat";
+        public ActionEat()
+        {
+            actionName = "Eat";
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-    public override PlanAction CreateNew(List<Pointer> args)
-    {
-        return new ActionEat();
-    }
+        public override PlanAction CreateNew(List<Pointer> args)
+        {
+            return new ActionEat();
+        }
 
-    #region Preconditions
-    // Preconditions
-    public override List<Predicate> InitPreconditions()
-    {
-        return new List<Predicate>
+        #region Preconditions
+        // Preconditions
+        public override List<Predicate> InitPreconditions()
+        {
+            return new List<Predicate>
         {
             new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Food}, true), // isAt(food)  
             new Predicate(SimDomain.isHungry, new List<Pointer> {}, true)
         };
-    }
-    #endregion
+        }
+        #endregion
 
-    // Effects
-    public override List<Predicate> InitEffects()
-    {
-        return new List<Predicate>
+        // Effects
+        public override List<Predicate> InitEffects()
+        {
+            return new List<Predicate>
         {
            new Predicate(SimDomain.isHungry, new List<Pointer> {}, false) //not isHungry
         };
-    }
+        }
 
-    public override async Task Execute(Agent agent)
-    {
-        // Logical update
-        //Debug.Log("Eating..!");
-        if (agent is SimAgent sim) sim.Eat();
+        public override async Task Execute(Agent agent)
+        {
+            // Logical update
+            //Debug.Log("Eating..!");
+            if (agent is SimAgent sim) sim.Eat();
+        }
     }
 }

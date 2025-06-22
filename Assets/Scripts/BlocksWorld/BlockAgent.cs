@@ -1,14 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Planning;
 
-public class BlockAgent : Agent
+namespace BlocksWorld
 {
-    protected override List<WorldState> DomainGoals => BlockDomain.goalList;
-    protected override List<PlanAction> DomainActions => BlockDomain.ActionTemplates;
-    protected override List<Pointer> DomainPointers => BlockDomain.AllPointers;
-
-    public override List<Predicate> GetState()
+    public class BlockAgent : Agent
     {
-        return BlockDomain.InitialState;
+        protected override List<WorldState> DomainGoals => BlockDomain.goalList;
+        protected override List<PlanAction> DomainActions => BlockDomain.ActionTemplates;
+        protected override List<Pointer> DomainPointers => BlockDomain.AllPointers;
+
+        public override List<Predicate> GetState()
+        {
+            return BlockDomain.InitialState;
+        }
     }
 }

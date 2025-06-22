@@ -1,31 +1,34 @@
 using System.Collections.Generic;
 
-public static class ObservationManager
+namespace Planning
 {
-    private static readonly List<IObservable> observables = new();
-
-    public static void Register(IObservable observable)
+    public static class ObservationManager
     {
-        if (!observables.Contains(observable))
-            observables.Add(observable);
-    }
+        private static readonly List<IObservable> observables = new();
 
-    public static void Unregister(IObservable observable)
-    {
-        if (observables.Contains(observable))
-            observables.Remove(observable);
-    }
-
-    public static WorldState Observe()
-    {
-        WorldState currentWorldState = new WorldState();
-
-        foreach (IObservable observable in observables)
+        public static void Register(IObservable observable)
         {
-            currentWorldState.AddPredicates(observable.GetState().ToArray());
+            if (!observables.Contains(observable))
+                observables.Add(observable);
         }
 
-        //currentWorldState.Print();
-        return currentWorldState;
+        public static void Unregister(IObservable observable)
+        {
+            if (observables.Contains(observable))
+                observables.Remove(observable);
+        }
+
+        public static WorldState Observe()
+        {
+            WorldState currentWorldState = new WorldState();
+
+            foreach (IObservable observable in observables)
+            {
+                currentWorldState.AddPredicates(observable.GetState().ToArray());
+            }
+
+            //currentWorldState.Print();
+            return currentWorldState;
+        }
     }
 }

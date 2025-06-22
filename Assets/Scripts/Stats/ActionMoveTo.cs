@@ -2,81 +2,84 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-
+using Planning;
 
 // How can we move the agent??
-public class ActionMoveTo : PlanAction
+namespace SimWorld
 {
-    private Pointer area;
-    private Pointer from;
-
-    public ActionMoveTo()
+    public class ActionMoveTo : PlanAction
     {
-        actionName = "MoveTo";
+        private Pointer area;
+        private Pointer from;
 
-        this.area = new Pointer();
-        this.from = new Pointer();
+        public ActionMoveTo()
+        {
+            actionName = "MoveTo";
 
-        actionArgs = new List<Pointer> {area, from};
+            this.area = new Pointer();
+            this.from = new Pointer();
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            actionArgs = new List<Pointer> { area, from };
 
-    public ActionMoveTo(List<Pointer> args) : base(args)
-    {
-        actionName = "MoveTo";
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-        // Extract meaningful references from the list
-        this.area = args[0];
-        this.from = args[1];
+        public ActionMoveTo(List<Pointer> args) : base(args)
+        {
+            actionName = "MoveTo";
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            // Extract meaningful references from the list
+            this.area = args[0];
+            this.from = args[1];
 
-    public override PlanAction CreateNew(List<Pointer> args)
-    {
-        return new ActionMoveTo(args);
-    }
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-    #region Preconditions
-    // Preconditions
-    public override List<Predicate> InitPreconditions()
-    {
-        return new List<Predicate>
+        public override PlanAction CreateNew(List<Pointer> args)
+        {
+            return new ActionMoveTo(args);
+        }
+
+        #region Preconditions
+        // Preconditions
+        public override List<Predicate> InitPreconditions()
+        {
+            return new List<Predicate>
         {
             new Predicate(SimDomain.isAt, new List<Pointer> {from}, true) // isAt(from)  
         };
-    }
-    #endregion
+        }
+        #endregion
 
-    // Effects
-    public override List<Predicate> InitEffects()
-    {
-        return new List<Predicate>
+        // Effects
+        public override List<Predicate> InitEffects()
+        {
+            return new List<Predicate>
         {
            new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
            new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
         };
-    }
-
-    public override async Task Execute(Agent agent)
-    {
-        if (area.Get() is Area target && agent is SimAgent simAgent)
-        {
-            //Debug.Log("Moving to " + target.areaName);
-            Vector3 destination = target.GetPosition();
-            Transform t = agent.transform;
-
-            while (Vector3.Distance(t.position, destination) > 0.1f)
-            {
-                t.position = Vector3.MoveTowards(t.position, destination, simAgent.moveSpeed * Time.deltaTime);
-                await Task.Yield();  // wait for next frame
-            }
-
-            //Debug.Log("Arrived at " + target.areaName);
         }
-    }
 
+        public override async Task Execute(Agent agent)
+        {
+            if (area.Get() is Area target && agent is SimAgent simAgent)
+            {
+                //Debug.Log("Moving to " + target.areaName);
+                Vector3 destination = target.GetPosition();
+                Transform t = agent.transform;
+
+                while (Vector3.Distance(t.position, destination) > 0.1f)
+                {
+                    t.position = Vector3.MoveTowards(t.position, destination, simAgent.moveSpeed * Time.deltaTime);
+                    await Task.Yield();  // wait for next frame
+                }
+
+                //Debug.Log("Arrived at " + target.areaName);
+            }
+        }
+
+    }
 }

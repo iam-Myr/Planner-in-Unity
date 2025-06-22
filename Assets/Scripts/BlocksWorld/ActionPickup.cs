@@ -2,79 +2,83 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Planning;
 
-public class ActionPickup : PlanAction
+namespace BlocksWorld
 {
-    private Pointer current, from;
-
-    public ActionPickup()
+    public class ActionPickup : PlanAction
     {
-        actionName = "Pick Up";
+        private Pointer current, from;
 
-        this.current = new Pointer();
-        this.from = new Pointer();
+        public ActionPickup()
+        {
+            actionName = "Pick Up";
 
-        actionArgs = new List<Pointer> { current, from };
+            this.current = new Pointer();
+            this.from = new Pointer();
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            actionArgs = new List<Pointer> { current, from };
 
-    public ActionPickup(List<Pointer> args) : base(args)
-    {
-        actionName = "Pickup";
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-        // Extract meaningful references from the list
-        this.current = args[0];
-        this.from = args[1];
+        public ActionPickup(List<Pointer> args) : base(args)
+        {
+            actionName = "Pickup";
 
-        preconditions.AddRange(InitPreconditions());
-        effects.AddRange(InitEffects());
-    }
+            // Extract meaningful references from the list
+            this.current = args[0];
+            this.from = args[1];
 
-    public override PlanAction CreateNew(List<Pointer> args)
-    {
-        return new ActionPickup(args);
-    }
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
+        }
 
-    #region Preconditions
-    // Preconditions
-    public override List<Predicate> InitPreconditions()
-    {
-        return new List<Predicate>
+        public override PlanAction CreateNew(List<Pointer> args)
+        {
+            return new ActionPickup(args);
+        }
+
+        #region Preconditions
+        // Preconditions
+        public override List<Predicate> InitPreconditions()
+        {
+            return new List<Predicate>
         {
             new Predicate(BlockDomain.isClear, new List<Pointer> {current}, true), // isClear(current)
             new Predicate(BlockDomain.isOn, new List<Pointer> {current, from}, true), // isOn(current, from)
-            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, true) 
+            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, true)
         };
-    }
-    #endregion
+        }
+        #endregion
 
-    // Effects
-    public override List<Predicate> InitEffects()
-    {
-        return new List<Predicate>
+        // Effects
+        public override List<Predicate> InitEffects()
+        {
+            return new List<Predicate>
         {
             new Predicate(BlockDomain.isHolding, new List <Pointer> {current}, true), // isClear(from)
             new Predicate(BlockDomain.isClear, new List <Pointer> {from}, true), // isClear(from)
             new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, false)
         };
-    }
+        }
 
 
-    public override async Task Execute(Agent agent)
-    {
-        if (from.Get() is Block fromBlock &&
-            current.Get() is Block currentBlock)
+        public override async Task Execute(Agent agent)
         {
-            // Logical update
-            
-            fromBlock.SetAbove(null);
-            currentBlock.SetBelow(null);
+            if (from.Get() is Block fromBlock &&
+                current.Get() is Block currentBlock)
+            {
+                // Logical update
 
-            // Visual update
-            Vector3 newPos = currentBlock.transform.position + Vector3.up * 1.1f;
-            await currentBlock.MoveToAsync(newPos); // Async movement
+                fromBlock.SetAbove(null);
+                currentBlock.SetBelow(null);
+
+                // Visual update
+                Vector3 newPos = currentBlock.transform.position + Vector3.up * 1.1f;
+                await currentBlock.MoveToAsync(newPos); // Async movement
+            }
         }
     }
 }

@@ -4,104 +4,107 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Predicate
+namespace Planning
 {
-    public Func<List<object>, bool> func { get; private set; }
-    // CHECK THIS OUT
-    public List<Pointer> args { get; private set; }
-    public bool evaluation { get; private set; }
-
-    public Predicate() { }
-
-    public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool neg)
+    public class Predicate
     {
-        this.func = func;
-        this.args = args;
-        this.evaluation = neg;
-    }
+        public Func<List<object>, bool> func { get; private set; }
+        // CHECK THIS OUT
+        public List<Pointer> args { get; private set; }
+        public bool evaluation { get; private set; }
 
+        public Predicate() { }
 
-    internal Predicate Clone()
-    {
-        Predicate clone = new Predicate();
-        clone.func = func;
-        clone.evaluation = evaluation;
-
-        // Args
-        clone.args = new List<Pointer>();
-        foreach (Pointer arg in args)
-            clone.args.Add(arg.Clone());
-
-        return clone;
-    }
-
-    // How to use .Contains correctly :)
-    public override int GetHashCode()
-    {
-        int hash = func?.Method.Name.GetHashCode() ?? 0;
-        hash = (hash * 397) ^ evaluation.GetHashCode();
-        foreach (var arg in args)
-            hash = (hash * 397) ^ (arg.value?.GetHashCode() ?? 0);
-        return hash;
-    }
-
-
-    public override bool Equals(object obj)
-    {
-        if (obj is not Predicate other)
-            return false;
-
-        // Check function names
-        if (this.func?.Method.Name != other.func?.Method.Name)
-            return false;
-
-        // Check negation
-        if (this.evaluation != other.evaluation)
-            return false;
-
-        // Check argument count
-        if (this.args.Count != other.args.Count)
-            return false;
-
-        // Check each argument
-        for (int i = 0; i < this.args.Count; i++)
+        public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool neg)
         {
-            if (!this.args[i].isSameValue(other.args[i]))
-                return false;
+            this.func = func;
+            this.args = args;
+            this.evaluation = neg;
         }
 
-        return true;
-    }
 
-    public bool IsInstantiated()
-    {
-        return args.All(arg => arg.value != null);
-    }
-
-
-    public override string ToString()
-    {
-        string funcName = func?.Method.Name ?? "null";
-        string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
-        return $"{funcName}({argsString}) - {evaluation}";
-    }
-
-    public bool IsOpposite(Predicate other)
-    {
-        if (this.func?.Method.Name != other.func?.Method.Name)
-            return false;
-
-        if (this.args.Count != other.args.Count)
-            return false;
-
-        for (int i = 0; i < this.args.Count; i++)
+        internal Predicate Clone()
         {
-            if (!this.args[i].isSameValue(other.args[i]))
-                return false;
+            Predicate clone = new Predicate();
+            clone.func = func;
+            clone.evaluation = evaluation;
+
+            // Args
+            clone.args = new List<Pointer>();
+            foreach (Pointer arg in args)
+                clone.args.Add(arg.Clone());
+
+            return clone;
         }
 
-        // Return true if structure matches and negation is opposite
-        return this.evaluation != other.evaluation;
-    }
+        // How to use .Contains correctly :)
+        public override int GetHashCode()
+        {
+            int hash = func?.Method.Name.GetHashCode() ?? 0;
+            hash = (hash * 397) ^ evaluation.GetHashCode();
+            foreach (var arg in args)
+                hash = (hash * 397) ^ (arg.value?.GetHashCode() ?? 0);
+            return hash;
+        }
 
+
+        public override bool Equals(object obj)
+        {
+            if (obj is not Predicate other)
+                return false;
+
+            // Check function names
+            if (this.func?.Method.Name != other.func?.Method.Name)
+                return false;
+
+            // Check negation
+            if (this.evaluation != other.evaluation)
+                return false;
+
+            // Check argument count
+            if (this.args.Count != other.args.Count)
+                return false;
+
+            // Check each argument
+            for (int i = 0; i < this.args.Count; i++)
+            {
+                if (!this.args[i].isSameValue(other.args[i]))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public bool IsInstantiated()
+        {
+            return args.All(arg => arg.value != null);
+        }
+
+
+        public override string ToString()
+        {
+            string funcName = func?.Method.Name ?? "null";
+            string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
+            return $"{funcName}({argsString}) - {evaluation}";
+        }
+
+        public bool IsOpposite(Predicate other)
+        {
+            if (this.func?.Method.Name != other.func?.Method.Name)
+                return false;
+
+            if (this.args.Count != other.args.Count)
+                return false;
+
+            for (int i = 0; i < this.args.Count; i++)
+            {
+                if (!this.args[i].isSameValue(other.args[i]))
+                    return false;
+            }
+
+            // Return true if structure matches and negation is opposite
+            return this.evaluation != other.evaluation;
+        }
+
+    }
 }

@@ -5,37 +5,40 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
 
-public class Block : MonoBehaviour
+namespace BlocksWorld
 {
-    public string blockName;
-    public Block above;
-    public Block below;
-
-    public async Task MoveToAsync(Vector3 targetPosition, float speed = 2f)
+    public class Block : MonoBehaviour
     {
-        var tcs = new TaskCompletionSource<bool>();
-        StartCoroutine(MoveSmoothly(targetPosition, speed, tcs));
-        await tcs.Task;
-    }
+        public string blockName;
+        public Block above;
+        public Block below;
 
-    private IEnumerator MoveSmoothly(Vector3 targetPosition, float speed, TaskCompletionSource<bool> tcs)
-    {
-        while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+        public async Task MoveToAsync(Vector3 targetPosition, float speed = 2f)
         {
-            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
-            yield return null;
+            var tcs = new TaskCompletionSource<bool>();
+            StartCoroutine(MoveSmoothly(targetPosition, speed, tcs));
+            await tcs.Task;
         }
 
-        transform.position = targetPosition; // Snap to exact position
-        tcs.SetResult(true);
+        private IEnumerator MoveSmoothly(Vector3 targetPosition, float speed, TaskCompletionSource<bool> tcs)
+        {
+            while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+            {
+                transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * speed);
+                yield return null;
+            }
+
+            transform.position = targetPosition; // Snap to exact position
+            tcs.SetResult(true);
+        }
+
+
+        public bool isClear() => above == null;
+        public Block GetAbove() => above;
+        public Block GetBelow() => below;
+        public void SetAbove(Block x) => above = x;
+        public void SetBelow(Block x) => below = x;
+        public override string ToString() => blockName;
+
     }
-
-
-    public bool isClear() => above == null;
-    public Block GetAbove() => above;
-    public Block GetBelow() => below;
-    public void SetAbove(Block x) => above = x;
-    public void SetBelow(Block x) => below = x;
-    public override string ToString() => blockName;
-
 }

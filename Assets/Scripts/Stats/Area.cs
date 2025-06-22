@@ -1,20 +1,23 @@
 using UnityEngine;
 
-public class Area : MonoBehaviour
+namespace SimWorld
 {
-    public string areaName;
-    private Collider2D areaCollider;
-
-    private void Start()
+    public class Area : MonoBehaviour
     {
-        areaCollider = GetComponent<Collider2D>();  
-    }
-    public Vector3 GetPosition() => transform.position;
+        public string areaName;
+        private Collider2D areaCollider;
 
-    public bool Contains(Transform target)
-    {
-        // Check if the target's position lies inside the bounding box of the areaCollider
-        return areaCollider.bounds.Contains(target.position);
-    }
+        private void Start()
+        {
+            areaCollider = GetComponent<Collider2D>();
+        }
+        public Vector3 GetPosition() => transform.position;
 
+        public bool Contains(Transform target)
+        {
+            // Check if the target's position lies inside the bounding box of the areaCollider
+            return areaCollider.bounds.Contains(target.position);
+        }
+
+    }
 }
