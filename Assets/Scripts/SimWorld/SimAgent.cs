@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Planning;
+using System.Threading.Tasks;
 
 namespace SimWorld
 {
-    public class SimAgent : Agent
+    public class SimAgent : Agent, IMoveProvider
     {
         protected override List<WorldState> DomainGoals => SimDomain.goalList;
         protected override List<PlanAction> DomainActions => SimDomain.ActionTemplates;
@@ -25,7 +26,7 @@ namespace SimWorld
         public float degrationRate = 5f;
         public float threshold = 40f;
 
-        void Awake()
+    void Awake()
         {
             base.Awake();
         }
@@ -63,6 +64,19 @@ namespace SimWorld
         {
             water = waterMAX;
         }
+
+        public async Task MoveTo(Vector3 destination, float speed)
+        {
+            while (Vector3.Distance(transform.position, destination) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, destination, speed * Time.deltaTime);
+                await Task.Yield();
+            }
+        }
+
+        public Vector3 GetPosition() => transform.position;
+
+        public float GetSpeed() => moveSpeed;
 
         // Predicates that are relevant to Sim. What about the irrelevant ones?
         public override List<Predicate> GetState()

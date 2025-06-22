@@ -9,10 +9,10 @@ namespace SimWorld
     public static class SimDomain
     {
         // Objects
-        public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<Area>());
-        public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<Area>());
-        public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<Area>());
-        public static Pointer Spawn = new Pointer(GameObject.Find("Spawn").GetComponent<Area>());
+        public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<PlanObject>());
+        public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<PlanObject>());
+        public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<PlanObject>());
+        public static Pointer Spawn = new Pointer(GameObject.Find("Spawn").GetComponent<PlanObject>());
 
 
         public static List<Pointer> AllPointers = new List<Pointer> { Food, Water, Sleep, Spawn };
@@ -61,8 +61,8 @@ namespace SimWorld
 
         public static bool isAt(List<object> args)
         {
-            if (args[0] is Agent sim && args[1] is Area area)
-                return area.Contains(sim.transform);
+            if (args[0] is IMoveProvider mover && args[1] is Area area)
+                return area.Contains(mover.GetPosition());
 
             throw new ArgumentException("isAt wrong args.");
         }

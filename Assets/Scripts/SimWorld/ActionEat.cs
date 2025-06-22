@@ -42,11 +42,11 @@ namespace SimWorld
         };
         }
 
-        public override async Task Execute(Agent agent)
+        public override async Task Execute(object arg)
         {
             // Logical update
             //Debug.Log("Eating..!");
-            if (agent is SimAgent sim) sim.Eat();
+            if (arg is SimAgent sim) sim.Eat();
         }
     }
 }

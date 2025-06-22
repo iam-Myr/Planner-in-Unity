@@ -4,14 +4,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Planning;
 
-
 namespace SimWorld
 {
-    public class ActionDrink : PlanAction
+    public class ActionSleep : PlanAction
     {
-        public ActionDrink()
+        public ActionSleep()
         {
-            actionName = "Drink";
+            actionName = "Sleep";
 
             preconditions.AddRange(InitPreconditions());
             effects.AddRange(InitEffects());
@@ -19,7 +18,7 @@ namespace SimWorld
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionDrink();
+            return new ActionSleep();
         }
 
         #region Preconditions
@@ -28,8 +27,8 @@ namespace SimWorld
         {
             return new List<Predicate>
         {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Water}, true), // isAt(food)  
-            new Predicate(SimDomain.isThirsty, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
+            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
         };
         }
         #endregion
@@ -39,15 +38,16 @@ namespace SimWorld
         {
             return new List<Predicate>
         {
-           new Predicate(SimDomain.isThirsty, new List<Pointer> {}, false) //not isHungry
+           new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
         };
         }
 
-        public override async Task Execute(Agent agent)
+        public override async Task Execute(object arg)
         {
             // Logical update
-            //Debug.Log("Drinking!!!");
-            if (agent is SimAgent sim) sim.Drink();
+            //Debug.Log("Sleeping...");
+
+            if (arg is SimAgent sim) sim.Sleep();
         }
     }
 }

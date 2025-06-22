@@ -68,7 +68,7 @@ namespace BlocksWorld
         };
         }
 
-        public override async Task Execute(Agent agent)
+        public override async Task Execute(object args)
         {
             if (to.Get() is Block toBlock &&
                 from.Get() is Block fromBlock &&

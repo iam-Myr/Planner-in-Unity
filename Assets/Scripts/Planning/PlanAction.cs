@@ -27,7 +27,7 @@ namespace Planning
 
         public virtual List<Predicate> InitPreconditions() => new();
         public virtual List<Predicate> InitEffects() => new();
-        public virtual async Task Execute(Agent agent) { await Task.CompletedTask; }
+        public virtual async Task Execute(object arg) { await Task.CompletedTask; }
 
         public List<Predicate> GetPreconditions() => preconditions;
         public List<Predicate> GetEffects() => effects;
@@ -193,15 +193,10 @@ namespace Planning
             return false;
         }
 
-        public bool isValid()
+        public virtual bool IsValid()
         {
-            throw new NotImplementedException();
-            //foreach (Func<bool> precond in preconditions)
-            //{
-            //    if (!precond())
-            //         return false;
-            // }
-            // return true;
+            return true;
         }
+
     }
 }

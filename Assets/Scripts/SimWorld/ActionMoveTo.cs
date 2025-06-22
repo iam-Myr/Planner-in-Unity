@@ -57,29 +57,20 @@ namespace SimWorld
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-           new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
-           new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
-        };
+            {
+               new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
+               new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
+            };
         }
 
-        public override async Task Execute(Agent agent)
+        public override async Task Execute(object arg)
         {
-            if (area.Get() is Area target && agent is SimAgent simAgent)
+            if (arg is IMoveProvider mover && area.Get() is Area target)
             {
-                //Debug.Log("Moving to " + target.areaName);
                 Vector3 destination = target.GetPosition();
-                Transform t = agent.transform;
-
-                while (Vector3.Distance(t.position, destination) > 0.1f)
-                {
-                    t.position = Vector3.MoveTowards(t.position, destination, simAgent.moveSpeed * Time.deltaTime);
-                    await Task.Yield();  // wait for next frame
-                }
-
-                //Debug.Log("Arrived at " + target.areaName);
+                float speed = mover.GetSpeed();
+                await mover.MoveTo(destination, speed);
             }
         }
-
     }
 }

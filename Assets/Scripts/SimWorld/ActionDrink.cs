@@ -6,11 +6,11 @@ using Planning;
 
 namespace SimWorld
 {
-    public class ActionSleep : PlanAction
+    public class ActionDrink : PlanAction
     {
-        public ActionSleep()
+        public ActionDrink()
         {
-            actionName = "Sleep";
+            actionName = "Drink";
 
             preconditions.AddRange(InitPreconditions());
             effects.AddRange(InitEffects());
@@ -18,7 +18,7 @@ namespace SimWorld
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionSleep();
+            return new ActionDrink();
         }
 
         #region Preconditions
@@ -27,8 +27,8 @@ namespace SimWorld
         {
             return new List<Predicate>
         {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
-            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
+            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Water}, true), // isAt(food)  
+            new Predicate(SimDomain.isThirsty, new List<Pointer> {}, true)
         };
         }
         #endregion
@@ -38,16 +38,15 @@ namespace SimWorld
         {
             return new List<Predicate>
         {
-           new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
+           new Predicate(SimDomain.isThirsty, new List<Pointer> {}, false) //not isHungry
         };
         }
 
-        public override async Task Execute(Agent agent)
+        public override async Task Execute(object arg)
         {
             // Logical update
-            //Debug.Log("Sleeping...");
-
-            if (agent is SimAgent sim) sim.Sleep();
+            //Debug.Log("Drinking!!!");
+            if (arg is SimAgent sim) sim.Drink();
         }
     }
 }

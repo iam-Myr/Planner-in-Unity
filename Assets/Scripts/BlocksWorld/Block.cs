@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.EnhancedTouch;
+using Planning;
 
 namespace BlocksWorld
 {
-    public class Block : MonoBehaviour
+    public class Block : PlanObject
     {
         public string blockName;
         public Block above;
