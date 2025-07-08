@@ -90,7 +90,7 @@ namespace Planning
             Debug.Log("================================== ANALYSIS ====================================");
             Debug.Log($"Depth: {depth}");
             Debug.Log("------------------ Previous Action ----------------- ");
-            if (action != null) Debug.Log(action.Print());
+            if (action != null) Debug.Log(action);
             Debug.Log($"----------------- Current State ------------------- ");
             if (state != null) state.Print();
             Debug.Log($"----------------- Unsatisfied Goals ------------------- ");
@@ -99,6 +99,7 @@ namespace Planning
             Debug.Log("================================== END ANALYSIS ====================================");
         }
 
+        /*
         public List<Predicate> GetInstantiatedGoals()
         {
             List<Predicate> instantiatedGoals = new List<Predicate>();
@@ -114,6 +115,7 @@ namespace Planning
 
             return instantiatedGoals;
         }
+        */
 
         public void PrintGoals()
         {

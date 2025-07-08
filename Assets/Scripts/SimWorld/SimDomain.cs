@@ -5,27 +5,35 @@ using Planning;
 
 namespace SimWorld
 {
-
     public static class SimDomain
     {
-        // Objects
-        public static Pointer Food = new Pointer(GameObject.Find("Food").GetComponent<PlanObject>());
-        public static Pointer Water = new Pointer(GameObject.Find("Water").GetComponent<PlanObject>());
-        public static Pointer Sleep = new Pointer(GameObject.Find("Sleep").GetComponent<PlanObject>());
-        public static Pointer Spawn = new Pointer(GameObject.Find("Spawn").GetComponent<PlanObject>());
+        // Should be Objects
+        public static Pointer FoodArea = new Pointer(GameObject.Find("Food").GetComponent<PlanObject>());
+        public static Pointer WaterArea = new Pointer(GameObject.Find("Water").GetComponent<PlanObject>());
+        public static Pointer SleepArea = new Pointer(GameObject.Find("Sleep").GetComponent<PlanObject>());
+        public static Pointer SpawnArea = new Pointer(GameObject.Find("Spawn").GetComponent<PlanObject>());
+
+        public static List<Pointer> AllPointers = new List<Pointer> {FoodArea, WaterArea, SleepArea, SpawnArea};
 
 
-        public static List<Pointer> AllPointers = new List<Pointer> { Food, Water, Sleep, Spawn };
+        // OTHER dictionary idea
+        // dict <string, func>
 
-        // Atoms
-        public static bool isSleepy(List<object> args)
-        {
 
-            if (args[0] is float sleep && args[1] is float threshold)
-                return sleep < threshold;
+        // Predicates
 
-            throw new ArgumentException("isSleepy wrong args.");
-        }
+        public static Predicate isAt;
+        public static Predicate isHungry;
+        public static Predicate isSleepy;
+        public static Predicate isThirsty;
+
+
+        //public static Dictionary<string, Predicate> Predicates = new Dictionary<string, Predicate> 
+        //{"isAt": new Predicate() }
+> 
+
+
+
 
         // Dictionary Idea
         /*
@@ -42,39 +50,7 @@ namespace SimWorld
             throw new ArgumentException("Invalid arguments for isSleepy");
         } */
 
-
-        public static bool isHungry(List<object> args)
-        {
-            if (args[0] is float hungry && args[1] is float threshold)
-                return hungry < threshold;
-
-            throw new ArgumentException("isHungry wrong args.");
-        }
-
-        public static bool isThirsty(List<object> args)
-        {
-            if (args[0] is float water && args[1] is float threshold)
-                return water < threshold;
-
-            throw new ArgumentException("isThirsty wrong args.");
-        }
-
-        public static bool isAt(List<object> args)
-        {
-            if (args[0] is IMoveProvider mover && args[1] is Area area)
-                return area.Contains(mover.GetPosition());
-
-            throw new ArgumentException("isAt wrong args.");
-        }
-
-        // Actions
-        public static List<PlanAction> ActionTemplates = new List<PlanAction>
-    {
-        new ActionMoveTo(),
-        new ActionSleep(),
-        new ActionEat(),
-        new ActionDrink()
-    };
+      
 
         // Goals
         public static List<WorldState> goalList = new List<WorldState>

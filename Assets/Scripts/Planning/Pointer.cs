@@ -13,8 +13,6 @@ namespace Planning
             this.value = value;
         }
 
-
-
         /// Gets the final value by recursively resolving any Pointer chain.
         /// Detects cycles to prevent infinite loops.
         public object Get()

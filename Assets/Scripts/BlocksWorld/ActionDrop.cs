@@ -58,12 +58,12 @@ namespace BlocksWorld
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
-            new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, false),
-            new Predicate(BlockDomain.isHandEmpty, new List < Pointer > {}, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, false), // isClear(to)
-        };
+            {
+                new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
+                new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, false),
+                new Predicate(BlockDomain.isHandEmpty, new List < Pointer > {}, true),
+                new Predicate(BlockDomain.isClear, new List<Pointer> {to}, false), // isClear(to)
+            };
         }
 
         public override async Task Execute(object args)

@@ -8,13 +8,6 @@ namespace SimWorld
 {
     public class ActionSleep : PlanAction
     {
-        public ActionSleep()
-        {
-            actionName = "Sleep";
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
-        }
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
@@ -26,10 +19,12 @@ namespace SimWorld
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Sleep}, true), // isAt(sleep)  
-            new Predicate(SimDomain.isSleepy, new List<Pointer> {}, true)
-        };
+            {
+                SimDomain.isAt.CreateNew(new List<Pointer> {SimDomain.SleepArea}, true),
+                //new Predicate(isAt, new List<Pointer> {SimDomain.SleepArea}, true), // isAt(sleep)  
+                SimDomain.isSleepy.CreateNew(new List<Pointer> {}, true)
+                //new Predicate(isSleepy, new List<Pointer> {}, true) 
+            };
         }
         #endregion
 
@@ -37,17 +32,9 @@ namespace SimWorld
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-           new Predicate(SimDomain.isSleepy, new List<Pointer> {}, false) //not isSleepy
-        };
-        }
-
-        public override async Task Execute(object arg)
-        {
-            // Logical update
-            //Debug.Log("Sleeping...");
-
-            if (arg is SimAgent sim) sim.Sleep();
+            {
+                SimDomain.isSleepy.CreateNew(new List<Pointer> {}, false) //not isSleepy
+            };
         }
     }
 }

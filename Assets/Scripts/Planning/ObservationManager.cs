@@ -4,27 +4,29 @@ namespace Planning
 {
     public static class ObservationManager
     {
-        private static readonly List<IObservable> observables = new();
+        private static readonly List<Observable> observables = new();
 
-        public static void Register(IObservable observable)
+        public static void Register(IObservableHolder holder)
         {
-            if (!observables.Contains(observable))
-                observables.Add(observable);
+                observables.AddRange(holder.GetObservables()); // Return list of key,value pairs (string, observable)
         }
 
-        public static void Unregister(IObservable observable)
+        /*
+        public static void Unregister(IObservableHolder observable)
         {
             if (observables.Contains(observable))
                 observables.Remove(observable);
         }
+        */
 
         public static WorldState Observe()
         {
             WorldState currentWorldState = new WorldState();
 
-            foreach (IObservable observable in observables)
+            foreach (Observable observable in observables)
             {
-                currentWorldState.AddPredicates(observable.GetState().ToArray());
+                Predicate p = new Predicate(observable, observable.Observe());
+                currentWorldState.AddPredicates(p);
             }
 
             //currentWorldState.Print();

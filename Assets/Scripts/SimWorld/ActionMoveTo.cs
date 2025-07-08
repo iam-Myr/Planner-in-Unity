@@ -4,42 +4,27 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Planning;
 
-// How can we move the agent??
 namespace SimWorld
 {
     public class ActionMoveTo : PlanAction
     {
-        private Pointer area;
-        private Pointer from;
+        private Pointer to = new Pointer();
+        private Pointer from = new Pointer();
 
-        public ActionMoveTo()
+        Func<List<object>, bool> isAt;
+
+        public ActionMoveTo(Func<List<object>, bool> isAt)
         {
-            actionName = "MoveTo";
-
-            this.area = new Pointer();
-            this.from = new Pointer();
-
-            actionArgs = new List<Pointer> { area, from };
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+            this.isAt = isAt;
         }
 
-        public ActionMoveTo(List<Pointer> args) : base(args)
+        public override PlanAction CreateNew(List<Pointer> args) //[A, B]
         {
-            actionName = "MoveTo";
-
+            ActionMoveTo a = new ActionMoveTo(isAt);
             // Extract meaningful references from the list
-            this.area = args[0];
-            this.from = args[1];
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
-        }
-
-        public override PlanAction CreateNew(List<Pointer> args)
-        {
-            return new ActionMoveTo(args);
+            this.to.value = args[0].value;
+            this.from.value = args[1].value;
+            return a;
         }
 
         #region Preconditions
@@ -47,9 +32,9 @@ namespace SimWorld
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(SimDomain.isAt, new List<Pointer> {from}, true) // isAt(from)  
-        };
+            {
+                new Predicate(isAt, new List<Pointer> {from}, true) // isAt(from)  
+            };
         }
         #endregion
 
@@ -58,19 +43,9 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-               new Predicate(SimDomain.isAt, new List<Pointer> {area}, true), // isAt(area)  
-               new Predicate(SimDomain.isAt, new List<Pointer> {from}, false)
+               new Predicate(isAt, new List<Pointer> {to}, true), // isAt(area)  
+               new Predicate(isAt, new List<Pointer> {from}, false)
             };
-        }
-
-        public override async Task Execute(object arg)
-        {
-            if (arg is IMoveProvider mover && area.Get() is Area target)
-            {
-                Vector3 destination = target.GetPosition();
-                float speed = mover.GetSpeed();
-                await mover.MoveTo(destination, speed);
-            }
         }
     }
 }

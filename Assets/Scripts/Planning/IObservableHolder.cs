@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace Planning
 {
-    public interface IObservable
+    public interface IObservableHolder
     {
-        List<Predicate> GetState();
+        public List<Observable> GetObservables();
         void Register();
     }
 }

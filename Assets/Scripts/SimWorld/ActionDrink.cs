@@ -8,12 +8,12 @@ namespace SimWorld
 {
     public class ActionDrink : PlanAction
     {
-        public ActionDrink()
-        {
-            actionName = "Drink";
+        Func<List<object>, bool> isAt, isThirsty;
 
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+        public ActionDrink(Func<List<object>, bool> isAt, Func<List<object>, bool> isThirsty)
+        {
+            this.isAt = isAt;
+            this.isThirsty = isThirsty;
         }
 
         public override PlanAction CreateNew(List<Pointer> args)
@@ -26,10 +26,10 @@ namespace SimWorld
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(SimDomain.isAt, new List<Pointer> {SimDomain.Water}, true), // isAt(food)  
-            new Predicate(SimDomain.isThirsty, new List<Pointer> {}, true)
-        };
+            {
+                new Predicate(isAt, new List<Pointer> {SimDomain.WaterArea}, true), // isAt(sleep)  
+                new Predicate(isThirsty, new List<Pointer> {}, true)
+            };
         }
         #endregion
 
@@ -37,16 +37,9 @@ namespace SimWorld
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-           new Predicate(SimDomain.isThirsty, new List<Pointer> {}, false) //not isHungry
-        };
-        }
-
-        public override async Task Execute(object arg)
-        {
-            // Logical update
-            //Debug.Log("Drinking!!!");
-            if (arg is SimAgent sim) sim.Drink();
+            {
+                new Predicate(isThirsty, new List<Pointer> {}, false) //not isSleepy
+            };
         }
     }
 }

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
+using SimWorld;
 
 namespace Planning
 {
-    public abstract class Agent : MonoBehaviour, IObservable
+    public abstract class Agent : MonoBehaviour, IObservableHolder
     {
         private Planner planner;
         private List<PlanAction> currentPlan;
@@ -21,7 +22,6 @@ namespace Planning
 
         // Abstract domain-specific data to be provided by derived classes
         protected abstract List<WorldState> DomainGoals { get; }
-        protected abstract List<PlanAction> DomainActions { get; }
         protected abstract List<Pointer> DomainPointers { get; }
 
         protected virtual void Awake()
@@ -34,7 +34,7 @@ namespace Planning
             ObservationManager.Register(this);
         }
 
-        public virtual List<Predicate> GetState() => new List<Predicate>();
+        public virtual List<Observable> GetObservables() => new List<Observable>();
 
         protected virtual void Start()
         {
@@ -42,8 +42,7 @@ namespace Planning
             currentGoal = ChooseGoal(DomainGoals);
 
             // Load action templates from domain
-            actionList = DomainActions;
-
+            actionList = GetAllActionTemplates(); 
 
             // Generate grounded actions from domain pointers
             List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, DomainPointers);
@@ -68,14 +67,11 @@ namespace Planning
             {
                 observeTimer = observeCooldown; // Reset cooldown
 
-                // Get current world state from observation manager
-                currentState = ObservationManager.Observe();
-
                 // Select a goal to plan for
                 currentGoal = ChooseGoal(DomainGoals);
 
                 // Ask planner to generate a plan from current state to goal
-                currentPlan = planner.MakePlan(currentState, currentGoal, MAXSTEPS);
+                currentPlan = planner.MakePlan(currentGoal, MAXSTEPS);
 
                 if (currentPlan != null && currentPlan.Count > 0)
                 {
@@ -99,6 +95,8 @@ namespace Planning
             return list[index];
         }
 
+        public abstract List<PlanAction> GetAllActionTemplates();
+
         public void PrintPlan(List<PlanAction> plan)
         {
             if (plan == null || plan.Count == 0)
@@ -110,7 +108,7 @@ namespace Planning
             Debug.Log("==== PLAN ====");
             for (int i = 0; i < plan.Count; i++)
             {
-                Debug.Log($"{i + 1}. {plan[i].Print()} ");
+                Debug.Log($"{i + 1}. {plan[i]} ");
             }
             Debug.Log($"==== {plan.Count} steps ====");
         }

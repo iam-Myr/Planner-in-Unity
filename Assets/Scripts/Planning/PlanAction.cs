@@ -6,33 +6,42 @@ using UnityEngine;
 
 namespace Planning
 {
-    public class PlanAction
+    public abstract class PlanAction
     {
         protected string actionName;
         public List<Pointer> actionArgs = new List<Pointer>();
         protected List<Predicate> preconditions = new List<Predicate>();
         protected List<Predicate> effects = new List<Predicate>();
+        protected Action<List<object>> executable ;
 
-        public PlanAction() { }
-
-        public PlanAction(List<Pointer> args)
+        public PlanAction()
         {
-            actionArgs = args;
+            preconditions.AddRange(InitPreconditions());
+            effects.AddRange(InitEffects());
         }
 
-        public virtual PlanAction CreateNew(List<Pointer> args)
+        // Template
+        public void AddExecutable(Action<List<object>> executable)
         {
-            return new PlanAction(args);
+            this.executable = executable;
+            actionName = executable.Method.Name;
         }
 
-        public virtual List<Predicate> InitPreconditions() => new();
-        public virtual List<Predicate> InitEffects() => new();
+        public abstract PlanAction CreateNew(List<Pointer> args); // Instantiation
+        
+            //PlanAction a = new PlanAction(preconditions, effects, executable);
+            //a.actionArgs = new List<Pointer>(args);
+           // return a;
+        
+
+        public abstract List<Predicate> InitPreconditions();
+        public abstract List<Predicate> InitEffects();
         public virtual async Task Execute(object arg) { await Task.CompletedTask; }
 
         public List<Predicate> GetPreconditions() => preconditions;
         public List<Predicate> GetEffects() => effects;
 
-        public string Print()
+        public override string ToString()
         {
             string[] args = new string[actionArgs.Count];
             for (int i = 0; i < actionArgs.Count; i++)
@@ -42,6 +51,36 @@ namespace Planning
             return $"{actionName}({string.Join(",", args)})"; // Use string interpolation
         }
 
+        public bool IsRemovingGoal(List<Predicate> goals)
+        {
+            foreach (Predicate effect in effects)
+            {
+                foreach (Predicate goal in goals)
+                {
+                    if (effect.IsOpposite(goal) &&
+                        effect.value != goal.value)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public bool IsValid()
+        {
+            return true;
+        }
+
+        // Executes the action's executable with the action args as parameters
+        public void Execute() 
+        {
+            List<object> argsValues = new List<object>();
+            foreach (Pointer arg in actionArgs) { argsValues.Add(arg.Get()); }
+            executable(argsValues);
+        } 
+
+        /*
         public virtual PlanAction Clone()
         {
             PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
@@ -61,7 +100,7 @@ namespace Planning
                         varMap[arg] = arg.Clone();
                     clonedArgs.Add(varMap[arg]);
                 }
-                clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.evaluation));
+                clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.value));
             }
 
             clone.effects = new List<Predicate>();
@@ -74,7 +113,7 @@ namespace Planning
                         varMap[arg] = arg.Clone();
                     clonedArgs.Add(varMap[arg]);
                 }
-                clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.evaluation));
+                clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.value));
             }
 
             clone.actionName = this.actionName;
@@ -156,8 +195,9 @@ namespace Planning
                 }
             }
             return false;
-        }
+        } 
 
+        /*
         public List<Predicate> SatisfyOtherGoals(List<Predicate> unsatisfiedGoals)
         {
             List<Predicate> satisfiedGoals = new List<Predicate>();
@@ -176,27 +216,8 @@ namespace Planning
 
             return satisfiedGoals;
         }
+        */
 
-        public bool IsRemovingGoal(List<Predicate> goals)
-        {
-            foreach (Predicate effect in effects)
-            {
-                foreach (Predicate goal in goals)
-                {
-                    if (effect.IsOpposite(goal) &&
-                        effect.evaluation != goal.evaluation)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public virtual bool IsValid()
-        {
-            return true;
-        }
 
     }
 }
