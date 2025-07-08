@@ -4,18 +4,18 @@ namespace Planning
 {
     public static class ObservationManager
     {
-        private static readonly List<Observable> observables = new();
+        private static readonly List<Predicate> predicates = new();
 
         public static void Register(IObservableHolder holder)
         {
-                observables.AddRange(holder.GetObservables()); // Return list of key,value pairs (string, observable)
+            predicates.AddRange(holder.GetPredicates());
         }
 
         /*
-        public static void Unregister(IObservableHolder observable)
+        public static void Unregister(IObservableHolder holder)
         {
-            if (observables.Contains(observable))
-                observables.Remove(observable);
+            var toRemove = holder.GetPredicates();
+            predicates.RemoveAll(p => toRemove.Contains(p));
         }
         */
 
@@ -23,14 +23,15 @@ namespace Planning
         {
             WorldState currentWorldState = new WorldState();
 
-            foreach (Observable observable in observables)
+            foreach (Predicate p in predicates)
             {
-                Predicate p = new Predicate(observable, observable.Observe());
-                currentWorldState.AddPredicates(p);
+                bool result = p.Observe(); 
+                Predicate observedPredicate = new Predicate(p.func, p.args, result);
+                currentWorldState.AddPredicates(observedPredicate);
             }
 
-            //currentWorldState.Print();
             return currentWorldState;
         }
+
     }
 }

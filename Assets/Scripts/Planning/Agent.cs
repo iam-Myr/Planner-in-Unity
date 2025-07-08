@@ -22,6 +22,7 @@ namespace Planning
 
         // Abstract domain-specific data to be provided by derived classes
         protected abstract List<WorldState> DomainGoals { get; }
+        protected abstract List<PlanAction> DomainActions { get; }
         protected abstract List<Pointer> DomainPointers { get; }
 
         protected virtual void Awake()
@@ -34,18 +35,15 @@ namespace Planning
             ObservationManager.Register(this);
         }
 
-        public virtual List<Observable> GetObservables() => new List<Observable>();
+        public virtual List<Predicate> GetPredicates() => new List<Predicate>();
 
         protected virtual void Start()
         {
             // Choose initial goal from the domain's goals
             currentGoal = ChooseGoal(DomainGoals);
 
-            // Load action templates from domain
-            actionList = GetAllActionTemplates(); 
-
             // Generate grounded actions from domain pointers
-            List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(actionList, DomainPointers);
+            List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(DomainActions, DomainPointers);
 
             // Initialize the planner with grounded actions
             planner = new Planner(groundedActions);
@@ -95,7 +93,6 @@ namespace Planning
             return list[index];
         }
 
-        public abstract List<PlanAction> GetAllActionTemplates();
 
         public void PrintPlan(List<PlanAction> plan)
         {
@@ -117,7 +114,10 @@ namespace Planning
         {
             foreach (PlanAction action in plan)
             {
-                await action.Execute(this);
+                if (action.IsValid())
+                    await action.Execute(this);
+                else
+                    Debug.Log("Action not valid!");
             }
             // Finished plan; allow replanning next update
             currentPlan = null;

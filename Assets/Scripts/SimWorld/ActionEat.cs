@@ -8,18 +8,20 @@ namespace SimWorld
 {
     public class ActionEat : PlanAction
     {
-        Func<List<object>, bool> isAt, isHungry;
-
-        public ActionEat(Func<List<object>, bool> isAt, Func<List<object>, bool> isHungry)
+        
+        public ActionEat() 
         {
-            this.isAt = isAt;
-            this.isHungry = isHungry;
+            actionName = "Eat";
         }
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionEat();
+            var a = new ActionEat();
+            a.actionArgs = new List<Pointer>(args);
+            a.AddExecutable(this.executable); 
+            return a;
         }
+
 
         #region Preconditions
         // Preconditions
@@ -27,8 +29,10 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                new Predicate(isAt, new List<Pointer> {SimDomain.FoodArea}, true), // isAt(sleep)  
-                new Predicate(isHungry, new List<Pointer> {}, true)
+                 SimDomain.isAt.CreateNew(new List<Pointer> {SimDomain.FoodArea}, true),
+                 SimDomain.isHungry.CreateNew(new List<Pointer> {}, true),
+                //new Predicate(isAt, new List<Pointer> {SimDomain.FoodArea}, true), // isAt(sleep)  
+                //new Predicate(isHungry, new List<Pointer> {}, true)
             };
         }
         #endregion
@@ -38,7 +42,7 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                new Predicate(isHungry, new List<Pointer> {}, false) //not isSleepy
+                SimDomain.isHungry.CreateNew(new List<Pointer> {}, false)
             };
         }
     }

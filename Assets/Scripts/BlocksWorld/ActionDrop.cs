@@ -24,7 +24,7 @@ namespace BlocksWorld
             effects.AddRange(InitEffects());
         }
 
-        public ActionDrop(List<Pointer> args) : base(args)
+        public ActionDrop(List<Pointer> args)
         {
             actionName = "Drop";
 

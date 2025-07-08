@@ -7,7 +7,15 @@ namespace SimWorld
 {
     public class SimAgent : Agent
     {
-        protected override List<WorldState> DomainGoals => SimDomain.goalList;
+        protected override List<WorldState> DomainGoals => SimDomain.GetGoals();
+        protected override List<PlanAction> DomainActions => new List<PlanAction>
+        {   
+            new ActionSleep().AddExecutable(Sleep),
+            new ActionEat().AddExecutable(Eat),
+            new ActionDrink().AddExecutable(Drink),
+            new ActionMoveTo().AddExecutable(MoveTo)
+        };
+
         protected override List<Pointer> DomainPointers => SimDomain.AllPointers;
 
         // Movement
@@ -28,6 +36,7 @@ namespace SimWorld
         void Awake()
         {
             base.Awake();
+            SetPredicateConditions();
         }
 
         void Start()
@@ -51,16 +60,19 @@ namespace SimWorld
 
         public void Sleep(List<object> args)
         {
+            Debug.Log("Sleeping!...");
             sleep = sleepMAX;
         }
 
         public void Eat(List<object> args)
         {
+            Debug.Log("Eating!...");
             hunger = hungerMAX;
         }
 
         public void Drink(List<object> args)
         {
+            Debug.Log("Drinking!...");
             water = waterMAX;
         }
 
@@ -73,21 +85,17 @@ namespace SimWorld
             }
         }*/
 
-        public void MoveTo(Vector3 destination)
+        public void MoveTo(List<object> args)
         {
+            Debug.Log("Moving...");
+            Area area = (Area)args[0]; 
+            Vector3 destination = area.GetPosition(); 
             transform.position = destination;
         }
-
 
         public Vector3 GetPosition() => transform.position;
 
         public float GetSpeed() => moveSpeed;
-
-        /*public void AddConditions()
-        {
-            SimDomain.isSlep.AddCondition(() => sleep < threshold);
-            SimDomain.isAtt.AddCondition((Area ) => area.Contains(transform.position));
-        }*/
 
         public bool isSleepy(List<object> args)
         {
@@ -140,7 +148,7 @@ namespace SimWorld
         }
 
 
-        public void SetPredicates()
+        public void SetPredicateConditions()
         {
             SimDomain.isAt.SetCondition(isAt);
             SimDomain.isSleepy.SetCondition(isSleepy);
@@ -148,75 +156,18 @@ namespace SimWorld
             SimDomain.isThirsty.SetCondition(isThirsty);
         }
 
-        public override List<Observable> GetObservables()
+        public override List<Predicate> GetPredicates()
         {
-            return new List<Observable> {
-                // Add keys
-                new Observable(isSleepy, new List<Pointer> {}), //hasCondition(sleepy) 
-                new Observable(isHungry, new List<Pointer> {}),
-                new Observable(isThirsty, new List<Pointer> {}),
-                new Observable(isAt, new List<Pointer> {new Pointer(SimDomain.SpawnArea)}),
-                new Observable(isAt, new List<Pointer> {new Pointer(SimDomain.FoodArea)}),
-                new Observable(isAt, new List<Pointer> {new Pointer(SimDomain.WaterArea)}),
-                new Observable(isAt, new List<Pointer> {new Pointer(SimDomain.SleepArea)})
+            return new List<Predicate> {
+                new Predicate(isSleepy, new List<Pointer>()),
+                new Predicate(isHungry, new List<Pointer>()),
+                new Predicate(isThirsty, new List<Pointer>()),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SpawnArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.FoodArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.WaterArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SleepArea) }),
             };
         }
-
-        /*
-        public override List<PlanAction> GetAllActionTemplates() {
-             return new List<PlanAction>
-             {
-                new PlanAction( // Sleep
-                    new List<Predicate>
-                    {
-                        new Predicate(isAt, new List<Pointer> {SimDomain.SleepArea}, true), // isAt(sleep)  
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.sleepy}, true)
-                    },
-                    new List<Predicate>
-                    {
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.sleepy}, false) //not isSleepy
-                    },
-                    Sleep),
-
-                new PlanAction( // Eat
-                    new List<Predicate>
-                    {
-                        new Predicate(isAt, new List<Pointer> {SimDomain.FoodArea}, true), // isAt(sleep)  
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.hungry}, true)
-                    },
-                    new List<Predicate>
-                    {
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.hungry}, false) //not isSleepy
-                    },
-                    Eat),
-
-                new PlanAction( // Drink
-                    new List<Predicate>
-                    {
-                        new Predicate(isAt, new List<Pointer> {SimDomain.WaterArea}, true), // isAt(sleep)  
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.thirsty}, true)
-                    },
-                    new List<Predicate>
-                    {
-                        new Predicate(hasCondition, new List<Pointer> {Conditions.thirsty}, false) //not isSleepy
-                    },
-                    Drink)
-
-                new PlanAction( // Move To
-                    new List<Predicate>
-                    {
-                        new Predicate(isAt, new List<Pointer> {}, true), 
-                    },
-                    new List<Predicate>
-                    {
-                        new Predicate(isAt, new List<Pointer> {}, true),
-                        new Predicate(isAt, new List<Pointer> {}, false) 
-                    },
-                    MoveTo)
-
-        };
-    }
-        */
 
     }
 }

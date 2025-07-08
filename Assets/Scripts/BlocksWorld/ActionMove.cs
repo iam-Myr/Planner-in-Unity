@@ -25,7 +25,7 @@ namespace BlocksWorld
             effects.AddRange(InitEffects());
         }
 
-        public ActionMove(List<Pointer> args) : base(args)
+        public ActionMove(List<Pointer> args)
         {
             actionName = "Move";
 

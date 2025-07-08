@@ -23,7 +23,7 @@ namespace BlocksWorld
             effects.AddRange(InitEffects());
         }
 
-        public ActionPickup(List<Pointer> args) : base(args)
+        public ActionPickup(List<Pointer> args) 
         {
             actionName = "Pickup";
 

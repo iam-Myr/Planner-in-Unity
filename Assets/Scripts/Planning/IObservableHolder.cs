@@ -4,7 +4,7 @@ namespace Planning
 {
     public interface IObservableHolder
     {
-        public List<Observable> GetObservables();
+        List<Predicate> GetPredicates();
         void Register();
     }
 }

@@ -9,11 +9,10 @@ namespace SimWorld
         public GoalHappy()
         {
             AddPredicates(
-               new Predicate(SimDomain.isThirsty, new List<Pointer> { }, false),
-               new Predicate(SimDomain.isHungry, new List<Pointer> { }, false),
-               new Predicate(SimDomain.isSleepy, new List<Pointer> { }, false)
+               SimDomain.isThirsty.CreateNew(new List<Pointer> {}, false),
+               SimDomain.isHungry.CreateNew(new List<Pointer> {}, false),
+               SimDomain.isSleepy.CreateNew(new List<Pointer> {}, false)
            );
         }
-
     }
 }

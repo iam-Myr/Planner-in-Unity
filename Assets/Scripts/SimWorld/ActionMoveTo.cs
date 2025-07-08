@@ -8,22 +8,25 @@ namespace SimWorld
 {
     public class ActionMoveTo : PlanAction
     {
+        
         private Pointer to = new Pointer();
         private Pointer from = new Pointer();
-
-        Func<List<object>, bool> isAt;
-
-        public ActionMoveTo(Func<List<object>, bool> isAt)
+        
+        public ActionMoveTo()
         {
-            this.isAt = isAt;
+            actionName = "MoveTo";
+            actionArgs.Add(to);
+            actionArgs.Add(from);
         }
+
 
         public override PlanAction CreateNew(List<Pointer> args) //[A, B]
         {
-            ActionMoveTo a = new ActionMoveTo(isAt);
+            ActionMoveTo a = new ActionMoveTo();
             // Extract meaningful references from the list
-            this.to.value = args[0].value;
-            this.from.value = args[1].value;
+            a.to.value = args[0].value;
+            a.from.value = args[1].value;
+            a.AddExecutable(this.executable);
             return a;
         }
 
@@ -33,7 +36,7 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                new Predicate(isAt, new List<Pointer> {from}, true) // isAt(from)  
+                SimDomain.isAt.CreateNew(new List<Pointer> {from}, true)// isAt(from)  
             };
         }
         #endregion
@@ -43,8 +46,8 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-               new Predicate(isAt, new List<Pointer> {to}, true), // isAt(area)  
-               new Predicate(isAt, new List<Pointer> {from}, false)
+               SimDomain.isAt.CreateNew(new List <Pointer> {to}, true), // isAt(area)  
+               SimDomain.isAt.CreateNew(new List<Pointer> {from}, false)
             };
         }
     }

@@ -21,11 +21,13 @@ namespace Planning
         }
 
         // Template
-        public void AddExecutable(Action<List<object>> executable)
+        public PlanAction AddExecutable(Action<List<object>> executable)
         {
             this.executable = executable;
-            actionName = executable.Method.Name;
+            this.actionName = executable?.Method.Name ?? "UnnamedAction";
+            return this;
         }
+
 
         public abstract PlanAction CreateNew(List<Pointer> args); // Instantiation
         
@@ -36,7 +38,8 @@ namespace Planning
 
         public abstract List<Predicate> InitPreconditions();
         public abstract List<Predicate> InitEffects();
-        public virtual async Task Execute(object arg) { await Task.CompletedTask; }
+       
+
 
         public List<Predicate> GetPreconditions() => preconditions;
         public List<Predicate> GetEffects() => effects;
@@ -69,7 +72,17 @@ namespace Planning
 
         public bool IsValid()
         {
+            foreach(Predicate p  in preconditions)
+            {
+                if (!p.Evaluate()) return false;
+            }
             return true;
+        }
+
+        public virtual async Task Execute(object arg)
+        {
+            Execute();
+            await Task.CompletedTask;
         }
 
         // Executes the action's executable with the action args as parameters

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -8,11 +8,18 @@ namespace SimWorld
 {
     public class ActionSleep : PlanAction
     {
-
+        public ActionSleep()
+        {
+            actionName = "Sleep";
+        }
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionSleep();
+            var a = new ActionSleep();
+            a.actionArgs = new List<Pointer>(args);
+            a.AddExecutable(this.executable); 
+            return a;
         }
+
 
         #region Preconditions
         // Preconditions

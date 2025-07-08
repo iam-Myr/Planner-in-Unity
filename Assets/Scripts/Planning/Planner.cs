@@ -19,7 +19,9 @@ namespace Planning
         public List<PlanAction> MakePlan(WorldState goalState, int maxSteps)
         {
             // Get current world state from observation manager
-            WorldState initState = ObservationManager.Observe(); // HasCondition(Sleepy)
+            WorldState initState = ObservationManager.Observe();
+            //initState.Print();
+            //goalState.Print();
 
             List<Node> visited = new List<Node>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();

@@ -15,50 +15,24 @@ namespace SimWorld
 
         public static List<Pointer> AllPointers = new List<Pointer> {FoodArea, WaterArea, SleepArea, SpawnArea};
 
-
-        // OTHER dictionary idea
-        // dict <string, func>
-
-
         // Predicates
+        // Domain declares them
+        // Different Planning Objects give their conditions
+        // Actions give args and value
+        public static Predicate isAt = new Predicate();
+        public static Predicate isHungry = new Predicate();
+        public static Predicate isSleepy = new Predicate();
+        public static Predicate isThirsty = new Predicate();
 
-        public static Predicate isAt;
-        public static Predicate isHungry;
-        public static Predicate isSleepy;
-        public static Predicate isThirsty;
-
-
-        //public static Dictionary<string, Predicate> Predicates = new Dictionary<string, Predicate> 
-        //{"isAt": new Predicate() }
-> 
-
-
-
-
-        // Dictionary Idea
-        /*
-        public static bool isSleepy(Dictionary<string, object> args)
-        {
-            if (args.TryGetValue("sleep", out var sleepObj) &&
-                args.TryGetValue("threshold", out var thresholdObj) &&
-                sleepObj is float sleep &&
-                thresholdObj is float threshold)
-            {
-                return sleep < threshold;
-            }
-
-            throw new ArgumentException("Invalid arguments for isSleepy");
-        } */
-
-      
 
         // Goals
-        public static List<WorldState> goalList = new List<WorldState>
-    {
-        //new GoalRested(),
-        //new GoalSated(),
-        //new GoalHydrated(),
-        new GoalHappy()
-    };
+        public static List<WorldState> GetGoals()
+        {
+            return new List<WorldState>
+            {
+                new GoalHappy()
+            };
+        }
+
     }
 }
