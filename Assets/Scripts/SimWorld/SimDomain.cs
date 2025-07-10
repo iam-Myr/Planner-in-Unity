@@ -24,7 +24,6 @@ namespace SimWorld
         public static Predicate isSleepy = new Predicate();
         public static Predicate isThirsty = new Predicate();
 
-
         // Goals
         public static List<WorldState> GetGoals()
         {
@@ -33,6 +32,12 @@ namespace SimWorld
                 new GoalHappy()
             };
         }
+
+        public static bool IsOfType<T>(object obj)
+        {
+            return obj is T;
+        }
+
 
     }
 }

@@ -27,8 +27,8 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                SimDomain.isAt.CreateNew(new List < Pointer > { SimDomain.WaterArea }, true), // isAt(sleep)  
-                SimDomain.isThirsty.CreateNew(new List < Pointer > { }, true)
+                SimDomain.isAt.Instantiate(new List <Pointer> {SimDomain.WaterArea}, true), // isAt(sleep)  
+                SimDomain.isThirsty.Instantiate(new List <Pointer> { }, true)
             };
         }
         #endregion
@@ -38,7 +38,7 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                SimDomain.isThirsty.CreateNew(new List < Pointer > { }, false) //not isSleepy
+                SimDomain.isThirsty.Instantiate(new List < Pointer > { }, false) //not isSleepy
             };
         }
     }

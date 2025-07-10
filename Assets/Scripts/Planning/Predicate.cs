@@ -38,7 +38,7 @@ namespace Planning
         }
 
 
-        public Predicate CreateNew(List<Pointer> newArgs, bool v)
+        public Predicate Instantiate(List<Pointer> newArgs, bool v)
         {
             return new Predicate(func, newArgs, v);
         }

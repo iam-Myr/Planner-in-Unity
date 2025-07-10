@@ -15,5 +15,10 @@ namespace BlocksWorld
         {
             return BlockDomain.InitialState;
         }
+
+        public override void SetPredicateConditions()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

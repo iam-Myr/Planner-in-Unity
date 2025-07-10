@@ -36,7 +36,7 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                SimDomain.isAt.CreateNew(new List<Pointer> {from}, true)// isAt(from)  
+                SimDomain.isAt.Instantiate(new List<Pointer> {from}, true)// isAt(from)  
             };
         }
         #endregion
@@ -46,8 +46,8 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-               SimDomain.isAt.CreateNew(new List <Pointer> {to}, true), // isAt(area)  
-               SimDomain.isAt.CreateNew(new List<Pointer> {from}, false)
+               SimDomain.isAt.Instantiate(new List <Pointer> {to}, true), // isAt(area)  
+               SimDomain.isAt.Instantiate(new List<Pointer> {from}, false)
             };
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Planning
         public List<Pointer> actionArgs = new List<Pointer>();
         protected List<Predicate> preconditions = new List<Predicate>();
         protected List<Predicate> effects = new List<Predicate>();
-        protected Action<List<object>> executable ;
+        protected Func<List<object>, IEnumerator> executable;
 
         public PlanAction()
         {
@@ -21,20 +22,15 @@ namespace Planning
         }
 
         // Template
-        public PlanAction AddExecutable(Action<List<object>> executable)
+        public PlanAction AddExecutable(Func<List<object>, IEnumerator> coroutineExecutable)
         {
-            this.executable = executable;
-            this.actionName = executable?.Method.Name ?? "UnnamedAction";
+            this.executable = coroutineExecutable;
+            this.actionName = coroutineExecutable?.Method.Name ?? "UnnamedAction";
             return this;
         }
 
 
-        public abstract PlanAction CreateNew(List<Pointer> args); // Instantiation
-        
-            //PlanAction a = new PlanAction(preconditions, effects, executable);
-            //a.actionArgs = new List<Pointer>(args);
-           // return a;
-        
+        public abstract PlanAction CreateNew(List<Pointer> args); 
 
         public abstract List<Predicate> InitPreconditions();
         public abstract List<Predicate> InitEffects();
@@ -79,19 +75,19 @@ namespace Planning
             return true;
         }
 
-        public virtual async Task Execute(object arg)
+        public virtual IEnumerator Execute()
         {
-            Execute();
-            await Task.CompletedTask;
+            if (executable == null)
+            {
+                UnityEngine.Debug.LogWarning($"Action '{actionName}' has no coroutine executable assigned.");
+                yield break;
+            }
+
+            List<object> argsValues = actionArgs.ConvertAll(arg => arg.Get());
+            yield return executable(argsValues);
         }
 
-        // Executes the action's executable with the action args as parameters
-        public void Execute() 
-        {
-            List<object> argsValues = new List<object>();
-            foreach (Pointer arg in actionArgs) { argsValues.Add(arg.Get()); }
-            executable(argsValues);
-        } 
+       
 
         /*
         public virtual PlanAction Clone()

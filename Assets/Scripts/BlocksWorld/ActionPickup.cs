@@ -65,7 +65,7 @@ namespace BlocksWorld
         }
 
 
-        public override async Task Execute(object args)
+        /*public override async Task Execute(object args)
         {
             if (from.Get() is Block fromBlock &&
                 current.Get() is Block currentBlock)
@@ -79,6 +79,6 @@ namespace BlocksWorld
                 Vector3 newPos = currentBlock.transform.position + Vector3.up * 1.1f;
                 await currentBlock.MoveToAsync(newPos); // Async movement
             }
-        }
+        }*/
     }
 }

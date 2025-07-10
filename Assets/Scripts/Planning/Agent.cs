@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using SimWorld;
+using System.Collections;
 
 namespace Planning
 {
@@ -28,6 +29,7 @@ namespace Planning
         protected virtual void Awake()
         {
             Register();
+            SetPredicateConditions();
         }
 
         public void Register()
@@ -35,7 +37,7 @@ namespace Planning
             ObservationManager.Register(this);
         }
 
-        public virtual List<Predicate> GetPredicates() => new List<Predicate>();
+        public virtual List<Predicate> GetObservablePredicates() => new List<Predicate>();
 
         protected virtual void Start()
         {
@@ -110,17 +112,33 @@ namespace Planning
             Debug.Log($"==== {plan.Count} steps ====");
         }
 
-        public async void ExecutePlan(List<PlanAction> plan)
+        public void ExecutePlan(List<PlanAction> plan)
+        {
+            StartCoroutine(ExecutePlanCoroutine(plan));
+        }
+
+        private IEnumerator ExecutePlanCoroutine(List<PlanAction> plan)
         {
             foreach (PlanAction action in plan)
             {
                 if (action.IsValid())
-                    await action.Execute(this);
+                {
+                    yield return StartCoroutine(action.Execute());
+                }
                 else
-                    Debug.Log("Action not valid!");
+                {
+                    Debug.Log($"{action} not valid! Replanning...");
+                    currentPlan = null;
+                    yield break;
+                }
             }
-            // Finished plan; allow replanning next update
+
             currentPlan = null;
         }
+
+        public abstract void SetPredicateConditions();
+
     }
+
 }
+

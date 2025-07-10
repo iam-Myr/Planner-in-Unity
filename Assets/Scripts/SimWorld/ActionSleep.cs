@@ -27,9 +27,9 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                SimDomain.isAt.CreateNew(new List<Pointer> {SimDomain.SleepArea}, true),
+                SimDomain.isAt.Instantiate(new List<Pointer> {SimDomain.SleepArea}, true),
                 //new Predicate(isAt, new List<Pointer> {SimDomain.SleepArea}, true), // isAt(sleep)  
-                SimDomain.isSleepy.CreateNew(new List<Pointer> {}, true)
+                SimDomain.isSleepy.Instantiate(new List<Pointer> {}, true)
                 //new Predicate(isSleepy, new List<Pointer> {}, true) 
             };
         }
@@ -40,7 +40,7 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-                SimDomain.isSleepy.CreateNew(new List<Pointer> {}, false) //not isSleepy
+                SimDomain.isSleepy.Instantiate(new List<Pointer> {}, false) //not isSleepy
             };
         }
     }

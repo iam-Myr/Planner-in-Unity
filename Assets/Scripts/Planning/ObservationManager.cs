@@ -8,7 +8,7 @@ namespace Planning
 
         public static void Register(IObservableHolder holder)
         {
-            predicates.AddRange(holder.GetPredicates());
+            predicates.AddRange(holder.GetObservablePredicates());
         }
 
         /*

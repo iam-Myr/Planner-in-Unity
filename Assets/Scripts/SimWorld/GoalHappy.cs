@@ -9,9 +9,9 @@ namespace SimWorld
         public GoalHappy()
         {
             AddPredicates(
-               SimDomain.isThirsty.CreateNew(new List<Pointer> {}, false),
-               SimDomain.isHungry.CreateNew(new List<Pointer> {}, false),
-               SimDomain.isSleepy.CreateNew(new List<Pointer> {}, false)
+               SimDomain.isThirsty.Instantiate(new List<Pointer> {}, false),
+               SimDomain.isHungry.Instantiate(new List<Pointer> {}, false),
+               SimDomain.isSleepy.Instantiate(new List<Pointer> {}, false)
            );
         }
     }

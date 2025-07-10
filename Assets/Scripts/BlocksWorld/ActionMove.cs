@@ -68,7 +68,7 @@ namespace BlocksWorld
         };
         }
 
-        public override async Task Execute(object args)
+        /*public override async Task Execute(object args)
         {
             if (to.Get() is Block toBlock &&
                 from.Get() is Block fromBlock &&
@@ -83,6 +83,6 @@ namespace BlocksWorld
                 Vector3 newPos = toBlock.transform.position + Vector3.up * 1.1f;
                 await currentBlock.MoveToAsync(newPos); // Async movement
             }
-        }
+        }*/
     }
 }

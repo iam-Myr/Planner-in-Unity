@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Planning;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace SimWorld
 {
@@ -36,7 +37,6 @@ namespace SimWorld
         void Awake()
         {
             base.Awake();
-            SetPredicateConditions();
         }
 
         void Start()
@@ -56,58 +56,62 @@ namespace SimWorld
             hunger -= degrationRate * Time.deltaTime;
             sleep -= degrationRate * Time.deltaTime;
             water -= degrationRate * Time.deltaTime;
+
+
+            // Debugging hehe
+            if (Input.GetMouseButtonDown(0)) 
+            {
+                water = waterMAX;
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                Area spawn = (Area)SimDomain.SpawnArea.Get();
+                transform.position = spawn.GetPosition();
+            }
         }
 
-        public void Sleep(List<object> args)
+        public IEnumerator Sleep(List<object> args)
         {
-            Debug.Log("Sleeping!...");
+            Debug.Log("Sleeping...");
+            yield return new WaitForSeconds(1f); // Optional delay
             sleep = sleepMAX;
         }
 
-        public void Eat(List<object> args)
+        public IEnumerator Eat(List<object> args)
         {
             Debug.Log("Eating!...");
+            yield return new WaitForSeconds(1f);
             hunger = hungerMAX;
         }
 
-        public void Drink(List<object> args)
+        public IEnumerator Drink(List<object> args)
         {
             Debug.Log("Drinking!...");
+            yield return new WaitForSeconds(1f);
             water = waterMAX;
         }
 
-        /*public async Task MoveTo(Vector3 destination)
-        {
-            while (Vector3.Distance(transform.position, destination) > 0.1f)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, destination, speed * Time.deltaTime);
-                await Task.Yield();
-            }
-        }*/
-
-        public void MoveTo(List<object> args)
+        public IEnumerator MoveTo(List<object> args)
         {
             Debug.Log("Moving...");
             Area area = (Area)args[0]; 
             Vector3 destination = area.GetPosition(); 
-            transform.position = destination;
+            
+            while (Vector3.Distance(transform.position, destination) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    destination,
+                    moveSpeed * Time.deltaTime
+                );
+                yield return null; // wait for next frame
+            }
         }
-
-        public Vector3 GetPosition() => transform.position;
-
-        public float GetSpeed() => moveSpeed;
 
         public bool isSleepy(List<object> args)
         {
             return sleep < threshold;
-        }
-
-        public enum Conditions { sleepy = 0, hungry, thirsty }
-
-        public bool hasCondition(List<object> args)
-        {
-            Conditions condition = (Conditions)args[0];
-            return GetValue(condition) < GetThreshold(condition);
         }
 
         public bool isThirsty(List<object> args)
@@ -123,11 +127,37 @@ namespace SimWorld
 
         public bool isAt(List<object> args)
         {
+            if (args.Count == 0 || !SimDomain.IsOfType<Area>(args[0]))
+                return false;
+
             Area a = (Area)args[0];
             return a.Contains(transform.position);
         }
 
-        public float GetValue(Conditions condition)
+
+        public override void SetPredicateConditions()
+        {
+            SimDomain.isAt.SetCondition(isAt);
+            SimDomain.isSleepy.SetCondition(isSleepy);
+            SimDomain.isHungry.SetCondition(isHungry);
+            SimDomain.isThirsty.SetCondition(isThirsty);
+        }
+
+        public override List<Predicate> GetObservablePredicates()
+        {
+            return new List<Predicate> {
+                new Predicate(isSleepy, new List<Pointer>()),
+                new Predicate(isHungry, new List<Pointer>()),
+                new Predicate(isThirsty, new List<Pointer>()),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SpawnArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.FoodArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.WaterArea) }),
+                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SleepArea) }),
+            };
+        }
+
+        /*
+         * public float GetValue(Conditions condition)
         {
             switch (condition)
             {
@@ -146,28 +176,18 @@ namespace SimWorld
         {
             return threshold;
         }
+        
+          public enum Conditions { sleepy = 0, hungry, thirsty }
 
-
-        public void SetPredicateConditions()
+        public bool hasCondition(List<object> args)
         {
-            SimDomain.isAt.SetCondition(isAt);
-            SimDomain.isSleepy.SetCondition(isSleepy);
-            SimDomain.isHungry.SetCondition(isHungry);
-            SimDomain.isThirsty.SetCondition(isThirsty);
+            Conditions condition = (Conditions)args[0];
+            return GetValue(condition) < GetThreshold(condition);
         }
+         
+         */
 
-        public override List<Predicate> GetPredicates()
-        {
-            return new List<Predicate> {
-                new Predicate(isSleepy, new List<Pointer>()),
-                new Predicate(isHungry, new List<Pointer>()),
-                new Predicate(isThirsty, new List<Pointer>()),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SpawnArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.FoodArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.WaterArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SleepArea) }),
-            };
-        }
+
 
     }
 }
