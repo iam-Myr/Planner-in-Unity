@@ -26,7 +26,7 @@ namespace SimWorld
             // Extract meaningful references from the list
             a.to.value = args[0].value;
             a.from.value = args[1].value;
-            a.AddExecutable(this.executable);
+            a.AddExecutable(this.executable, this.durationEstimate);
             return a;
         }
 

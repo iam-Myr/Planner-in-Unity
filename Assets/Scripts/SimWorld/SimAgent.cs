@@ -10,12 +10,13 @@ namespace SimWorld
     {
         protected override List<WorldState> DomainGoals => SimDomain.GetGoals();
         protected override List<PlanAction> DomainActions => new List<PlanAction>
-        {   
-            new ActionSleep().AddExecutable(Sleep),
-            new ActionEat().AddExecutable(Eat),
-            new ActionDrink().AddExecutable(Drink),
-            new ActionMoveTo().AddExecutable(MoveTo)
+        {
+            new ActionSleep().AddExecutable(Sleep, 2f),
+            new ActionEat().AddExecutable(Eat, 1.5f),
+            new ActionDrink().AddExecutable(Drink, 1f),
+            new ActionMoveTo().AddExecutable(MoveTo, 5f) 
         };
+
 
         protected override List<Pointer> DomainPointers => SimDomain.AllPointers;
 

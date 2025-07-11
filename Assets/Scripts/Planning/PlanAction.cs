@@ -14,6 +14,18 @@ namespace Planning
         protected List<Predicate> preconditions = new List<Predicate>();
         protected List<Predicate> effects = new List<Predicate>();
         protected Func<List<object>, IEnumerator> executable;
+        public float durationEstimate { get; protected set; } = 5f; // fallback
+
+        public enum ActionStatus
+        {
+            NotStarted,
+            InProgress,
+            Completed,
+            Failed,
+            Interrupted
+        }
+        public ActionStatus Status { get; protected set; } = ActionStatus.NotStarted;
+
 
         public PlanAction()
         {
@@ -22,10 +34,11 @@ namespace Planning
         }
 
         // Template
-        public PlanAction AddExecutable(Func<List<object>, IEnumerator> coroutineExecutable)
+        public PlanAction AddExecutable(Func<List<object>, IEnumerator> coroutineExecutable, float duration)
         {
             this.executable = coroutineExecutable;
             this.actionName = coroutineExecutable?.Method.Name ?? "UnnamedAction";
+            this.durationEstimate = duration;
             return this;
         }
 
@@ -34,11 +47,14 @@ namespace Planning
 
         public abstract List<Predicate> InitPreconditions();
         public abstract List<Predicate> InitEffects();
-       
 
+
+        public virtual float GetEstimatedDuration() => durationEstimate;
 
         public List<Predicate> GetPreconditions() => preconditions;
         public List<Predicate> GetEffects() => effects;
+        public ActionStatus GetStatus() => Status;
+
 
         public override string ToString()
         {
@@ -75,19 +91,51 @@ namespace Planning
             return true;
         }
 
+
+
+
         public virtual IEnumerator Execute()
         {
             if (executable == null)
             {
-                UnityEngine.Debug.LogWarning($"Action '{actionName}' has no coroutine executable assigned.");
+                Debug.LogWarning($"Action '{actionName}' has no coroutine executable assigned.");
+                Status = ActionStatus.Failed;
                 yield break;
             }
 
+            Status = ActionStatus.InProgress;
+
             List<object> argsValues = actionArgs.ConvertAll(arg => arg.Get());
-            yield return executable(argsValues);
+            IEnumerator coroutine = executable(argsValues);
+
+            while (true)
+            {
+                if (Status == ActionStatus.Interrupted)
+                {
+                    Debug.Log($"Action '{actionName}' interrupted.");
+                    yield break;
+                }
+
+                if (!coroutine.MoveNext())
+                    break;
+
+                yield return coroutine.Current;
+            }
+
+            if (Status == ActionStatus.InProgress)
+                Status = ActionStatus.Completed;
         }
 
-       
+        public void Cancel()
+        {
+            if (Status == ActionStatus.InProgress)
+            {
+                Status = ActionStatus.Interrupted;
+                Debug.Log($"Action '{actionName}' was cancelled.");
+            }
+        }
+
+
 
         /*
         public virtual PlanAction Clone()

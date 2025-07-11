@@ -16,7 +16,7 @@ namespace SimWorld
         {
             var a = new ActionSleep();
             a.actionArgs = new List<Pointer>(args);
-            a.AddExecutable(this.executable); 
+            a.AddExecutable(this.executable, this.durationEstimate);
             return a;
         }
 

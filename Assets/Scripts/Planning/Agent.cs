@@ -15,10 +15,14 @@ namespace Planning
         private WorldState currentGoal;
         private List<PlanAction> actionList;
 
-        public const int MAXSTEPS = 1000000;
-
-        // Observation cooldown (seconds)
+        [Header("Planning Parameters")]
+        public int MAXSTEPS = 1000000;
         public float observeCooldown = 2f;
+        public float actionTimeout = 5f;
+
+        [Header("-------------------------------")]
+        [SerializeField] private bool doYouLikePlanning;
+
         private float observeTimer = 0f;
 
         // Abstract domain-specific data to be provided by derived classes
@@ -121,13 +125,36 @@ namespace Planning
         {
             foreach (PlanAction action in plan)
             {
-                if (action.IsValid())
-                {
-                    yield return StartCoroutine(action.Execute());
-                }
-                else
+                if (!action.IsValid())
                 {
                     Debug.Log($"{action} not valid! Replanning...");
+                    currentPlan = null;
+                    yield break;
+                }
+
+                Coroutine running = StartCoroutine(action.Execute());
+
+                float elapsed = 0f;
+
+                while (action.GetStatus() == PlanAction.ActionStatus.InProgress && elapsed < action.GetEstimatedDuration())
+                {
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+
+                if (action.GetStatus() == PlanAction.ActionStatus.InProgress)
+                {
+                    action.Cancel();
+                    StopCoroutine(running);
+                    Debug.LogWarning($"Action {action} timed out and was interrupted.");
+                    currentPlan = null;
+                    yield break;
+                }
+
+                if (action.GetStatus() == PlanAction.ActionStatus.Failed ||
+                    action.GetStatus() == PlanAction.ActionStatus.Interrupted)
+                {
+                    Debug.LogWarning($"Action {action} failed or was interrupted.");
                     currentPlan = null;
                     yield break;
                 }
@@ -135,6 +162,7 @@ namespace Planning
 
             currentPlan = null;
         }
+
 
         public abstract void SetPredicateConditions();
 

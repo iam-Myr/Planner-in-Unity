@@ -37,7 +37,6 @@ namespace Planning
             this.func = func;
         }
 
-
         public Predicate Instantiate(List<Pointer> newArgs, bool v)
         {
             return new Predicate(func, newArgs, v);
