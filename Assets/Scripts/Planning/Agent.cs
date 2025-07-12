@@ -51,6 +51,10 @@ namespace Planning
             // Generate grounded actions from domain pointers
             List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(DomainActions, DomainPointers);
 
+            foreach(PlanAction action in groundedActions) 
+                Debug.Log($"{action}");
+            
+
             // Initialize the planner with grounded actions
             planner = new Planner(groundedActions);
 
@@ -90,6 +94,8 @@ namespace Planning
             }
         }
 
+        public abstract void SetPredicateConditions();
+
         public WorldState ChooseGoal(List<WorldState> list)
         {
             if (list == null || list.Count == 0)
@@ -123,48 +129,46 @@ namespace Planning
 
         private IEnumerator ExecutePlanCoroutine(List<PlanAction> plan)
         {
+            // Go through each action in the planned sequence
             foreach (PlanAction action in plan)
             {
+                // Check if the action is still valid (its preconditions hold)
                 if (!action.IsValid())
                 {
                     Debug.Log($"{action} not valid! Replanning...");
-                    currentPlan = null;
-                    yield break;
+                    currentPlan = null; 
+                    yield break; 
                 }
 
+                // Start executing the action as a coroutine and store the handle
                 Coroutine running = StartCoroutine(action.Execute());
 
+                // Track how much time has passed since the action started
                 float elapsed = 0f;
 
-                while (action.GetStatus() == PlanAction.ActionStatus.InProgress && elapsed < action.GetEstimatedDuration())
+                // Wait until the action finishes or the timeout limit is reached
+                while (action.GetStatus() == PlanAction.ActionStatus.InProgress &&
+                       elapsed < action.GetEstimatedDuration())
                 {
-                    elapsed += Time.deltaTime;
-                    yield return null;
+                    elapsed += Time.deltaTime; // Increment elapsed time by time since last frame
+                    yield return null; // Wait for the next frame
                 }
 
+                // If the action is still running after the timeout, interrupt it
                 if (action.GetStatus() == PlanAction.ActionStatus.InProgress)
                 {
-                    action.Cancel();
-                    StopCoroutine(running);
-                    Debug.LogWarning($"Action {action} timed out and was interrupted.");
-                    currentPlan = null;
-                    yield break;
-                }
+                    action.Cancel(); // Mark the action as interrupted
+                    StopCoroutine(running); // Forcefully stop the coroutine
+                    Debug.Log($"Action {action} timed out and was interrupted.");
 
-                if (action.GetStatus() == PlanAction.ActionStatus.Failed ||
-                    action.GetStatus() == PlanAction.ActionStatus.Interrupted)
-                {
-                    Debug.LogWarning($"Action {action} failed or was interrupted.");
-                    currentPlan = null;
-                    yield break;
+                    currentPlan = null; 
+                    yield break; 
                 }
             }
 
+            // All actions completed successfully — clear the current plan
             currentPlan = null;
         }
-
-
-        public abstract void SetPredicateConditions();
 
     }
 

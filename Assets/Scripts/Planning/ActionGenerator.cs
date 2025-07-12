@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,20 +13,36 @@ namespace Planning
 
             foreach (var template in actionTemplates)
             {
-                int arity = template.actionArgs.Count; // how many arguments this action expects
+                var expectedTypes = template.GetArgTypes();
+                int arity = expectedTypes.Count;
+
                 if (arity == 0) // Action has no args
                 {
-                    groundedActions.Add(template.CreateNew(new List<Pointer> { }));
+                    groundedActions.Add(template.CreateNew(new List<Pointer>()));
                     continue;
                 }
 
-                // Get all permutations of pointers of length = arity
+                // Get all permutations of the correct length
                 var pointerPermutations = GetPermutations(pointers, arity);
 
                 foreach (var args in pointerPermutations)
                 {
+                    // Check if argument types match the template
+                    bool isMatch = true;
+                    for (int i = 0; i < arity; i++)
+                    {
+                        if (!expectedTypes[i].IsAssignableFrom(args[i].GetDeclaredType()))
+                        {
+                            isMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (!isMatch)
+                        continue;
+
                     // Instantiate new grounded action with these args
-                    PlanAction groundedAction = template.CreateNew(args.ToList());
+                    PlanAction groundedAction = template.CreateNew(args);
                     groundedActions.Add(groundedAction);
                 }
             }
@@ -54,6 +71,5 @@ namespace Planning
             }
             return result;
         }
-
     }
 }

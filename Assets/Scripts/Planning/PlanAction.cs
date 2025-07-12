@@ -14,7 +14,7 @@ namespace Planning
         protected List<Predicate> preconditions = new List<Predicate>();
         protected List<Predicate> effects = new List<Predicate>();
         protected Func<List<object>, IEnumerator> executable;
-        public float durationEstimate { get; protected set; } = 5f; // fallback
+        public float durationEstimate { get; protected set; } = 20f; // fallback
 
         public enum ActionStatus
         {
@@ -66,6 +66,18 @@ namespace Planning
             return $"{actionName}({string.Join(",", args)})"; // Use string interpolation
         }
 
+        public List<Type> GetArgTypes()
+        {
+            List<Type> types = new List<Type>();
+            foreach(Pointer arg in actionArgs) 
+            { 
+                types.Add(arg.GetDeclaredType());
+            }
+
+            return types;
+        }
+
+
         public bool IsRemovingGoal(List<Predicate> goals)
         {
             foreach (Predicate effect in effects)
@@ -103,17 +115,20 @@ namespace Planning
                 yield break;
             }
 
+            // Start executing action
             Status = ActionStatus.InProgress;
 
             List<object> argsValues = actionArgs.ConvertAll(arg => arg.Get());
             IEnumerator coroutine = executable(argsValues);
 
+            bool interrupted = false;
             while (true)
             {
                 if (Status == ActionStatus.Interrupted)
                 {
                     Debug.Log($"Action '{actionName}' interrupted.");
-                    yield break;
+                    interrupted = true;
+                    break;
                 }
 
                 if (!coroutine.MoveNext())
@@ -122,16 +137,22 @@ namespace Planning
                 yield return coroutine.Current;
             }
 
-            if (Status == ActionStatus.InProgress)
-                Status = ActionStatus.Completed;
+            if (interrupted)
+            {
+                Status = ActionStatus.Failed;
+                yield break;
+            }
+
+            // Mark as complete only if not interrupted
+            Status = ActionStatus.Completed;
         }
+
 
         public void Cancel()
         {
             if (Status == ActionStatus.InProgress)
             {
                 Status = ActionStatus.Interrupted;
-                Debug.Log($"Action '{actionName}' was cancelled.");
             }
         }
 

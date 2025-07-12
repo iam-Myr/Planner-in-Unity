@@ -14,8 +14,8 @@ namespace BlocksWorld
         {
             actionName = "Pick Up";
 
-            this.current = new Pointer();
-            this.from = new Pointer();
+            this.current = new Pointer(typeof(Block));
+            this.from = new Pointer(typeof(Block));
 
             actionArgs = new List<Pointer> { current, from };
 

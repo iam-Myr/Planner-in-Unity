@@ -1773,9 +1773,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1595836988}
+  - component: {fileID: 1595836992}
   - component: {fileID: 1595836987}
   - component: {fileID: 1595836991}
-  - component: {fileID: 1595836992}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -1902,7 +1902,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04717ac1264ee914aad81074435e7da9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MAXSTEPS: 1000000
   observeCooldown: 2
+  actionTimeout: 5
+  doYouLikePlanning: 0
   moveSpeed: 5
   hungerMAX: 100
   sleepMAX: 200

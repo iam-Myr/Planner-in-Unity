@@ -12,8 +12,9 @@ namespace SimWorld
         public static Pointer WaterArea = new Pointer(GameObject.Find("Water").GetComponent<PlanObject>());
         public static Pointer SleepArea = new Pointer(GameObject.Find("Sleep").GetComponent<PlanObject>());
         public static Pointer SpawnArea = new Pointer(GameObject.Find("Spawn").GetComponent<PlanObject>());
+        public static Pointer Dummy = new Pointer(42);
 
-        public static List<Pointer> AllPointers = new List<Pointer> {FoodArea, WaterArea, SleepArea, SpawnArea};
+        public static List<Pointer> AllPointers = new List<Pointer> {FoodArea, WaterArea, SleepArea, SpawnArea, Dummy};
 
         // Predicates
         // Domain declares them

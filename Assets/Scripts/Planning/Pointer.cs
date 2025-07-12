@@ -5,22 +5,39 @@ namespace Planning
 {
     public class Pointer
     {
-        public object value; // Can be a direct value or another Pointer (logical alias)
+        public object value; // Either a concrete value or another Pointer
+        public Type type;    // Declared type for this logical variable
 
-        public Pointer() { }
+        public Pointer(Type t)
+        {
+            this.type = t ?? throw new ArgumentNullException(nameof(t));
+        }
+
         public Pointer(object value)
         {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value), "Cannot infer type from null value.");
+
             this.value = value;
+            this.type = value.GetType();
         }
 
-        /// Gets the final value by recursively resolving any Pointer chain.
-        /// Detects cycles to prevent infinite loops.
-        public object Get()
+
+        public Pointer(object value, Type t)
         {
-            return Get(new HashSet<Pointer>());
+            if (t == null)
+                throw new ArgumentNullException(nameof(t));
+
+            if (value != null && !t.IsInstanceOfType(value))
+                throw new ArgumentException($"Value of type {value.GetType().Name} does not match declared type {t.Name}");
+
+            this.value = value;
+            this.type = t;
         }
 
-        // Internal recursive version with visited tracking to prevent cycles
+        /// Get the final value (resolves alias chains).
+        public object Get() => Get(new HashSet<Pointer>());
+
         private object Get(HashSet<Pointer> visited)
         {
             if (visited.Contains(this))
@@ -28,20 +45,32 @@ namespace Planning
 
             visited.Add(this);
 
-            if (value is Pointer p)
-                return p.Get(visited); // Continue resolving chain
-
-            return value; // Final concrete value
+            return value is Pointer p ? p.Get(visited) : value;
         }
 
-        /// Sets the final value, resolving references if necessary.
-        /// Fails if a cycle would be created.
+        /// Typed version of Get() with cast enforcement
+        public T Get<T>()
+        {
+            object val = Get();
+            if (val == null) return default;
+
+            if (val is T tVal) return tVal;
+
+            throw new InvalidCastException($"Cannot cast value of type {val.GetType().Name} to {typeof(T).Name}");
+        }
+
+        /// Returns declared type
+        public Type GetDeclaredType() => type;
+
+        /// Sets value, enforcing type and avoiding cycles
         public void Set(object val)
         {
+            if (val != null && !type.IsInstanceOfType(val))
+                throw new InvalidOperationException($"Pointer of type {type.Name} cannot be set to value of type {val.GetType().Name}");
+
             Set(val, new HashSet<Pointer>());
         }
 
-        // Internal recursive version with visited tracking to prevent cycles
         private void Set(object val, HashSet<Pointer> visited)
         {
             if (visited.Contains(this))
@@ -50,89 +79,81 @@ namespace Planning
             visited.Add(this);
 
             if (value is Pointer p)
-                p.Set(val, visited); // Delegate down the chain
+                p.Set(val, visited);
             else
-                value = val; // Assign directly
+                value = val;
         }
 
-        /// Checks whether the Pointer is bound to a concrete value.
-        public bool IsBound()
-        {
-            return Get() != null;
-        }
+        /// Checks if bound to a concrete value
+        public bool IsBound() => Get() != null;
 
-        /// Checks whether this Pointer currently holds another Pointer (alias).
-        public bool IsPointer()
-        {
-            return value is Pointer;
-        }
+        /// Checks whether the current value is another Pointer
+        public bool IsPointer() => value is Pointer;
 
-        /// Unifies this Pointer with another, making them aliases.
-        /// Handles value consistency and prevents cycles.
+        /// Bind this pointer to another, unifying them (types must match)
         public void BindTo(Pointer other)
         {
-            if (this == other) return; // Already the same
+            if (this == other) return;
+
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
+            // Enforce type compatibility
+            if (this.type != other.type)
+                throw new InvalidOperationException($"Cannot bind Pointer<{type.Name}> to Pointer<{other.type.Name}>");
 
             if (CreatesCycle(other))
                 throw new InvalidOperationException("Binding would create a cycle.");
 
             if (!this.IsBound())
             {
-                // This is free: point to other
-                value = other;
+                this.value = other;
             }
             else if (!other.IsBound())
             {
-                // Other is free: point it to this
                 other.value = this;
             }
             else if (!object.Equals(this.Get(), other.Get()))
             {
-                // Both have values, but they conflict
-                throw new InvalidOperationException("Conflict during unification.");
+                throw new InvalidOperationException("Conflict during unification: values differ.");
             }
         }
 
-        /// Helper to check whether binding this Pointer to another would create a cycle.
         private bool CreatesCycle(Pointer other)
         {
             var visited = new HashSet<Pointer>();
             Pointer current = other;
 
-            while (current is not null)
+            while (current != null)
             {
                 if (current == this)
-                    return true; // Cycle would be created
+                    return true;
+
                 if (visited.Contains(current))
-                    return false; // Already visited, no cycle from here
+                    return false;
 
                 visited.Add(current);
-
-                if (current.value is Pointer next)
-                    current = next;
-                else
-                    break;
+                current = current.value as Pointer;
             }
 
             return false;
         }
 
-
-        /// Checks whether two Pointers ultimately resolve to the same value.
+        /// Checks whether two pointers resolve to the same final value
         public bool isSameValue(Pointer p) =>
-            object.Equals(this.Get(), p.Get());
+            object.Equals(this.Get(), p?.Get());
 
-        /// Creates a fresh, unbound logical variable (deep copy without value).
+        /// Clone this pointer (shallow or recursively)
         public Pointer Clone()
         {
             if (value is Pointer p)
-                return p.Clone(); // Deep clone chain
+                return new Pointer(p.Clone(), type);
 
-            return new Pointer(value); // Clone with current value
+            return new Pointer(value, type);
         }
 
-
-        /// Returns the resolved value as a string for debugging.
-        public override string ToString() => Get()?.ToString() ?? "null";
+        /// For debugging
+        public override string ToString() =>
+            $"{(IsPointer() ? "->" : "")}{Get()?.ToString() ?? "null"} : {type?.Name ?? "?"}";
     }
 }

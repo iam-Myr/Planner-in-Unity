@@ -15,9 +15,9 @@ namespace BlocksWorld
         {
             actionName = "Move";
 
-            this.current = new Pointer();
-            this.to = new Pointer();
-            this.from = new Pointer();
+            this.current = new Pointer(typeof(Block));
+            this.to = new Pointer(typeof(Block));
+            this.from = new Pointer(typeof(Block));
 
             actionArgs = new List<Pointer> { current, to, from };
 

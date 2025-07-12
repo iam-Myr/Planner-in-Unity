@@ -8,9 +8,10 @@ namespace SimWorld
 {
     public class ActionMoveTo : PlanAction
     {
-        
-        private Pointer to = new Pointer();
-        private Pointer from = new Pointer();
+
+        private Pointer to = new Pointer(typeof(Area)); 
+
+        private Pointer from = new Pointer(typeof(Area));
         
         public ActionMoveTo()
         {
