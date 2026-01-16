@@ -18,7 +18,7 @@ namespace Planning
         [Header("Planning Parameters")]
         public int MAXSTEPS = 1000000;
         public float observeCooldown = 2f;
-        public float actionTimeout = 5f;
+        public float actionTimeoutWindow = 3f;
 
         [Header("-------------------------------")]
         [SerializeField] private bool doYouLikePlanning;
@@ -148,7 +148,7 @@ namespace Planning
 
                 // Wait until the action finishes or the timeout limit is reached
                 while (action.GetStatus() == PlanAction.ActionStatus.InProgress &&
-                       elapsed < action.GetEstimatedDuration())
+                       elapsed < action.GetEstimatedDuration() + actionTimeoutWindow)
                 {
                     elapsed += Time.deltaTime; // Increment elapsed time by time since last frame
                     yield return null; // Wait for the next frame

@@ -6,7 +6,8 @@ namespace Planning
 {
     public class WorldState
     {
-        protected List<Predicate> predicates = new List<Predicate>();
+        // CHANGE THIS INTO HASH TABLE
+        protected List<Predicate> knowledge_base = new List<Predicate>();
 
         // Add Atoms if they're not already contained
         public WorldState AddPredicates(params Predicate[] args)
@@ -14,9 +15,9 @@ namespace Planning
             foreach (Predicate p in args)
             {
                 // Avoid adding duplicates (based on isSame)
-                if (!predicates.Any(existing => existing.Equals(p)))
+                if (!knowledge_base.Any(existing => existing.Equals(p)))
                 {
-                    predicates.Add(p);
+                    knowledge_base.Add(p);
                 }
             }
             return this;
@@ -26,7 +27,7 @@ namespace Planning
         {
             foreach (var atom in args)
             {
-                predicates.RemoveAll(p => p.Equals(atom));
+                knowledge_base.RemoveAll(p => p.Equals(atom));
             }
             return this;
         }
@@ -75,15 +76,15 @@ namespace Planning
 
         public void Print()
         {
-            foreach (Predicate sP in predicates)
+            foreach (Predicate sP in knowledge_base)
             {
                 Debug.Log($"{sP.ToString()}");
             }
         }
 
-        public bool ContainsAtom(Predicate atom) => predicates.Contains(atom);
+        public bool ContainsAtom(Predicate atom) => knowledge_base.Contains(atom);
 
-        public List<Predicate> GetPredicates() => predicates;
+        public List<Predicate> GetPredicates() => knowledge_base;
 
     }
 }

@@ -11,8 +11,8 @@ namespace SimWorld
         protected override List<WorldState> DomainGoals => SimDomain.GetGoals();
         protected override List<PlanAction> DomainActions => new List<PlanAction>
         {
-            new ActionSleep().AddExecutable(Sleep, 2f),
-            new ActionEat().AddExecutable(Eat, 1.5f),
+            new ActionSleep().AddExecutable(Sleep, 1f),
+            new ActionEat().AddExecutable(Eat, 1f),
             new ActionDrink().AddExecutable(Drink, 1f),
             new ActionMoveTo().AddExecutable(MoveTo, 5f) 
         };
