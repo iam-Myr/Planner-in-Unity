@@ -4,22 +4,20 @@ using SysDiag = System.Diagnostics;
 
 namespace Planning
 {
-    public class Planner
+    public class GroundPlanner
     {
         private List<PlanAction> allActions;
         private List<Node> frontier = new List<Node>();
         private Node initNode;
 
-        public Planner(List<PlanAction> groundedActions)
+        public GroundPlanner(List<PlanAction> groundedActions)
         {
             Debug.Log("Planner initialized (grounded-only)");
             allActions = groundedActions;
         }
 
-        public List<PlanAction> MakePlan(WorldState goalState, int maxSteps)
+        public List<PlanAction> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
         {
-            // Get current world state from observation manager
-            WorldState initState = ObservationManager.Observe();
             //initState.Print();
             //goalState.Print();
 

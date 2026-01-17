@@ -7,73 +7,73 @@ namespace Planning
 {
     public class Predicate
     {
-        public Func<List<object>, bool> func { get; private set; }
-        public List<Pointer> args { get; private set; }
+        public Func<List<object>, bool> TheFunc { get; private set; }
+        public List<Pointer> Args { get; private set; }
         // Nullable value: null = unobserved
-        public bool? value { get; private set; }
+        public bool? Value { get; private set; }
 
         public Predicate()
         {
-            args = new List<Pointer>();
-            value = null;
+            Args = new List<Pointer>();
+            Value = null;
         }
 
         public Predicate(Func<List<object>, bool> func, List<Pointer> args)
         {
-            this.func = func;
-            this.args = args;
-            this.value = null;
+            this.TheFunc = func;
+            this.Args = args;
+            this.Value = null;
         }
 
         public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool value)
         {
-            this.func = func;
-            this.args = args;
-            this.value = value;
+            this.TheFunc = func;
+            this.Args = args;
+            this.Value = value;
         }
 
         public void SetCondition(Func<List<object>, bool> func)
         {
-            this.func = func;
+            this.TheFunc = func;
         }
 
         public Predicate Instantiate(List<Pointer> newArgs, bool v)
         {
-            return new Predicate(func, newArgs, v);
+            return new Predicate(TheFunc, newArgs, v);
         }
 
         public bool Evaluate()
         {
-            return Observe() == value;
+            return Observe() == Value;
         }
 
         public bool Observe()
         {
-            List<object> argValues = args.Select(arg => arg.Get()).ToList();
-            return func(argValues);
+            List<object> argValues = Args.Select(arg => arg.Get()).ToList();
+            return TheFunc(argValues);
         }
 
         public bool IsInstantiated()
         {
-            return args.All(arg => arg.value != null);
+            return Args.All(arg => arg.value != null);
         }
 
         public bool IsOpposite(Predicate other)
         {
-            return EqualsStructure(other) && this.value != other.value;
+            return EqualsStructure(other) && this.Value != other.Value;
         }
 
         private bool EqualsStructure(Predicate other)
         {
-            if (func?.Method.Name != other.func?.Method.Name)
+            if (TheFunc?.Method.Name != other.TheFunc?.Method.Name)
                 return false;
 
-            if (args.Count != other.args.Count)
+            if (Args.Count != other.Args.Count)
                 return false;
 
-            for (int i = 0; i < args.Count; i++)
+            for (int i = 0; i < Args.Count; i++)
             {
-                if (!args[i].isSameValue(other.args[i]))
+                if (!Args[i].isSameValue(other.Args[i]))
                     return false;
             }
 
@@ -85,14 +85,14 @@ namespace Planning
             if (obj is not Predicate other)
                 return false;
 
-            return EqualsStructure(other) && this.value == other.value;
+            return EqualsStructure(other) && this.Value == other.Value;
         }
 
         public override string ToString()
         {
-            string funcName = func?.Method.Name ?? "null";
-            string argsString = string.Join(", ", args.Select(arg => arg.value?.ToString() ?? "null"));
-            return $"{funcName}({argsString}) - {value}";
+            string funcName = TheFunc?.Method.Name ?? "null";
+            string argsString = string.Join(", ", Args.Select(arg => arg.value?.ToString() ?? "null"));
+            return $"{funcName}({argsString}) - {Value}";
         }
     }
 }

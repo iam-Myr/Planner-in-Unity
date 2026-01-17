@@ -9,7 +9,7 @@ namespace Planning
 {
     public abstract class Agent : MonoBehaviour, IObservableHolder
     {
-        private Planner planner;
+        private GroundPlanner planner;
         private List<PlanAction> currentPlan;
         private WorldState currentState;
         private WorldState currentGoal;
@@ -49,14 +49,14 @@ namespace Planning
             currentGoal = ChooseGoal(DomainGoals);
 
             // Generate grounded actions from domain pointers
-            List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(DomainActions, DomainPointers);
+            //List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(DomainActions, DomainPointers);
 
-            foreach(PlanAction action in groundedActions) 
-                Debug.Log($"{action}");
+            //foreach(PlanAction action in groundedActions) 
+            //    Debug.Log($"{action}");
             
 
-            // Initialize the planner with grounded actions
-            planner = new Planner(groundedActions);
+            // Initialize the planner with lifted actions
+            planner = new LiftedPlanner(DomainActions, DomainPointers);
 
             // No plan at start
             currentPlan = null;
@@ -78,8 +78,11 @@ namespace Planning
                 // Select a goal to plan for
                 currentGoal = ChooseGoal(DomainGoals);
 
+                // Get current world state from observation manager
+                WorldState initState = ObservationManager.Observe();
+
                 // Ask planner to generate a plan from current state to goal
-                currentPlan = planner.MakePlan(currentGoal, MAXSTEPS);
+                currentPlan = planner.MakePlan(initState, currentGoal, MAXSTEPS);
 
                 if (currentPlan != null && currentPlan.Count > 0)
                 {

@@ -26,7 +26,7 @@ namespace Planning
             foreach (Predicate p in predicates)
             {
                 bool result = p.Observe(); 
-                Predicate observedPredicate = new Predicate(p.func, p.args, result);
+                Predicate observedPredicate = new Predicate(p.TheFunc, p.Args, result);
                 currentWorldState.AddPredicates(observedPredicate);
             }
 

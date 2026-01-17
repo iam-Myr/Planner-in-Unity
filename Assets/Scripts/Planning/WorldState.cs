@@ -1,90 +1,75 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using System.Linq;
+using System;
 
 namespace Planning
 {
     public class WorldState
     {
-        // CHANGE THIS INTO HASH TABLE
-        protected List<Predicate> knowledge_base = new List<Predicate>();
+        // Dict of type [Func: [Predicate1, Predicate2]... ex. [On: [On(A,B), on(C,D)]
+        protected Dictionary<Func<List<object>, bool>, List<Predicate>> knowledge_base = 
+            new Dictionary<Func<List<object>, bool>, List<Predicate>>();
 
         // Add Atoms if they're not already contained
         public WorldState AddPredicates(params Predicate[] args)
         {
             foreach (Predicate p in args)
             {
-                // Avoid adding duplicates (based on isSame)
-                if (!knowledge_base.Any(existing => existing.Equals(p)))
+                if (!knowledge_base.TryGetValue(p.TheFunc, out List<Predicate> list))
                 {
-                    knowledge_base.Add(p);
+                    list = new List<Predicate>();
+                    knowledge_base[p.TheFunc] = list;
+                }
+
+                // Avoid adding duplicates based on predicate equality check (Equals)
+                if (!list.Any(existing => existing.Equals(p)))
+                {
+                    list.Add(p);
                 }
             }
             return this;
         }
 
+        // Remove specific predicates
         public WorldState RemovePredicates(params Predicate[] args)
         {
-            foreach (var atom in args)
+            foreach (Predicate atom in args)
             {
-                knowledge_base.RemoveAll(p => p.Equals(atom));
+                if (knowledge_base.TryGetValue(atom.TheFunc, out List<Predicate> list))
+                {
+                    list.RemoveAll(p => p.Equals(atom));
+                    if (list.Count == 0)
+                    {
+                        knowledge_base.Remove(atom.TheFunc);
+                    }
+                }
             }
             return this;
         }
 
-        /*
-        public bool IsContradiction()
+        // Check if atom exists
+        public bool ContainsAtom(Predicate atom)
         {
-            for (int i = 0; i < predicates.Count; i++)
-            {
-                var p1 = predicates[i];
-                if (p1.func.Method.Name != "isOn") continue;
-                var a1 = p1.args[0].value;
-                var b1 = p1.args[1].value;
-
-                for (int j = i + 1; j < predicates.Count; j++)
-                {
-                    var p2 = predicates[j];
-                    if (p2.func.Method.Name != "isOn") continue;
-                    var a2 = p2.args[0].value;
-                    var b2 = p2.args[1].value;
-
-                    if (a1 != null && b1 != null && a2 != null && b2 != null &&
-                        a1.Equals(b2) && b1.Equals(a2))
-                    {
-                        return true; // Found on(A,B) and on(B,A)
-                    }
-                }
-            }
-
-            return false;
-        } 
-
-        public void UnifyWith(WorldState other)
-        {
-            foreach (Predicate p in this.predicates)
-            {
-                foreach (Predicate otherP in other.predicates)
-                {
-                    if (Unification.CanUnify(p, otherP))
-                    {
-                        Unification.Unify(p, otherP);
-                    }
-                }
-            }
-        } */
-
-        public void Print()
-        {
-            foreach (Predicate sP in knowledge_base)
-            {
-                Debug.Log($"{sP.ToString()}");
-            }
+            return knowledge_base.TryGetValue(atom.TheFunc, out List<Predicate> list) && list.Any(p => p.Equals(atom));
         }
 
-        public bool ContainsAtom(Predicate atom) => knowledge_base.Contains(atom);
+        // Return all predicates as a flat list
+        public List<Predicate> GetPredicates()
+        {
+            return knowledge_base.Values.SelectMany(list => list).ToList();
+        }
 
-        public List<Predicate> GetPredicates() => knowledge_base;
-
+        // Print all predicates
+        public void Print()
+        {
+            foreach (List<Predicate> list in knowledge_base.Values)
+            {
+                foreach (Predicate p in list)
+                {
+                    Debug.Log(p.ToString());
+                }
+            }
+        }
     }
 }
