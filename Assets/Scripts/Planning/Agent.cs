@@ -9,7 +9,7 @@ namespace Planning
 {
     public abstract class Agent : MonoBehaviour, IObservableHolder
     {
-        private GroundPlanner planner;
+        private LiftedPlanner planner;
         private List<PlanAction> currentPlan;
         private WorldState currentState;
         private WorldState currentGoal;
