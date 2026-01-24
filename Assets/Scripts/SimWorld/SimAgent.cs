@@ -3,6 +3,8 @@ using UnityEngine;
 using Planning;
 using System.Threading.Tasks;
 using System.Collections;
+using Mono.Cecil;
+using Unity.VisualScripting;
 
 namespace SimWorld
 {
@@ -34,10 +36,18 @@ namespace SimWorld
 
         public float degrationRate = 5f;
         public float threshold = 40f;
+        private Animator animator;
+        private SpriteRenderer spriteRenderer;
+        private AudioSource audioData;
+
+        public List<AudioClip> audioClips = new List<AudioClip>(); //0 - WATER, 1- FOOD, 2-SLEEP
 
         void Awake()
         {
             base.Awake();
+            animator = GetComponent<Animator>();
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            audioData = GetComponent<AudioSource>();
         }
 
         void Start()
@@ -76,6 +86,9 @@ namespace SimWorld
         public IEnumerator Sleep(List<object> args)
         {
             Debug.Log("Sleeping...");
+            audioData.clip = audioClips[2];
+            audioData.Play();
+
             yield return new WaitForSeconds(1f); // Optional delay
             sleep = sleepMAX;
         }
@@ -83,6 +96,8 @@ namespace SimWorld
         public IEnumerator Eat(List<object> args)
         {
             Debug.Log("Eating!...");
+            audioData.clip = audioClips[1];
+            audioData.Play();
             yield return new WaitForSeconds(1f);
             hunger = hungerMAX;
         }
@@ -90,6 +105,8 @@ namespace SimWorld
         public IEnumerator Drink(List<object> args)
         {
             Debug.Log("Drinking!...");
+            audioData.clip = audioClips[0];
+            audioData.Play();
             yield return new WaitForSeconds(1f);
             water = waterMAX;
         }
@@ -97,11 +114,20 @@ namespace SimWorld
         public IEnumerator MoveTo(List<object> args)
         {
             Debug.Log("Moving...");
+            animator.SetBool("isMoving", true);
             Area area = (Area)args[0]; 
             Vector3 destination = area.GetPosition(); 
             
+            
             while (Vector3.Distance(transform.position, destination) > 0.1f)
             {
+
+                // Determine direction relative to current position
+                float direction = destination.x - transform.position.x;
+
+                spriteRenderer.flipX = !(direction > 0); // facing right
+            
+
                 transform.position = Vector3.MoveTowards(
                     transform.position,
                     destination,
@@ -109,6 +135,7 @@ namespace SimWorld
                 );
                 yield return null; // wait for next frame
             }
+            animator.SetBool("isMoving", false);
         }
 
         public bool isSleepy(List<object> args)
