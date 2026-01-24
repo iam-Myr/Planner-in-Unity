@@ -47,6 +47,7 @@ namespace SimWorld
             hunger = hungerMAX;
             sleep = sleepMAX;
             water = waterMAX;
+            //water = 10;
         }
 
         // Update is called once per frame

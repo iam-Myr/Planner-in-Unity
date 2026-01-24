@@ -80,6 +80,8 @@ namespace Planning
 
                 // Get current world state from observation manager
                 WorldState initState = ObservationManager.Observe();
+                Debug.Log("THE INIT");
+                initState.Print();
 
                 // Ask planner to generate a plan from current state to goal
                 currentPlan = planner.MakePlan(initState, currentGoal, MAXSTEPS);

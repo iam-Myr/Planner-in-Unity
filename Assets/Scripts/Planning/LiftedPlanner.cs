@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
 
@@ -38,6 +39,8 @@ namespace Planning
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
                 //currentNode.Print();
+                //currentNode.PrintToFile();
+
 
                 if (!IsLoop(currentNode, visited))
                 {
@@ -49,7 +52,7 @@ namespace Planning
                         {
                             stopwatch.Stop();
                             //Debug.Log($"Goal found in {step} steps and depth {child.GetDepth()}");
-                            //Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+                            Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
                             return ReconstructPlan(child);
                         }
 
@@ -76,39 +79,61 @@ namespace Planning
             return false;
         }
 
-
         private List<Node> FindChildren(Node currentNode)
         {
             var children = new List<Node>();
             WorldState currentState = currentNode.GetState();
             List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
 
+            // For each goal in the current goals
             foreach (Predicate goal in currentGoals)
             {
+                // For each available action
                 foreach (PlanAction action in allActions)
                 {
-                    if (!action.GetEffects().Contains(goal)) continue; // If action is not useful
-                    if (action.IsRemovingGoal(currentGoals)) continue;
+                    // Clone the action so unification doesn't leak bindings
+                    PlanAction actionClone = action.Clone();
 
-                    WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
-                    newState.AddPredicates(action.GetPreconditions().ToArray());
-                    newState.RemovePredicates(goal);
+                    bool is_useful = false;
+                    // For each effect of action
+                    foreach (Predicate effect in actionClone.GetEffects())
+                        // If it can unify with the goal, the action is useful
+                        if (Unification.Unify(effect, goal))
+                        {
+                            is_useful = true; // They have unified.
+                        }
 
-                    foreach (Predicate effect in action.GetEffects())
+                    // Unification for the current action has ended
+                    if (actionClone.IsRemovingGoal(currentGoals)) is_useful = false;
+
+                    if (is_useful)
                     {
-                        if (currentGoals.Contains(effect) && effect != goal)
-                            newState.RemovePredicates(effect);
+                        // Check if init can unifyyy
+                        foreach (Predicate satisfiedInInit in initNode.GetState().GetPredicates())
+                        {
+                            foreach (Predicate precond in actionClone.GetPreconditions())
+                                Unification.Unify(precond, satisfiedInInit);
+                        }
+
+                        WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
+                        newState.AddPredicates(actionClone.GetPreconditions().ToArray());
+                        newState.RemovePredicates(goal);
+
+                        foreach (Predicate effect in actionClone.GetEffects())
+                        {
+                            if (currentGoals.Contains(effect) && effect != goal)
+                                newState.RemovePredicates(effect);
+                        }
+
+                        Node newNode = new Node(currentNode, newState, actionClone);
+                        children.Add(newNode);
                     }
-
-                    Node newNode = new Node(currentNode, newState, action);
-
-                    children.Add(newNode);
-
                 }
             }
 
             return children;
         }
+
 
 
         private List<PlanAction> ReconstructPlan(Node node)

@@ -21,8 +21,14 @@ public static class Unification
         // COMPOUND?(x) and COMPOUND?(y)
         if (x is Predicate p1 && y is Predicate p2)
         {
-            if (p1.Args.Count != p2.Args.Count)
+            // if different names, arg countss, polarities -> fail
+            if ((p1.TheFunc.Method.Name != p2.TheFunc.Method.Name) || (p1.Args.Count != p2.Args.Count))
                 return false;
+
+            if (p1.Value.HasValue && p2.Value.HasValue &&
+                p1.Value.Value != p2.Value.Value)
+                return false;
+
 
             // unify arguments recursively
             for (int i = 0; i < p1.Args.Count; i++)
@@ -40,7 +46,7 @@ public static class Unification
 
     private static bool Unify_Pointer(Pointer point, object x)
     {
-        // if var already bound → unify its value
+        // if var already bound -> unify its value
         if (point.IsBound()) return Unify(point.Get(), x);
 
         // if x is a pointer already bound -> unify with its value

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.IO;
 using UnityEngine;
 
 namespace Planning
@@ -12,6 +14,10 @@ namespace Planning
         private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
         protected int depth;
 
+        // TXT Logger path
+        private static readonly string logPath =
+            Path.Combine(Application.persistentDataPath, "planner_nodes.txt");
+
         public Node(Node parent, WorldState state, PlanAction action)
         {
             this.parent = parent;
@@ -19,11 +25,9 @@ namespace Planning
             this.action = action;
 
             // Init goals
-
             unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
 
-            if (parent == null) depth = 0;
-            else depth = parent.depth + 1;
+            depth = parent == null ? 0 : parent.depth + 1;
         }
 
         // Node is goal if the current state atoms are a subset of the init state
@@ -46,10 +50,7 @@ namespace Planning
             foreach (Predicate p_list in pList)
             {
                 if (p.Equals(p_list))
-                {
                     return true;
-                }
-
             }
             return false;
         }
@@ -84,42 +85,29 @@ namespace Planning
             return true;
         }
 
-
+        // ------------------------- Console Print -------------------------
         public void Print()
         {
             Debug.Log("================================== ANALYSIS ====================================");
             Debug.Log($"Depth: {depth}");
             Debug.Log("------------------ Previous Action ----------------- ");
+            if(parent != null && parent.GetAction()!=null) Debug.Log($"{parent.GetAction()}");
+            Debug.Log("------------------ Current Action ----------------- ");
             if (action != null) Debug.Log(action);
-            Debug.Log($"----------------- Current State ------------------- ");
+            Debug.Log("----------------- Current State ------------------- ");
             if (state != null) state.Print();
-            Debug.Log($"----------------- Unsatisfied Goals ------------------- ");
+            Debug.Log("----------------- Unsatisfied Goals ------------------- ");
             if (unsatisfiedGoals != null) PrintGoals();
             Debug.Log($"Remaining Goals: {unsatisfiedGoals.Count}");
             Debug.Log("================================== END ANALYSIS ====================================");
         }
 
-        /*
-        public List<Predicate> GetInstantiatedGoals()
-        {
-            List<Predicate> instantiatedGoals = new List<Predicate>();
-
-            // Iterate over all unsatisfied goals and check if they are instantiated
-            foreach (Predicate goal in unsatisfiedGoals)
-            {
-                if (goal.IsInstantiated()) // Check if all arguments are non-null
-                {
-                    instantiatedGoals.Add(goal);
-                }
-            }
-
-            return instantiatedGoals;
-        }
-        */
-
         public void PrintGoals()
         {
-            foreach (Predicate p in unsatisfiedGoals) { Debug.Log(p.ToString()); }
+            foreach (Predicate p in unsatisfiedGoals)
+            {
+                Debug.Log(p.ToString());
+            }
         }
 
         public void RemoveGoal(Predicate goal)
@@ -149,7 +137,42 @@ namespace Planning
         public WorldState GetState() => state;
         public PlanAction GetAction() => action;
         public Node GetParent() => parent;
-
         public List<Predicate> GetUnsatisfiedGoals() => unsatisfiedGoals;
+
+        // ------------------------- TXT Logging -------------------------
+        private void LogToFile(string text)
+        {
+            File.AppendAllText(logPath, text + "\n");
+        }
+
+        public void PrintToFile()
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("================================== ANALYSIS ====================================");
+            sb.AppendLine($"Depth: {depth}");
+            sb.AppendLine("------------------ Previous Action ----------------- ");
+            if (parent != null && parent.GetAction() != null) sb.AppendLine(parent.GetAction().ToString());
+
+            sb.AppendLine("------------------ Current Action ----------------- ");
+            if (action != null) sb.AppendLine(action.ToString());
+
+            sb.AppendLine("----------------- Current State ------------------- ");
+            if (state != null)
+                sb.AppendLine(state.ToString());
+
+            sb.AppendLine("----------------- Unsatisfied Goals ------------------- ");
+            if (unsatisfiedGoals != null)
+            {
+                foreach (Predicate p in unsatisfiedGoals)
+                    sb.AppendLine(p.ToString());
+            }
+
+            sb.AppendLine($"Remaining Goals: {unsatisfiedGoals.Count}");
+            sb.AppendLine("================================== END ANALYSIS ====================================");
+            sb.AppendLine();
+
+            LogToFile(sb.ToString());
+        }
     }
 }

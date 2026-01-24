@@ -156,6 +156,64 @@ namespace Planning
             }
         }
 
+        public virtual PlanAction Clone()
+        {
+            // Create a new instance of the same action type
+            PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
+
+            // Map original pointers to cloned pointers to preserve shared logical variables
+            Dictionary<Pointer, Pointer> pointerMap = new Dictionary<Pointer, Pointer>();
+
+            // Clone action arguments
+            clone.actionArgs = new List<Pointer>();
+            foreach (Pointer arg in this.actionArgs)
+            {
+                Pointer clonedArg = arg.Clone();
+                pointerMap[arg] = clonedArg;
+                clone.actionArgs.Add(clonedArg);
+            }
+
+            // Clone preconditions
+            clone.preconditions = new List<Predicate>();
+            foreach (Predicate pre in this.preconditions)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in pre.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.preconditions.Add(new Predicate(pre.TheFunc, clonedArgs, pre.Value ?? false));
+            }
+
+            // Clone effects
+            clone.effects = new List<Predicate>();
+            foreach (Predicate eff in this.effects)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in eff.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.effects.Add(new Predicate(eff.TheFunc, clonedArgs, eff.Value ?? false));
+            }
+
+            // Copy action name
+            clone.actionName = this.actionName;
+
+            // Copy duration and executable if needed
+            clone.durationEstimate = this.durationEstimate;
+            clone.executable = this.executable;
+
+            return clone;
+        }
+
+
 
 
         /*
