@@ -4,10 +4,9 @@ using Planning;
 
 namespace BlocksWorld
 {
-    // IS SINGLETON?
     public static class BlockDomain
     {
-        // Pointers created from blocks
+        //  Pointers for all blocks 
         public static Pointer A = new Pointer(GameObject.Find("A").GetComponent<PlanObject>());
         public static Pointer B = new Pointer(GameObject.Find("B").GetComponent<PlanObject>());
         public static Pointer C = new Pointer(GameObject.Find("C").GetComponent<PlanObject>());
@@ -16,38 +15,13 @@ namespace BlocksWorld
 
         public static List<Pointer> AllPointers = new List<Pointer> { A, B, C, D, E };
 
-        public static List<Predicate> InitialState = new List<Predicate> {
-            new Predicate(BlockDomain.isClear, new List<Pointer> { B }, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> { C }, true),
-            new Predicate(BlockDomain.isClear, new List<Pointer> { E }, true),
-            new Predicate(BlockDomain.isOn, new List<Pointer> { B, A }, true),
-            new Predicate(BlockDomain.isOn, new List<Pointer> { A, D }, true),
-            new Predicate(BlockDomain.isHandEmpty, new List<Pointer>(), true)
-            };
+        //  Predicates (declared once, logic handled in Block/Agent) 
+        public static Predicate isClear = new Predicate();
+        public static Predicate isOn = new Predicate(); //isOn(A,B) A is on B
+        public static Predicate isHolding = new Predicate();
+        public static Predicate isHandEmpty = new Predicate();
 
-        // Predicates
-        public static bool isClear(List<object> args)
-        {
-            return true;
-        }
-
-        public static bool isOn(List<object> args)
-        {
-            return true;
-        }
-
-        public static bool isHolding(List<object> args)
-        {
-            return true;
-        }
-
-        public static bool isHandEmpty(List<object> args)
-        {
-            return true;
-        }
-
-
-        // Actions
+        //  Domain actions 
         public static List<PlanAction> ActionTemplates = new List<PlanAction>
         {
             new ActionMove(),
@@ -55,10 +29,19 @@ namespace BlocksWorld
             new ActionDrop()
         };
 
-        public static List<WorldState> goalList = new List<WorldState>
+        //  Goals 
+        public static List<WorldState> GetGoals()
         {
-            new GoalBlocks()
-        };
+            return new List<WorldState>
+            {
+                new GoalBlocks()
+            };
+        }
+
+       
+        public static bool IsOfType<T>(object obj)
+        {
+            return obj is T;
+        }
     }
 }
-

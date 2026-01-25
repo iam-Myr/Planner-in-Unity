@@ -1,84 +1,58 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
 using Planning;
 
 namespace BlocksWorld
 {
-
     public class ActionDrop : PlanAction
     {
-        private Pointer current, to;
+        private Pointer current = new Pointer(typeof(Block)); // block to drop
+        private Pointer to = new Pointer(typeof(Block));      // block to drop onto
 
         public ActionDrop()
         {
             actionName = "Drop";
 
-            this.current = new Pointer(typeof(Block));
-            this.to = new Pointer(typeof(Block));
-
-            actionArgs = new List<Pointer> { current, to };
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+            actionArgs.Add(current);
+            actionArgs.Add(to);
         }
 
-        public ActionDrop(List<Pointer> args)
+        public override PlanAction CreateNew(List<Pointer> args) //[current, to]
         {
-            actionName = "Drop";
+            ActionDrop a = new ActionDrop();
 
-            // Extract meaningful references from the list
-            this.current = args[0];
-            this.to = args[1];
+            // Set values from arguments
+            a.current.value = args[0].value;
+            a.to.value = args[1].value;
 
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+            // Copy the executable and duration if already set
+            a.AddExecutable(this.executable, this.durationEstimate);
+
+            return a;
         }
-
-        public override PlanAction CreateNew(List<Pointer> args)
-        {
-            return new ActionDrop(args);
-        }
-
 
         #region Preconditions
-        // Preconditions
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, true), // isClear(to)
-        };
+            {
+                BlockDomain.isHolding.Instantiate(new List<Pointer> { current }, true), // agent is holding the block
+                BlockDomain.isClear.Instantiate(new List<Pointer> { to }, true)        // target block is clear
+            };
         }
         #endregion
 
-        // Effects
+        #region Effects
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
             {
-                new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
-                new Predicate(BlockDomain.isHolding, new List<Pointer> {current}, false),
-                new Predicate(BlockDomain.isHandEmpty, new List < Pointer > {}, true),
-                new Predicate(BlockDomain.isClear, new List<Pointer> {to}, false), // isClear(to)
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, to }, true),     // current is now on target
+                BlockDomain.isHolding.Instantiate(new List<Pointer> { current }, false),   // agent no longer holding
+                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, true),         // agent hand empty
+                BlockDomain.isClear.Instantiate(new List<Pointer> { to }, false)           // target is no longer clear
             };
         }
-
-        /*public override async Task Execute(object args)
-        {
-            if (to.Get() is Block toBlock &&
-                current.Get() is Block currentBlock)
-            {
-                // Logical update
-                toBlock.SetAbove(currentBlock);
-                currentBlock.SetBelow(toBlock);
-
-                // Visual update
-                Vector3 newPos = toBlock.transform.position + Vector3.up * 1.1f;
-                await currentBlock.MoveToAsync(newPos); // Async movement
-            }
-        }*/
+        #endregion
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using Planning;
 
@@ -8,77 +7,53 @@ namespace BlocksWorld
 {
     public class ActionPickup : PlanAction
     {
-        private Pointer current, from;
+        private Pointer current = new Pointer(typeof(Block)); // Block to pick up
+        private Pointer from = new Pointer(typeof(Block));    // Block underneath
 
         public ActionPickup()
         {
-            actionName = "Pick Up";
-
-            this.current = new Pointer(typeof(Block));
-            this.from = new Pointer(typeof(Block));
-
-            actionArgs = new List<Pointer> { current, from };
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
-        }
-
-        public ActionPickup(List<Pointer> args) 
-        {
             actionName = "Pickup";
 
-            // Extract meaningful references from the list
-            this.current = args[0];
-            this.from = args[1];
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+            actionArgs.Add(current);
+            actionArgs.Add(from);
         }
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionPickup(args);
+            ActionPickup a = new ActionPickup();
+
+            // Set values from the passed pointers
+            a.current.value = args[0].value;
+            a.from.value = args[1].value;
+
+            // Copy the executable and duration if set
+            a.AddExecutable(this.executable, this.durationEstimate);
+
+            return a;
         }
 
         #region Preconditions
-        // Preconditions
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isClear, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isOn, new List<Pointer> {current, from}, true), // isOn(current, from)
-            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, true)
-        };
+            {
+                BlockDomain.isClear.Instantiate(new List<Pointer> { current }, true),       // block is clear
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, true),    // block is on 'from'
+                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, true)            // hand is empty
+            };
         }
         #endregion
 
-        // Effects
+        #region Effects
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isHolding, new List <Pointer> {current}, true), // isClear(from)
-            new Predicate(BlockDomain.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(BlockDomain.isHandEmpty, new List <Pointer> {}, false)
-        };
-        }
-
-
-        /*public override async Task Execute(object args)
-        {
-            if (from.Get() is Block fromBlock &&
-                current.Get() is Block currentBlock)
             {
-                // Logical update
-
-                fromBlock.SetAbove(null);
-                currentBlock.SetBelow(null);
-
-                // Visual update
-                Vector3 newPos = currentBlock.transform.position + Vector3.up * 1.1f;
-                await currentBlock.MoveToAsync(newPos); // Async movement
-            }
-        }*/
+                BlockDomain.isHolding.Instantiate(new List<Pointer> { current }, true),     // now holding the block
+                BlockDomain.isClear.Instantiate(new List<Pointer> { from }, true),         // from is now clear
+                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, false)          // hand is no longer empty
+            };
+        }
+        #endregion
     }
 }

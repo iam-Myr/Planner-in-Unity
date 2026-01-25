@@ -98,7 +98,11 @@ namespace Planning
         {
             foreach(Predicate p  in preconditions)
             {
-                if (!p.Evaluate()) return false;
+                if (!p.Evaluate())
+                {
+                    Debug.Log($"Predicate {p} is not true");
+                    return false;
+                }
             }
             return true;
         }

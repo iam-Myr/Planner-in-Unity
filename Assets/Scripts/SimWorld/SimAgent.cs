@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Planning;
-using System.Threading.Tasks;
 using System.Collections;
-using Mono.Cecil;
-using Unity.VisualScripting;
+
 
 namespace SimWorld
 {
@@ -36,6 +34,8 @@ namespace SimWorld
 
         public float degrationRate = 5f;
         public float threshold = 40f;
+
+        // Game Stuff
         private Animator animator;
         private SpriteRenderer spriteRenderer;
         private AudioSource audioData;
@@ -86,28 +86,30 @@ namespace SimWorld
         public IEnumerator Sleep(List<object> args)
         {
             Debug.Log("Sleeping...");
-            audioData.clip = audioClips[2];
-            audioData.Play();
-
+            
             yield return new WaitForSeconds(1f); // Optional delay
             sleep = sleepMAX;
+            audioData.clip = audioClips[2];
+            audioData.Play();
         }
 
         public IEnumerator Eat(List<object> args)
         {
             Debug.Log("Eating!...");
+           
+            yield return new WaitForSeconds(1f);
             audioData.clip = audioClips[1];
             audioData.Play();
-            yield return new WaitForSeconds(1f);
             hunger = hungerMAX;
         }
 
         public IEnumerator Drink(List<object> args)
         {
             Debug.Log("Drinking!...");
+            
+            yield return new WaitForSeconds(1f);
             audioData.clip = audioClips[0];
             audioData.Play();
-            yield return new WaitForSeconds(1f);
             water = waterMAX;
         }
 
@@ -163,7 +165,6 @@ namespace SimWorld
             return a.Contains(transform.position);
         }
 
-
         public override void SetPredicateConditions()
         {
             SimDomain.isAt.SetCondition(isAt);
@@ -174,16 +175,26 @@ namespace SimWorld
 
         public override List<Predicate> GetObservablePredicates()
         {
-            return new List<Predicate> {
-                new Predicate(isSleepy, new List<Pointer>()),
-                new Predicate(isHungry, new List<Pointer>()),
-                new Predicate(isThirsty, new List<Pointer>()),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SpawnArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.FoodArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.WaterArea) }),
-                new Predicate(isAt, new List<Pointer> { new Pointer(SimDomain.SleepArea) }),
-            };
+            List<Predicate> observables = new List<Predicate>();
+
+            // Add basic agent stats
+            observables.Add(new Predicate(isSleepy, new List<Pointer>()));
+            observables.Add(new Predicate(isHungry, new List<Pointer>()));
+            observables.Add(new Predicate(isThirsty, new List<Pointer>()));
+
+            // Add isAt predicates for all area-type pointers in the domain
+            foreach (Pointer p in SimDomain.AllPointers)
+            {
+                // Only include PlanObjects that are areas
+                if (p.value is Area)
+                {
+                    observables.Add(new Predicate(isAt, new List<Pointer> { new Pointer(p.value) }));
+                }
+            }
+
+            return observables;
         }
+
 
         /*
          * public float GetValue(Conditions condition)

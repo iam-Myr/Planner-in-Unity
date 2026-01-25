@@ -10,7 +10,7 @@ namespace Planning
         public Func<List<object>, bool> TheFunc { get; private set; }
         public List<Pointer> Args { get; private set; }
         // Nullable value: null = unobserved
-        public bool? Value { get; private set; } //Negation or not
+        public bool? Value { get; private set; } // Negation or not
 
         public Predicate()
         {

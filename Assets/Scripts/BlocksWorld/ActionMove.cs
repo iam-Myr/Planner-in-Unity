@@ -6,83 +6,58 @@ using Planning;
 
 namespace BlocksWorld
 {
-
     public class ActionMove : PlanAction
     {
-        private Pointer current, to, from;
+        private Pointer current = new Pointer(typeof(Block)); // Block to move
+        private Pointer from = new Pointer(typeof(Block));    // Block below
+        private Pointer to = new Pointer(typeof(Block));      // Block to move onto
 
         public ActionMove()
         {
             actionName = "Move";
 
-            this.current = new Pointer(typeof(Block));
-            this.to = new Pointer(typeof(Block));
-            this.from = new Pointer(typeof(Block));
-
-            actionArgs = new List<Pointer> { current, to, from };
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
-        }
-
-        public ActionMove(List<Pointer> args)
-        {
-            actionName = "Move";
-
-            // Extract meaningful references from the list
-            this.current = args[0];
-            this.to = args[1];
-            this.from = args[2];
-
-            preconditions.AddRange(InitPreconditions());
-            effects.AddRange(InitEffects());
+            actionArgs.Add(current);
+            actionArgs.Add(to);
+            actionArgs.Add(from);
         }
 
         public override PlanAction CreateNew(List<Pointer> args)
         {
-            return new ActionMove(args);
+            ActionMove a = new ActionMove();
+
+            a.current.value = args[0].value;
+            a.to.value = args[1].value;
+            a.from.value = args[2].value;
+
+            // Copy executable and duration if set
+            a.AddExecutable(this.executable, this.durationEstimate);
+
+            return a;
         }
 
         #region Preconditions
-        // Preconditions
         public override List<Predicate> InitPreconditions()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isClear, new List<Pointer> {current}, true), // isClear(current)
-            new Predicate(BlockDomain.isClear, new List<Pointer> {to}, true), // isClear(to)
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, from}, true) // isOn(current, from)
-        };
+            {
+                BlockDomain.isClear.Instantiate(new List<Pointer> { current }, true),  // block is clear
+                BlockDomain.isClear.Instantiate(new List<Pointer> { to }, true),       // target is clear
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, true) // block is on 'from'
+            };
         }
         #endregion
 
-        // Effects
+        #region Effects
         public override List<Predicate> InitEffects()
         {
             return new List<Predicate>
-        {
-            new Predicate(BlockDomain.isClear, new List <Pointer> {from}, true), // isClear(from)
-            new Predicate(BlockDomain.isOn, new List <Pointer> {current, to}, true), // isOn(current, to)
-            new Predicate(  BlockDomain.isOn, new List <Pointer> {current, from}, false),
-            new Predicate(BlockDomain.isClear, new List <Pointer> {to}, false)
-        };
-        }
-
-        /*public override async Task Execute(object args)
-        {
-            if (to.Get() is Block toBlock &&
-                from.Get() is Block fromBlock &&
-                current.Get() is Block currentBlock)
             {
-                // Logical update
-                toBlock.SetAbove(currentBlock);
-                fromBlock.SetAbove(null);
-                currentBlock.SetBelow(toBlock);
-
-                // Visual update
-                Vector3 newPos = toBlock.transform.position + Vector3.up * 1.1f;
-                await currentBlock.MoveToAsync(newPos); // Async movement
-            }
-        }*/
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, to }, true),    // now on 'to'
+                BlockDomain.isClear.Instantiate(new List<Pointer> { from }, true),        // from is clear
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, false), // no longer on 'from'
+                BlockDomain.isClear.Instantiate(new List<Pointer> { to }, false)          // to is not clear anymore
+            };
+        }
+        #endregion
     }
 }
