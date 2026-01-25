@@ -21,7 +21,7 @@ namespace BlocksWorld
         protected virtual void Awake()
         {
             Register();
-            SetPredicateConditions();
+            //SetPredicateConditions();
 
             // Raycast stuff
             blockLayer = LayerMask.GetMask("Block");
@@ -34,28 +34,32 @@ namespace BlocksWorld
         {
             ObservationManager.Register(this);
         }
-
-        // Connect block's instance methods to domain predicates
-        public void SetPredicateConditions()
-        {
-            BlockDomain.isClear.SetCondition(isClear);
-            BlockDomain.isOn.SetCondition(isOn);
-        }
+       
 
         // Dynamically generate observable predicates
         public List<Predicate> GetObservablePredicates()
         {
-            List<Predicate> observables = new List<Predicate>();
+            List<Predicate> observables = new();
 
-            // Add this block's isClear predicate
-            observables.Add(new Predicate(isClear, new List<Pointer> { new Pointer(this) }));
+            // isClear(this)
+            observables.Add(
+                new Predicate(
+                    BlockDomain.isClear.TheFunc,
+                    new List<Pointer> { new Pointer(this) }
+                )
+            );
 
-            // Add all isOn predicates for all blocks
+            // isOn(this, other)
             foreach (Pointer p in BlockDomain.AllPointers)
             {
                 if (p.value is Block other && other != this)
                 {
-                    observables.Add(new Predicate(isOn, new List<Pointer> { new Pointer(this), new Pointer(other) }));
+                    observables.Add(
+                        new Predicate(
+                            BlockDomain.isOn.TheFunc,
+                            new List<Pointer> { new Pointer(this), new Pointer(other) }
+                        )
+                    );
                 }
             }
 
@@ -63,20 +67,15 @@ namespace BlocksWorld
         }
 
         /// Returns true if there is no block directly above this block.
-        public bool isClear(List<object> args)
+        public bool isClear()
         { 
-          
             RaycastHit2D up = Physics2D.Raycast(transform.position + Vector3.up * rayOffset, Vector2.up, rayDistance, blockLayer);
             return up.collider == null;
         }
 
-
-
         /// Returns true if this block is directly on top of the given other block.
-        public bool isOn(List<object> args)
+        public bool isOn(Block otherBlock)
         {
-            if (args.Count != 2 || !(args[1] is Block otherBlock))
-                return false;
             RaycastHit2D down = Physics2D.Raycast(transform.position + Vector3.down * rayOffset, Vector2.down, rayDistance, blockLayer);
             if (down.collider != null && down.collider.gameObject == otherBlock.gameObject)
                 return true;

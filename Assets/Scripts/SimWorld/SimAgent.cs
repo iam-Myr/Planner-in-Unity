@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Planning;
 using System.Collections;
+using BlocksWorld;
 
 
 namespace SimWorld
@@ -140,47 +141,36 @@ namespace SimWorld
             animator.SetBool("isMoving", false);
         }
 
-        public bool isSleepy(List<object> args)
+        public bool isSleepy()
         {
             return sleep < threshold;
         }
 
-        public bool isThirsty(List<object> args)
+        public bool isThirsty()
         {
             return water < threshold;
         }
 
-        public bool isHungry(List<object> args)
+        public bool isHungry()
         {
             return hunger < threshold;
         }
 
 
-        public bool isAt(List<object> args)
+        public bool isAt(Area a)
         {
-            if (args.Count == 0 || !SimDomain.IsOfType<Area>(args[0]))
-                return false;
-
-            Area a = (Area)args[0];
             return a.Contains(transform.position);
         }
 
-        public override void SetPredicateConditions()
-        {
-            SimDomain.isAt.SetCondition(isAt);
-            SimDomain.isSleepy.SetCondition(isSleepy);
-            SimDomain.isHungry.SetCondition(isHungry);
-            SimDomain.isThirsty.SetCondition(isThirsty);
-        }
 
         public override List<Predicate> GetObservablePredicates()
         {
             List<Predicate> observables = new List<Predicate>();
 
             // Add basic agent stats
-            observables.Add(new Predicate(isSleepy, new List<Pointer>()));
-            observables.Add(new Predicate(isHungry, new List<Pointer>()));
-            observables.Add(new Predicate(isThirsty, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isSleepy.TheFunc, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isHungry.TheFunc, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isThirsty.TheFunc, new List<Pointer>()));
 
             // Add isAt predicates for all area-type pointers in the domain
             foreach (Pointer p in SimDomain.AllPointers)
@@ -188,7 +178,7 @@ namespace SimWorld
                 // Only include PlanObjects that are areas
                 if (p.value is Area)
                 {
-                    observables.Add(new Predicate(isAt, new List<Pointer> { new Pointer(p.value) }));
+                    observables.Add(new Predicate(SimDomain.isAt.TheFunc, new List<Pointer> { new Pointer(p.value) }));
                 }
             }
 

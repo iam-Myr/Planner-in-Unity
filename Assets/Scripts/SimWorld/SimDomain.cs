@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Planning;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace SimWorld
 {
@@ -16,6 +17,8 @@ namespace SimWorld
 
         public static List<Pointer> AllPointers = new List<Pointer> {FoodArea, WaterArea, SleepArea, SpawnArea, Dummy};
 
+        public static SimAgent agent = GameObject.Find("Agent").GetComponent<SimAgent>();
+
         // Predicates
         // Domain declares them
         // Different Planning Objects give their conditions
@@ -25,6 +28,38 @@ namespace SimWorld
         public static Predicate isSleepy = new Predicate();
         public static Predicate isThirsty = new Predicate();
 
+
+        static SimDomain()
+        {
+            isAt.SetCondition(isAtCondition);
+            isHungry.SetCondition(isHungryCondition);
+            isSleepy.SetCondition(isSleepyCondition);
+            isThirsty.SetCondition(isThirstyCondition);
+        }
+
+        // Conditions
+        public static bool isAtCondition(List<object> args)
+        {
+            if (args.Count == 0 || !(args[0] is Area a))
+                return false;
+            return agent.isAt(a);
+        }
+
+        public static bool isHungryCondition(List<object> args)
+        {
+            return agent.isHungry();
+        }
+
+        public static bool isSleepyCondition(List<object> args)
+        {
+            return agent.isSleepy();
+        }
+
+        public static bool isThirstyCondition(List<object> args)
+        {
+            return agent.isThirsty();
+        }
+
         // Goals
         public static List<WorldState> GetGoals()
         {
@@ -33,12 +68,6 @@ namespace SimWorld
                 new GoalHappy()
             };
         }
-
-        public static bool IsOfType<T>(object obj)
-        {
-            return obj is T;
-        }
-
 
     }
 }

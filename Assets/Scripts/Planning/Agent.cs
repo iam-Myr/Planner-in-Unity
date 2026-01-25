@@ -33,7 +33,6 @@ namespace Planning
         protected virtual void Awake()
         {
             Register();
-            SetPredicateConditions();
         }
 
         public void Register()
@@ -57,6 +56,7 @@ namespace Planning
 
             // Initialize the planner with lifted actions
             planner = new LiftedPlanner(DomainActions, DomainPointers);
+            //planner = new GroundPlanner(groundedActions);
 
             // No plan at start
             currentPlan = null;
@@ -98,8 +98,6 @@ namespace Planning
                 }
             }
         }
-
-        public abstract void SetPredicateConditions();
 
         public WorldState ChooseGoal(List<WorldState> list)
         {

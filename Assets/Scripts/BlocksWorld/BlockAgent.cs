@@ -27,31 +27,24 @@ namespace BlocksWorld
             base.Awake();
         }
 
-        public bool isHolding(List<object> args)
+        public bool isHolding(Block block)
         {
-            if (args.Count == 0 || !(args[0] is Block block)) return false;
+   
             return holdingBlock == block;
         }
 
-        public bool isHandEmpty(List<object> args)
+        public bool isHandEmpty()
         {
             return holdingBlock == null;
         }
 
-
-        public override void SetPredicateConditions()
-        {
-            BlockDomain.isHolding.SetCondition(isHolding);
-            BlockDomain.isHandEmpty.SetCondition(isHandEmpty);
-
-        }
 
         public override List<Predicate> GetObservablePredicates()
         {
             List<Predicate> observables = new List<Predicate>();
 
             // Add basic agent stats
-            observables.Add(new Predicate(isHandEmpty, new List<Pointer>()));
+            observables.Add(new Predicate(BlockDomain.isHandEmpty.TheFunc, new List<Pointer>()));
 
             // Add isAt predicates for all area-type pointers in the domain
             foreach (Pointer p in BlockDomain.AllPointers)
@@ -59,7 +52,7 @@ namespace BlocksWorld
                 // Only include PlanObjects that are areas
                 if (p.value is Block)
                 {
-                    observables.Add(new Predicate(isHolding, new List<Pointer> { new Pointer(p.value) }));
+                    observables.Add(new Predicate(BlockDomain.isHolding.TheFunc, new List<Pointer> { new Pointer(p.value) }));
                 }
             }
 
@@ -75,7 +68,7 @@ namespace BlocksWorld
             Block to = (Block)args[1];
             Block from = (Block)args[2];
 
-            Vector3 dest = to.GetPosition();
+            Vector3 dest = to.GetPosition() + Vector3.up;
             yield return current.MoveToAsync(dest);
         }
 

@@ -15,11 +15,50 @@ namespace BlocksWorld
 
         public static List<Pointer> AllPointers = new List<Pointer> { A, B, C, D, E };
 
+        // The agent
+        public static BlockAgent agent = GameObject.Find("Agent").GetComponent<BlockAgent>();
+
         //  Predicates (declared once, logic handled in Block/Agent) 
         public static Predicate isClear = new Predicate();
         public static Predicate isOn = new Predicate(); //isOn(A,B) A is on B
         public static Predicate isHolding = new Predicate();
         public static Predicate isHandEmpty = new Predicate();
+
+        public static bool isClearCondition(List<object> args)
+        {
+            if (args.Count != 1) return false;
+            if (args[0] is not Block block) return false;
+
+            return block.isClear();
+        }
+
+        public static bool isOnCondition(List<object> args)
+        {
+            if (args.Count != 2) return false;
+            if (args[0] is not Block top) return false;
+            if (args[1] is not Block bottom) return false;
+
+            return top.isOn(bottom);
+        }
+
+        public static bool isHoldingCondition(List<object> args)
+        {
+            if (args.Count == 0 || !(args[0] is Block block)) return false;
+            return agent.isHolding(block);
+        }
+
+        public static bool isHandEmptyCondition(List<object> args)
+        {
+            return agent.isHandEmpty();
+        }
+
+        static BlockDomain()
+        {
+            isClear.SetCondition(isClearCondition);
+            isOn.SetCondition(isOnCondition);
+            isHandEmpty.SetCondition(isHandEmptyCondition);
+            isHolding.SetCondition(isHoldingCondition);
+        }
 
         //  Domain actions 
         public static List<PlanAction> ActionTemplates = new List<PlanAction>
@@ -36,12 +75,6 @@ namespace BlocksWorld
             {
                 new GoalBlocks()
             };
-        }
-
-       
-        public static bool IsOfType<T>(object obj)
-        {
-            return obj is T;
         }
     }
 }

@@ -42,7 +42,8 @@ namespace BlocksWorld
             {
                 BlockDomain.isClear.Instantiate(new List<Pointer> { current }, true),  // block is clear
                 BlockDomain.isClear.Instantiate(new List<Pointer> { to }, true),       // target is clear
-                BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, true) // block is on 'from'
+                BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, true), // block is on 'from'
+                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, true)
             };
         }
         #endregion
