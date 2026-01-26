@@ -44,7 +44,7 @@ namespace BlocksWorld
             List<Predicate> observables = new List<Predicate>();
 
             // Add basic agent stats
-            observables.Add(new Predicate(BlockDomain.isHandEmpty.TheFunc, new List<Pointer>()));
+            observables.Add(new Predicate(BlockDomain.isHandEmpty.Name, BlockDomain.isHandEmpty.Condition, new List<Pointer>()));
 
             // Add isAt predicates for all area-type pointers in the domain
             foreach (Pointer p in BlockDomain.AllPointers)
@@ -52,7 +52,7 @@ namespace BlocksWorld
                 // Only include PlanObjects that are areas
                 if (p.value is Block)
                 {
-                    observables.Add(new Predicate(BlockDomain.isHolding.TheFunc, new List<Pointer> { new Pointer(p.value) }));
+                    observables.Add(new Predicate(BlockDomain.isHolding.Name, BlockDomain.isHolding.Condition, new List<Pointer> { new Pointer(p.value) }));
                 }
             }
 

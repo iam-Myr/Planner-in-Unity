@@ -17,11 +17,9 @@ namespace BlocksWorld
         public float rayOffset = 0.6f; //offset so we don't hit ourselves                                
         private LayerMask blockLayer; // Only detect objects in this layer 
 
-
         protected virtual void Awake()
         {
             Register();
-            //SetPredicateConditions();
 
             // Raycast stuff
             blockLayer = LayerMask.GetMask("Block");
@@ -43,8 +41,8 @@ namespace BlocksWorld
 
             // isClear(this)
             observables.Add(
-                new Predicate(
-                    BlockDomain.isClear.TheFunc,
+                new Predicate(BlockDomain.isClear.Name,
+                    BlockDomain.isClear.Condition,
                     new List<Pointer> { new Pointer(this) }
                 )
             );
@@ -55,8 +53,8 @@ namespace BlocksWorld
                 if (p.value is Block other && other != this)
                 {
                     observables.Add(
-                        new Predicate(
-                            BlockDomain.isOn.TheFunc,
+                        new Predicate(BlockDomain.isOn.Name,
+                            BlockDomain.isOn.Condition,
                             new List<Pointer> { new Pointer(this), new Pointer(other) }
                         )
                     );

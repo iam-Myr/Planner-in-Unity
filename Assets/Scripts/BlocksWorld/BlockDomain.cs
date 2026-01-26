@@ -19,10 +19,10 @@ namespace BlocksWorld
         public static BlockAgent agent = GameObject.Find("Agent").GetComponent<BlockAgent>();
 
         //  Predicates (declared once, logic handled in Block/Agent) 
-        public static Predicate isClear = new Predicate();
-        public static Predicate isOn = new Predicate(); //isOn(A,B) A is on B
-        public static Predicate isHolding = new Predicate();
-        public static Predicate isHandEmpty = new Predicate();
+        public static Predicate isClear = new Predicate("isClear");
+        public static Predicate isOn = new Predicate("isOn"); //isOn(A,B) A is on B
+        public static Predicate isHolding = new Predicate("isHolding");
+        public static Predicate isHandEmpty = new Predicate("isHandEmpty");
 
         public static bool isClearCondition(List<object> args)
         {

@@ -189,7 +189,7 @@ namespace Planning
 
                     clonedArgs.Add(pointerMap[arg]);
                 }
-                clone.preconditions.Add(new Predicate(pre.TheFunc, clonedArgs, pre.Value ?? false));
+                clone.preconditions.Add(new Predicate(pre.Name,pre.Condition, clonedArgs, pre.Value ?? false));
             }
 
             // Clone effects
@@ -204,7 +204,7 @@ namespace Planning
 
                     clonedArgs.Add(pointerMap[arg]);
                 }
-                clone.effects.Add(new Predicate(eff.TheFunc, clonedArgs, eff.Value ?? false));
+                clone.effects.Add(new Predicate(eff.Name, eff.Condition, clonedArgs, eff.Value ?? false));
             }
 
             // Copy action name

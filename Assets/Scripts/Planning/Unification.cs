@@ -22,7 +22,7 @@ public static class Unification
         if (x is Predicate p1 && y is Predicate p2)
         {
             // if different names, arg countss, polarities -> fail
-            if ((p1.TheFunc.Method.Name != p2.TheFunc.Method.Name) || (p1.Args.Count != p2.Args.Count))
+            if (!(p1.Name.Equals(p2.Name)) || (p1.Args.Count != p2.Args.Count))
                 return false;
 
             if (p1.Value.HasValue && p2.Value.HasValue &&

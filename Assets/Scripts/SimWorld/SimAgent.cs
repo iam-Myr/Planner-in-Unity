@@ -168,9 +168,9 @@ namespace SimWorld
             List<Predicate> observables = new List<Predicate>();
 
             // Add basic agent stats
-            observables.Add(new Predicate(SimDomain.isSleepy.TheFunc, new List<Pointer>()));
-            observables.Add(new Predicate(SimDomain.isHungry.TheFunc, new List<Pointer>()));
-            observables.Add(new Predicate(SimDomain.isThirsty.TheFunc, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isSleepy.Name, SimDomain.isSleepy.Condition, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isHungry.Name, SimDomain.isHungry.Condition, new List<Pointer>()));
+            observables.Add(new Predicate(SimDomain.isThirsty.Name, SimDomain.isThirsty.Condition, new List<Pointer>()));
 
             // Add isAt predicates for all area-type pointers in the domain
             foreach (Pointer p in SimDomain.AllPointers)
@@ -178,7 +178,7 @@ namespace SimWorld
                 // Only include PlanObjects that are areas
                 if (p.value is Area)
                 {
-                    observables.Add(new Predicate(SimDomain.isAt.TheFunc, new List<Pointer> { new Pointer(p.value) }));
+                    observables.Add(new Predicate(SimDomain.isAt.Name, SimDomain.isAt.Condition, new List<Pointer> { new Pointer(p.value) }));
                 }
             }
 

@@ -23,10 +23,10 @@ namespace SimWorld
         // Domain declares them
         // Different Planning Objects give their conditions
         // Actions give args and value
-        public static Predicate isAt = new Predicate();
-        public static Predicate isHungry = new Predicate();
-        public static Predicate isSleepy = new Predicate();
-        public static Predicate isThirsty = new Predicate();
+        public static Predicate isAt = new Predicate("isAt");
+        public static Predicate isHungry = new Predicate("isHungry");
+        public static Predicate isSleepy = new Predicate("isSleepy");
+        public static Predicate isThirsty = new Predicate("isThirsty");
 
 
         static SimDomain()

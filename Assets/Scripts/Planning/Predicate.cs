@@ -7,39 +7,44 @@ namespace Planning
 {
     public class Predicate
     {
-        public Func<List<object>, bool> TheFunc { get; private set; }
+        public Func<List<object>, bool> Condition { get; private set; }
         public List<Pointer> Args { get; private set; }
         // Nullable value: null = unobserved
         public bool? Value { get; private set; } // Negation or not
 
-        public Predicate()
+        public String Name;
+
+        public Predicate(string name)
         {
             Args = new List<Pointer>();
             Value = null;
+            Name = name;
         }
 
-        public Predicate(Func<List<object>, bool> func, List<Pointer> args)
+        public Predicate(string name, Func<List<object>, bool> func, List<Pointer> args)
         {
-            this.TheFunc = func;
+            this.Name = name;
+            this.Condition = func;
             this.Args = args;
             this.Value = null;
         }
 
-        public Predicate(Func<List<object>, bool> func, List<Pointer> args, bool value)
+        public Predicate(string name, Func<List<object>, bool> func, List<Pointer> args, bool value)
         {
-            this.TheFunc = func;
+            this.Name = name;
+            this.Condition = func;
             this.Args = args;
             this.Value = value;
         }
 
         public void SetCondition(Func<List<object>, bool> func)
         {
-            this.TheFunc = func;
+            this.Condition = func;
         }
 
         public Predicate Instantiate(List<Pointer> newArgs, bool v)
         {
-            return new Predicate(TheFunc, newArgs, v);
+            return new Predicate(Name, Condition, newArgs, v);
         }
 
         public bool Evaluate()
@@ -50,7 +55,7 @@ namespace Planning
         public bool Observe()
         {
             List<object> argValues = Args.Select(arg => arg.Get()).ToList();
-            return TheFunc(argValues);
+            return Condition(argValues);
         }
 
         public bool IsInstantiated()
@@ -65,8 +70,12 @@ namespace Planning
 
         private bool EqualsStructure(Predicate other)
         {
-            if (TheFunc?.Method.Name != other.TheFunc?.Method.Name)
+            if (!Name.Equals(other.Name))
+            {
+                //Debug.Log("Predicate names do not match: " + Name + " vs " + other.Name);
                 return false;
+            }
+
 
             if (Args.Count != other.Args.Count)
                 return false;
@@ -90,9 +99,8 @@ namespace Planning
 
         public override string ToString()
         {
-            string funcName = TheFunc?.Method.Name ?? "null";
             string argsString = string.Join(", ", Args.Select(arg => arg.value?.ToString() ?? "null"));
-            return $"{funcName}({argsString}) - {Value}";
+            return $"{Name}({argsString}) - {Value}";
         }
     }
 }

@@ -10,7 +10,7 @@ namespace BlocksWorld
         public GoalBlocks()
         {
             AddPredicates(
-                BlockDomain.isOn.Instantiate(new List<Pointer> { BlockDomain.A, BlockDomain.B }, true)
+                BlockDomain.isOn.Instantiate(new List<Pointer> { BlockDomain.B, BlockDomain.C }, true)
             );
         }
     }

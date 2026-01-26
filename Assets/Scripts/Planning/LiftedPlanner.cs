@@ -30,6 +30,13 @@ namespace Planning
             initNode = new Node(null, initState, null);
             Node rootNode = new Node(null, goalState, null);
 
+            if (rootNode.isGoal(initNode))
+            {
+                Debug.Log("Goal satisfied already.");
+                return null;
+            }
+            
+
             frontier.Add(rootNode);
             int step = 0;
 
@@ -38,7 +45,7 @@ namespace Planning
                 frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
-                //currentNode.Print();
+                currentNode.Print();
                 //currentNode.PrintToFile();
 
 
