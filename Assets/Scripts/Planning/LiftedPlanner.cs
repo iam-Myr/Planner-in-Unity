@@ -36,7 +36,6 @@ namespace Planning
                 return null;
             }
             
-
             frontier.Add(rootNode);
             int step = 0;
 
@@ -47,7 +46,6 @@ namespace Planning
                 frontier.RemoveAt(0);
                 currentNode.Print();
                 //currentNode.PrintToFile();
-
 
                 if (!IsLoop(currentNode, visited))
                 {
@@ -104,11 +102,16 @@ namespace Planning
                     bool is_useful = false;
                     // For each effect of action
                     foreach (Predicate effect in actionClone.GetEffects())
+
+
+
                         // If it can unify with the goal, the action is useful
-                        if (Unification.Unify(effect, goal))
+                        if (Unification.Unify(effect, goal)) // UNIFICATION HERE, needs banned lists
                         {
                             is_useful = true; // They have unified.
                         }
+
+
 
                     // Unification for the current action has ended
                     if (actionClone.IsRemovingGoal(currentGoals)) is_useful = false;
@@ -140,7 +143,6 @@ namespace Planning
 
             return children;
         }
-
 
 
         private List<PlanAction> ReconstructPlan(Node node)

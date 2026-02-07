@@ -41,6 +41,7 @@ namespace BlocksWorld
             return top.isOn(bottom);
         }
 
+
         public static bool isHoldingCondition(List<object> args)
         {
             if (args.Count == 0 || !(args[0] is Block block)) return false;
@@ -54,10 +55,18 @@ namespace BlocksWorld
 
         static BlockDomain()
         {
+            // Set conditions and constraints for predicates
             isClear.SetCondition(isClearCondition);
             isOn.SetCondition(isOnCondition);
             isHandEmpty.SetCondition(isHandEmptyCondition);
             isHolding.SetCondition(isHoldingCondition);
+
+            isOn.AddConstraint(args => Constraints.AllDifferent(args[0], args[1])(args));
+
+
+
+
+
         }
 
         //  Domain actions 

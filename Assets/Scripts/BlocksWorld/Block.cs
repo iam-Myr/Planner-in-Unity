@@ -41,23 +41,19 @@ namespace BlocksWorld
 
             // isClear(this)
             observables.Add(
-                new Predicate(BlockDomain.isClear.Name,
-                    BlockDomain.isClear.Condition,
-                    new List<Pointer> { new Pointer(this) }
-                )
-            );
+            BlockDomain.isClear.Instantiate(
+                new List<Pointer> { new Pointer(this)},
+                null));
+
 
             // isOn(this, other)
             foreach (Pointer p in BlockDomain.AllPointers)
             {
-                if (p.value is Block other && other != this)
+                if (p.value is Block other && other != this )
                 {
-                    observables.Add(
-                        new Predicate(BlockDomain.isOn.Name,
-                            BlockDomain.isOn.Condition,
-                            new List<Pointer> { new Pointer(this), new Pointer(other) }
-                        )
-                    );
+                    observables.Add(BlockDomain.isOn.Instantiate(
+                        new List<Pointer> { new Pointer(this), new Pointer(other) },
+                        null));
                 }
             }
 

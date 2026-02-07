@@ -27,7 +27,6 @@ namespace Planning
             {
                 bool result = p.Observe(); 
                 Predicate observedPredicate = new Predicate(p.Name, p.Condition, p.Args, result);
-                if ((bool)observedPredicate.Value) // if the predicate is true, add it to the world state
                     currentWorldState.AddPredicates(observedPredicate);
             }
 

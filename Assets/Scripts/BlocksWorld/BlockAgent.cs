@@ -15,9 +15,10 @@ namespace BlocksWorld
         protected override List<WorldState> DomainGoals => BlockDomain.GetGoals();
         protected override List<PlanAction> DomainActions => new List<PlanAction>
         {
-            new ActionDrop().AddExecutable(Drop, 1f),
-            new ActionPickup().AddExecutable(Pickup, 1f),
-            new ActionMove().AddExecutable(Move, 1f),
+            //new ActionMove().AddExecutable(Move, 1f),
+            new ActionDrop().AddExecutable(Drop, 2f),
+           new ActionPickup().AddExecutable(Pickup, 2f)
+            
         };
 
         protected override List<Pointer> DomainPointers => BlockDomain.AllPointers;
@@ -44,7 +45,8 @@ namespace BlocksWorld
             List<Predicate> observables = new List<Predicate>();
 
             // Add basic agent stats
-            observables.Add(new Predicate(BlockDomain.isHandEmpty.Name, BlockDomain.isHandEmpty.Condition, new List<Pointer>()));
+            observables.Add(BlockDomain.isHandEmpty.Instantiate(new List<Pointer>(), null));
+            //observables.Add(new Predicate(BlockDomain.isHandEmpty.Name, BlockDomain.isHandEmpty.Condition, new List<Pointer>()));
 
             // Add isAt predicates for all area-type pointers in the domain
             foreach (Pointer p in BlockDomain.AllPointers)
@@ -52,7 +54,8 @@ namespace BlocksWorld
                 // Only include PlanObjects that are areas
                 if (p.value is Block)
                 {
-                    observables.Add(new Predicate(BlockDomain.isHolding.Name, BlockDomain.isHolding.Condition, new List<Pointer> { new Pointer(p.value) }));
+                    observables.Add(BlockDomain.isHolding.Instantiate(new List<Pointer> { new Pointer(p.value) }, null));
+                    //observables.Add(new Predicate(BlockDomain.isHolding.Name, BlockDomain.isHolding.Condition, new List<Pointer> { new Pointer(p.value) }));
                 }
             }
 
@@ -74,11 +77,13 @@ namespace BlocksWorld
 
         public IEnumerator Pickup(List<object> args)
         {
-            Debug.Log("Pickup!...");
-
             Block current = (Block)args[0];
             Block from = (Block)args[1];
 
+            Debug.Log($"Pickup!... {current} from {from}");
+            yield return new WaitForSeconds(1f);
+
+            holdingBlock = current;
 
             Vector3 dest = current.GetPosition() + Vector3.up * 1.1f;
             yield return current.MoveToAsync(dest);
@@ -86,14 +91,17 @@ namespace BlocksWorld
 
         public IEnumerator Drop(List<object> args)
         {
-            Debug.Log("Drop!...");
 
             Block current = (Block)args[0];
             Block to = (Block)args[1];
 
+            Debug.Log($"Drop!...{current} to {to}");
+            yield return new WaitForSeconds(1f);
 
-            Vector3 dest = to.GetPosition() + Vector3.up * 1.1f;
-            yield return current.MoveToAsync(dest);
+            holdingBlock = null; //normally don't do this with logic cause if action fails, this remains
+
+            Vector3 dest = to.GetPosition() + Vector3.up;
+            yield return current.MoveToAsync(Vector3.zero);
         }
     }
 }

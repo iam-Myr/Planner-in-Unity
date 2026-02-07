@@ -27,6 +27,12 @@ namespace Planning
             initNode = new Node(null, initState, null);
             Node rootNode = new Node(null, goalState, null);
 
+            if (rootNode.isGoal(initNode))
+            {
+                Debug.Log("Goal satisfied already.");
+                return null;
+            }
+
             frontier.Add(rootNode);
             int step = 0;
 
