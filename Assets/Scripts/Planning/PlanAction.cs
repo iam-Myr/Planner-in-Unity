@@ -24,7 +24,19 @@ namespace Planning
             Failed,
             Interrupted
         }
+
+        public enum FailureReason
+        {
+            None,
+            MissingExecutable,
+            PreconditionsInvalid,
+            Timeout,
+            EffectsNotHolding
+        }
+
         public ActionStatus Status { get; protected set; } = ActionStatus.NotStarted;
+        public FailureReason Failure { get; protected set; } = FailureReason.None;
+
 
 
         public PlanAction()
@@ -101,6 +113,7 @@ namespace Planning
                 if (!p.Evaluate())
                 {
                     Debug.Log($"Predicate {p} is not true");
+                    Failure = FailureReason.PreconditionsInvalid;
                     return false;
                 }
             }
@@ -116,49 +129,49 @@ namespace Planning
             {
                 Debug.LogWarning($"Action '{actionName}' has no coroutine executable assigned.");
                 Status = ActionStatus.Failed;
+                Failure = FailureReason.MissingExecutable;
                 yield break;
             }
 
-            // Start executing action
+            Debug.Log($"Started action {this}");
+
             Status = ActionStatus.InProgress;
 
             List<object> argsValues = actionArgs.ConvertAll(arg => arg.Get());
-            IEnumerator coroutine = executable(argsValues);
 
-            bool interrupted = false;
-            while (true)
-            {
-                if (Status == ActionStatus.Interrupted)
-                {
-                    Debug.Log($"Action '{actionName}' interrupted.");
-                    interrupted = true;
-                    break;
-                }
+            // IMPORTANT: let Unity handle nested yields
+            yield return executable(argsValues);
 
-                if (!coroutine.MoveNext())
-                    break;
-
-                yield return coroutine.Current;
-            }
-
-            if (interrupted)
+            if (Status == ActionStatus.Interrupted)
             {
                 Status = ActionStatus.Failed;
                 yield break;
             }
 
-            // Mark as complete only if not interrupted
             Status = ActionStatus.Completed;
+            Debug.Log($"Action {this} completed execution!!");
         }
 
-
-        public void Cancel()
+        public void Cancel(FailureReason r)
         {
             if (Status == ActionStatus.InProgress)
             {
                 Status = ActionStatus.Interrupted;
+                Failure = r;
             }
         }
+
+        public bool EffectsHold(WorldState observedState)
+        {
+            foreach (Predicate effect in effects)
+            {
+                if (!observedState.ContainsAtom(effect))
+                    Failure = FailureReason.EffectsNotHolding;
+                return false;
+            }
+            return true;
+        }
+
 
         public virtual PlanAction Clone()
         {

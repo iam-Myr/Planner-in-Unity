@@ -13,7 +13,7 @@ namespace BlocksWorld
         private Block below;
 
         // Raycast parameters
-        public float rayDistance = 1f;
+        public float rayDistance = 0.5f;
         public float rayOffset = 0.6f; //offset so we don't hit ourselves                                
         private LayerMask blockLayer; // Only detect objects in this layer 
 
@@ -76,12 +76,21 @@ namespace BlocksWorld
             return false;
         }
 
-        public async Task MoveToAsync(Vector3 targetPosition, float speed = 2f)
+        public IEnumerator MoveTo(Vector3 targetPosition, float speed = 2f)
         {
-            var tcs = new TaskCompletionSource<bool>();
-            StartCoroutine(MoveSmoothly(targetPosition, speed, tcs));
-            await tcs.Task;
+            while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
+            {
+                transform.position = Vector3.Lerp(
+                    transform.position,
+                    targetPosition,
+                    Time.deltaTime * speed
+                );
+                yield return null;
+            }
+
+            transform.position = targetPosition;
         }
+
 
         private IEnumerator MoveSmoothly(Vector3 targetPosition, float speed, TaskCompletionSource<bool> tcs)
         {

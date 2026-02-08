@@ -11,12 +11,14 @@ namespace Planning
         private List<Node> frontier = new List<Node>();
         private Node initNode;
         private List<Pointer> allPointers { get; }
+        private bool debug; 
 
-        public LiftedPlanner(List<PlanAction> allActions, List<Pointer> allPointers)
+        public LiftedPlanner(List<PlanAction> allActions, List<Pointer> allPointers, bool debug)
         {
             Debug.Log("Planner initialized");
             this.allActions = allActions;
             this.allPointers = allPointers;
+            this.debug = debug;
         }
 
         public List<PlanAction> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
@@ -44,7 +46,7 @@ namespace Planning
                 frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
-                currentNode.Print();
+                if(debug) currentNode.Print();
                 //currentNode.PrintToFile();
 
                 if (!IsLoop(currentNode, visited))

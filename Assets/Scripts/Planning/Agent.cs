@@ -19,6 +19,7 @@ namespace Planning
         public int MAXSTEPS = 1000000;
         public float observeCooldown = 2f;
         public float actionTimeoutWindow = 3f;
+        public bool debug;
 
         [Header("-------------------------------")]
         [SerializeField] private bool doYouLikePlanning;
@@ -55,7 +56,7 @@ namespace Planning
             
 
             // Initialize the planner with lifted actions
-            planner = new LiftedPlanner(DomainActions, DomainPointers);
+            planner = new LiftedPlanner(DomainActions, DomainPointers, debug);
             //planner = new GroundPlanner(groundedActions);
 
             // No plan at start
@@ -80,8 +81,11 @@ namespace Planning
 
                 // Get current world state from observation manager
                 WorldState initState = ObservationManager.Observe();
-                Debug.Log("THE INIT");
-                initState.Print();
+                if (debug)
+                {
+                    Debug.Log("THE INIT");
+                    initState.Print();
+                }
 
                 // Ask planner to generate a plan from current state to goal
                 currentPlan = planner.MakePlan(initState, currentGoal, MAXSTEPS);
@@ -160,13 +164,34 @@ namespace Planning
                 // If the action is still running after the timeout, interrupt it
                 if (action.GetStatus() == PlanAction.ActionStatus.InProgress)
                 {
-                    action.Cancel(); // Mark the action as interrupted
+                    action.Cancel(PlanAction.FailureReason.Timeout); // Mark the action as interrupted
                     StopCoroutine(running); // Forcefully stop the coroutine
                     Debug.Log($"Action {action} timed out and was interrupted.");
 
                     currentPlan = null; 
                     yield break; 
                 }
+
+                // Action finished executing
+                if (action.GetStatus() == PlanAction.ActionStatus.Completed)
+                {
+                    WorldState observed = ObservationManager.Observe();
+
+                    //Debug.Log("Expected: ");
+                    //foreach (Predicate e in action.GetEffects()) Debug.Log($"  {e}");
+
+                    //Debug.Log("Observed: ");
+                    //observed.Print();
+
+
+                    if (!action.EffectsHold(observed))
+                    {
+                        Debug.Log($"Action {action} executed but effects were not applied.");
+                        currentPlan = null;
+                        yield break;
+                    }
+                }
+
             }
 
             // All actions completed successfully — clear the current plan

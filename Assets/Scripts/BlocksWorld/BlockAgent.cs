@@ -16,8 +16,8 @@ namespace BlocksWorld
         protected override List<PlanAction> DomainActions => new List<PlanAction>
         {
             //new ActionMove().AddExecutable(Move, 1f),
-            new ActionDrop().AddExecutable(Drop, 2f),
-           new ActionPickup().AddExecutable(Pickup, 2f)
+            new ActionDrop().AddExecutable(Drop, 2f), //2f is expected time
+            new ActionPickup().AddExecutable(Pickup, 2f)
             
         };
 
@@ -72,7 +72,7 @@ namespace BlocksWorld
             Block from = (Block)args[2];
 
             Vector3 dest = to.GetPosition() + Vector3.up;
-            yield return current.MoveToAsync(dest);
+            yield return current.MoveTo(dest);
         }
 
         public IEnumerator Pickup(List<object> args)
@@ -80,28 +80,25 @@ namespace BlocksWorld
             Block current = (Block)args[0];
             Block from = (Block)args[1];
 
-            Debug.Log($"Pickup!... {current} from {from}");
             yield return new WaitForSeconds(1f);
 
             holdingBlock = current;
 
             Vector3 dest = current.GetPosition() + Vector3.up * 1.1f;
-            yield return current.MoveToAsync(dest);
+            yield return current.MoveTo(dest);
         }
 
         public IEnumerator Drop(List<object> args)
         {
-
             Block current = (Block)args[0];
             Block to = (Block)args[1];
 
-            Debug.Log($"Drop!...{current} to {to}");
             yield return new WaitForSeconds(1f);
 
             holdingBlock = null; //normally don't do this with logic cause if action fails, this remains
 
             Vector3 dest = to.GetPosition() + Vector3.up;
-            yield return current.MoveToAsync(Vector3.zero);
+            yield return current.MoveTo(dest);
         }
     }
 }
