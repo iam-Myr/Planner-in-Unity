@@ -57,7 +57,7 @@ namespace Planning
 
         public bool CheckConstraints()
         {
-            foreach (var c in constraints)
+            foreach (Func<List<Pointer>, bool> c in constraints)
             {
                 if (!c(Args))
                     return false;
@@ -127,8 +127,11 @@ namespace Planning
 
         public override string ToString()
         {
-            string argsString = string.Join(", ", Args.Select(arg => arg.value?.ToString() ?? "null"));
+            string argsString = string.Join(", ",
+                Args.Select(a => a.value is UnityEngine.Object u ? u.name : a.value?.ToString() ?? "null"));
+
             return $"{Name}({argsString}) - {Value}";
         }
+
     }
 }

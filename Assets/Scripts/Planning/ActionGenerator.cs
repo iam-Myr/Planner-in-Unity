@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Planning
 {
     public static class ActionGenerator
     {
-        // Generate all grounded actions from templates and pointers
-        public static List<PlanAction> GenerateAllGroundedActions(List<PlanAction> actionTemplates, List<Pointer> pointers)
+        /// <summary>
+        /// Generate all grounded actions from lifted action templates and available pointers.
+        /// </summary>
+        public static List<PlanAction> GenerateAllGroundedActions(
+            List<PlanAction> actionTemplates, List<Pointer> availablePointers)
         {
             List<PlanAction> groundedActions = new List<PlanAction>();
 
@@ -16,44 +20,69 @@ namespace Planning
                 var expectedTypes = template.GetArgTypes();
                 int arity = expectedTypes.Count;
 
-                if (arity == 0) // Action has no args
+                // If action has no args, just clone it
+                if (arity == 0)
                 {
                     groundedActions.Add(template.CreateNew(new List<Pointer>()));
                     continue;
                 }
 
-                // Get all permutations of the correct length
-                var pointerPermutations = GetPermutations(pointers, arity);
+                // Only unbound pointers need grounding
+                var argsToGround = template.actionArgs
+                    .Select(p => p.IsBound() ? p : null)
+                    .ToList();
 
-                foreach (var args in pointerPermutations)
+                // Get all valid permutations for unbound args
+                var pointerPermutations = GetPermutations(
+                    availablePointers.Where(p => !p.IsBound()), argsToGround.Count(x => x == null));
+
+                foreach (var perm in pointerPermutations)
                 {
-                    // Check if argument types match the template
-                    bool isMatch = true;
-                    for (int i = 0; i < arity; i++)
+                    List<Pointer> newArgs = new List<Pointer>();
+                    int permIndex = 0;
+
+                    // Fill in bound args directly, unbound args from permutation
+                    foreach (var arg in argsToGround)
                     {
-                        if (!expectedTypes[i].IsAssignableFrom(args[i].GetDeclaredType()))
+                        if (arg != null)
+                            newArgs.Add(arg);
+                        else
+                            newArgs.Add(perm[permIndex++]);
+                    }
+
+                    // Type check
+                    bool valid = true;
+                    for (int i = 0; i < newArgs.Count; i++)
+                    {
+                        if (!expectedTypes[i].IsAssignableFrom(newArgs[i].GetDeclaredType()))
                         {
-                            isMatch = false;
+                            valid = false;
                             break;
                         }
                     }
 
-                    if (!isMatch)
+                    if (!valid)
                         continue;
 
-                    // Instantiate new grounded action with these args
-                    PlanAction groundedAction = template.CreateNew(args);
-                    groundedActions.Add(groundedAction);
+                    // Create grounded action
+                    PlanAction grounded = template.CreateNew(newArgs);
+
+                    // Only keep actions that satisfy constraints (e.g., AllDifferent)
+                    if (grounded.SatisfiesConstraints())
+                        groundedActions.Add(grounded);
                 }
             }
 
             return groundedActions;
         }
 
+        /// <summary>
+        /// Get all permutations of a list with specified length, avoiding duplicate items.
+        /// </summary>
         private static List<List<T>> GetPermutations<T>(IEnumerable<T> list, int length)
         {
             if (length == 1)
-                return list.Select(t => new List<T> { t }).ToList();
+                return list.Select(x => new List<T> { x }).ToList();
 
             var perms = GetPermutations(list, length - 1);
             var result = new List<List<T>>();
@@ -62,13 +91,13 @@ namespace Planning
             {
                 foreach (var item in list)
                 {
-                    if (!perm.Contains(item))
-                    {
-                        var newPerm = new List<T>(perm) { item };
-                        result.Add(newPerm);
-                    }
+                    if (perm.Contains(item))
+                        continue; // Avoid duplicates for AllDifferent
+                    var newPerm = new List<T>(perm) { item };
+                    result.Add(newPerm);
                 }
             }
+
             return result;
         }
     }

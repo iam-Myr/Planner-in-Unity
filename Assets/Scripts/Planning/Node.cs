@@ -10,7 +10,7 @@ namespace Planning
     {
         private Node parent;
         private WorldState state;
-        private PlanAction action; // Action that got us here
+        private PlanAction action; // Action applied to this state
         private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
         protected int depth;
 
@@ -88,25 +88,58 @@ namespace Planning
         // ------------------------- Console Print -------------------------
         public void Print()
         {
-            Debug.Log("================================== ANALYSIS ====================================");
-            Debug.Log($"Depth: {depth}");
-            Debug.Log("------------------ Previous Action ----------------- ");
-            if(parent != null && parent.GetAction()!=null) Debug.Log($"{parent.GetAction()}");
-            Debug.Log("------------------ Current Action ----------------- ");
-            if (action != null) Debug.Log(action);
-            Debug.Log("----------------- Current State ------------------- ");
-            if (state != null) state.Print();
-            Debug.Log("----------------- Unsatisfied Goals ------------------- ");
-            if (unsatisfiedGoals != null) PrintGoals();
-            Debug.Log($"Remaining Goals: {unsatisfiedGoals.Count}");
-            Debug.Log("================================== END ANALYSIS ====================================");
+            string s = "";
+
+            s += "================================== " +
+            $"<b><color=#00FFFF>ANALYSIS - {(action != null ? action.ToString() : "ROOT")}</color></b> " +
+            "===================================\n";
+
+            s += $"\n<b><color=#FFD700>Depth:</color></b> {depth}\n";
+
+            s += "\n------------------ " +
+                 "<b><color=#FFA500>Previous Action</color></b> " +
+                 "-----------------\n";
+            if (parent != null && parent.GetAction() != null)
+                s += $"{parent.GetAction()}\n";
+
+            //s += "\n------------------ " +
+                 //"<b><color=#00FF00>Current Action</color></b> " +
+                 //"------------------\n";
+            //if (action != null)
+                //s += $"{action}\n";
+
+            //s += "\n<color=#AAAAAA>-----------------</color> " +
+                //"<b><color=#1E90FF>Current State</color></b> " +
+                 //"<color=#AAAAAA>-------------------</color>\n";
+            //if (state != null)
+            //    s += state.ToString() + "\n";
+
+            s += "\n-----------------" +
+                 "<b><color=#1E90FF>Unsatisfied Goals</color></b> " +
+                 "-------------------\n";
+            if (unsatisfiedGoals != null)
+            {
+               foreach (Predicate p in unsatisfiedGoals)
+                    s += p.ToString() + "\n";
+            }
+
+            s += $"\n<b><color=#FF69B4>Remaining Goals:</color></b> {unsatisfiedGoals.Count}\n";
+
+            s += "\n<color=#AAAAAA>==================================</color> " +
+                 "<b><color=#00FFFF>END ANALYSIS</color></b> " +
+                 "<color=#AAAAAA>===================================</color>";
+
+            Log(s);
         }
+
+
+        void Log(string msg) => Debug.Log($"{msg}");
 
         public void PrintGoals()
         {
             foreach (Predicate p in unsatisfiedGoals)
             {
-                Debug.Log(p.ToString());
+                Log(p.ToString());
             }
         }
 

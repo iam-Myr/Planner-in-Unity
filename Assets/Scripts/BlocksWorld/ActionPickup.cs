@@ -16,6 +16,9 @@ namespace BlocksWorld
 
             actionArgs.Add(current);
             actionArgs.Add(from);
+
+            // Add constraint: the block we pick up must be different from the block underneath
+            AddConstraint(Constraints.AllDifferent(current, from));
         }
 
         public override PlanAction CreateNew(List<Pointer> args)

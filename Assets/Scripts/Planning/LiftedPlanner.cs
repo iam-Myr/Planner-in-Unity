@@ -11,7 +11,10 @@ namespace Planning
         private List<Node> frontier = new List<Node>();
         private Node initNode;
         private List<Pointer> allPointers { get; }
-        private bool debug; 
+        private bool debug;
+
+        private string report = "";
+
 
         public LiftedPlanner(List<PlanAction> allActions, List<Pointer> allPointers, bool debug)
         {
@@ -37,7 +40,7 @@ namespace Planning
                 Debug.Log("Goal satisfied already.");
                 return null;
             }
-            
+
             frontier.Add(rootNode);
             int step = 0;
 
@@ -46,7 +49,7 @@ namespace Planning
                 frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
-                if(debug) currentNode.Print();
+                if (debug) currentNode.Print();
                 //currentNode.PrintToFile();
 
                 if (!IsLoop(currentNode, visited))
@@ -88,62 +91,122 @@ namespace Planning
 
         private List<Node> FindChildren(Node currentNode)
         {
-            var children = new List<Node>();
+            List<Node> children = new List<Node>();
             WorldState currentState = currentNode.GetState();
             List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
 
             // For each goal in the current goals
             foreach (Predicate goal in currentGoals)
             {
+                string g = $"Exploring<b><color=PURPLE> GOAL {goal.ToString()}</color></b>.\n";
+                
                 // For each available action
                 foreach (PlanAction action in allActions)
                 {
                     // Clone the action so unification doesn't leak bindings
                     PlanAction actionClone = action.Clone();
 
+                    g += $"Exploring <b><color=BLUE> ACTION {actionClone.ToString()}</color></b>.\n";
+
                     bool is_useful = false;
                     // For each effect of action
                     foreach (Predicate effect in actionClone.GetEffects())
-
-
-
-                        // If it can unify with the goal, the action is useful
-                        if (Unification.Unify(effect, goal)) // UNIFICATION HERE, needs banned lists
-                        {
+                    {
+                        if (!actionClone.hasNullValues()) break;
+                        // If even one can unify with the goal, the action is useful
+                        if (Unification.Unify(effect, goal))
+                        {// UNIFICATION HERE, needs banned lists
                             is_useful = true; // They have unified.
+                            g += $"   - Unified predicates: {effect.ToString()} and {goal.ToString()}\n ({actionClone.ToString()})";
                         }
+                    }
 
-
-
-                    // Unification for the current action has ended
-                    if (actionClone.IsRemovingGoal(currentGoals)) is_useful = false;
+                    g += $"After unification, action {actionClone.ToString()} was useful - {is_useful}\n";
 
                     if (is_useful)
                     {
                         // Check if init can unifyyy
                         foreach (Predicate satisfiedInInit in initNode.GetState().GetPredicates())
                         {
+                            if (!actionClone.hasNullValues()) break;
                             foreach (Predicate precond in actionClone.GetPreconditions())
-                                Unification.Unify(precond, satisfiedInInit);
+                            {
+                                if (Unification.Unify(precond, satisfiedInInit)) {
+                                    g += $"   - Unified predicates: {precond.ToString()} and {satisfiedInInit.ToString()} ({actionClone.ToString()})\n";
+                                }
+                            }
                         }
+                        g += $"After init, action {actionClone.ToString()}\n";
+                    }
 
-                        WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
-                        newState.AddPredicates(actionClone.GetPreconditions().ToArray());
-                        newState.RemovePredicates(goal);
 
-                        foreach (Predicate effect in actionClone.GetEffects())
-                        {
-                            if (currentGoals.Contains(effect) && effect != goal)
-                                newState.RemovePredicates(effect);
-                        }
 
-                        Node newNode = new Node(currentNode, newState, actionClone);
+                    // IF THERE ARE NULL VALUES
+
+                    if (is_useful && actionClone.hasNullValues())
+                    {
+                        g += $"Action {actionClone.ToString()} has null values after unification.\n";
+                        //for (int i = 0; i < actionClone.actionArgs.Count; i++)
+                        //{
+                        //   if (actionClone.actionArgs[i] == null)
+                        //  {
+                        // Assign a random pointer from the pool
+                        //     int randIndex = UnityEngine.Random.Range(0, allPointers.Count);
+                        //     actionClone.actionArgs[i] = allPointers[randIndex];
+                        // }
+                        //}
+                        //is_useful = false;
+                    }
+
+                    // Unification for the current action has ended
+                    if (!actionClone.SatisfiesConstraints())
+                    {
+                        g += $"Action {actionClone.ToString()} doesn't satisfy AllDifferent Constraint\n";
+                        is_useful = false;
+                    }
+
+
+                    if (actionClone.IsRemovingGoal(currentGoals))
+                    {
+                        g += $"Action {actionClone.ToString()} is Removing a Goal\n";
+                        is_useful = false;
+                    }
+
+
+                    if (is_useful)
+                    {
+                        g += $"Action <color=GREEN>{actionClone.ToString()}</color> is useful for goal {goal}\n";
+                        Node newNode = CreateChildNode(currentNode, currentState, actionClone, goal, currentGoals);
                         children.Add(newNode);
                     }
                 }
+
+                Debug.Log(g);
             }
 
             return children;
+        }
+
+        public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction actionClone, Predicate goal, List<Predicate> currentGoals)
+        {
+            // Start with a copy of the current state
+            WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
+
+            // Add the preconditions of the action
+            newState.AddPredicates(actionClone.GetPreconditions().ToArray());
+
+            // Remove the current goal
+            newState.RemovePredicates(goal);
+
+            // Remove effects that are also current goals (except the goal we're regressing)
+            foreach (Predicate effect in actionClone.GetEffects())
+            {
+                if (currentGoals.Contains(effect) && effect != goal)
+                    newState.RemovePredicates(effect);
+            }
+
+            // Create and return the new child node
+            return new Node(currentNode, newState, actionClone);
         }
 
 
@@ -157,5 +220,11 @@ namespace Planning
             }
             return result;
         }
+
+        private void Append(string s)
+        {
+            report += s + "\n";
+        }
+
     }
 }

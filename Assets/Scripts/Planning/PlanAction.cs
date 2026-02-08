@@ -4,17 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.Rendering.GPUSort;
 
 namespace Planning
 {
     public abstract class PlanAction
     {
-        protected string actionName;
+        public string actionName;
         public List<Pointer> actionArgs = new List<Pointer>();
         protected List<Predicate> preconditions = new List<Predicate>();
         protected List<Predicate> effects = new List<Predicate>();
         protected Func<List<object>, IEnumerator> executable;
         public float durationEstimate { get; protected set; } = 20f; // fallback
+
+        private List<Func<List<Pointer>, bool>> constraints
+        = new List<Func<List<Pointer>, bool>>();
 
         public enum ActionStatus
         {
@@ -73,10 +77,17 @@ namespace Planning
             string[] args = new string[actionArgs.Count];
             for (int i = 0; i < actionArgs.Count; i++)
             {
-                args[i] = actionArgs[i]?.Get()?.ToString() ?? "null";
+                var obj = actionArgs[i]?.Get();
+
+                if (obj is UnityEngine.Object unityObj)
+                    args[i] = unityObj.name;
+                else
+                    args[i] = obj?.ToString() ?? "null";
             }
-            return $"{actionName}({string.Join(",", args)})"; // Use string interpolation
+
+            return $"{actionName}({string.Join(",", args)})";
         }
+
 
         public List<Type> GetArgTypes()
         {
@@ -120,7 +131,27 @@ namespace Planning
             return true;
         }
 
+        // Add a constraint to this action
+        public void AddConstraint(Func<List<Pointer>, bool> constraint)
+        {
+            constraints.Add(constraint);
+        }
 
+        // Check all constraints for this action
+        public bool SatisfiesConstraints()
+        {
+            foreach (Func<List<Pointer>, bool> constraint in constraints)
+            {
+                if (!constraint(actionArgs))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool hasNullValues()
+        {
+            return actionArgs.Any(arg => arg.value == null);
+        }
 
 
         public virtual IEnumerator Execute()
@@ -219,6 +250,10 @@ namespace Planning
                 }
                 clone.effects.Add(new Predicate(eff.Name, eff.Condition, clonedArgs, eff.Value ?? false));
             }
+
+            // Clone constraints
+            clone.constraints = new List<Func<List<Pointer>, bool>>(this.constraints);
+
 
             // Copy action name
             clone.actionName = this.actionName;

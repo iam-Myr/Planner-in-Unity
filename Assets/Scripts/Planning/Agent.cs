@@ -84,7 +84,7 @@ namespace Planning
                 if (debug)
                 {
                     Debug.Log("THE INIT");
-                    initState.Print();
+                    //initState.Print();
                 }
 
                 // Ask planner to generate a plan from current state to goal
@@ -97,7 +97,7 @@ namespace Planning
                 }
                 else
                 {
-                    Debug.Log("No plan generated.");
+                    Debug.Log("<color=RED>No plan generated.</color>");
                     currentPlan = null;
                 }
             }

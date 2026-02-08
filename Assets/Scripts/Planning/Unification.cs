@@ -1,73 +1,73 @@
-﻿using Planning;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using SysDiag = System.Diagnostics;
 using Unity.VisualScripting;
+using UnityEngine;
 
-public static class Unification
+
+namespace Planning
 {
-    
-    public static bool Unify(object x, object y)//, List<object> banned_x, List<object> banned_y)
+    public static class Unification
     {
-        // Both null or same value
-        if (x == null && y == null) return true;
-        if (x == null || y == null) return false;
 
-        // If they are both equal primitive values
-        if (x.Equals(y)) return true;
-
-        // VARIABLE?(x) y needs to be valid
-        if (x is Pointer px) return Unify_Pointer(px, y);
-
-        // VARIABLE?(y) x needs to be valid
-        if (y is Pointer py) return Unify_Pointer(py, x);
-
-        // COMPOUND?(x) and COMPOUND?(y)
-        if (x is Predicate p1 && y is Predicate p2)
+        public static bool Unify(object x, object y)//, List<object> banned_x, List<object> banned_y)
         {
-            // if different names, arg countss, polarities -> fail
-            if (!(p1.Name.Equals(p2.Name)) || (p1.Args.Count != p2.Args.Count))
-                return false;
+            // Both null or same value
+            if (x == null && y == null) return true;
+            if (x == null || y == null) return false;
 
-            if (p1.Value.HasValue && p2.Value.HasValue &&
-                p1.Value.Value != p2.Value.Value)
-                return false;
+            // If they are both equal primitive values
+            if (x.Equals(y)) return true;
 
-            // unify arguments recursively
-            for (int i = 0; i < p1.Args.Count; i++)
+            // VARIABLE?(x) y needs to be valid
+            if (x is Pointer px) return Unify_Pointer(px, y);
+
+            // VARIABLE?(y) x needs to be valid
+            if (y is Pointer py) return Unify_Pointer(py, x);
+
+            // COMPOUND?(x) and COMPOUND?(y)
+            if (x is Predicate p1 && y is Predicate p2)
             {
-                if (!Unify(p1.Args[i], p2.Args[i]))
+                // if different names, arg countss, polarities -> fail
+                if (!(p1.Name.Equals(p2.Name)) || (p1.Args.Count != p2.Args.Count))
                     return false;
+
+                if (p1.Value.HasValue && p2.Value.HasValue &&
+                    p1.Value.Value != p2.Value.Value)
+                    return false;
+
+                // unify arguments recursively
+                for (int i = 0; i < p1.Args.Count; i++)
+                {
+                    if (!Unify(p1.Args[i], p2.Args[i]))
+                        return false;
+                }
+
+                
+                //Debug.Log("Unified predicates: " + p1.ToString() + " and " + p2.ToString());
+                return true;
             }
 
-            // Check p1 constraints after arguments are unified
-            if (!p1.CheckConstraints())
-                return false;
+            // Failure
+            return false;
+        }
 
-            // Check p2 constraints after arguments are unified
-            if (!p2.CheckConstraints())
-                return false;
+        private static bool Unify_Pointer(Pointer point, object x)
+        {
+            // if var already bound -> try unify its value with x
+            if (point.IsBound()) return Unify(point.Get(), x);
+
+            // if x is a pointer already bound -> try unify point with x's value
+            if (x is Pointer px && px.IsBound()) return Unify(point, px.Get());
+
+            // if point not bound, bind to x (either to pointer or to value)
+            // THIS IS WHERE BINDING HAPPENS
+            // EITHER BIND TO POINTER OR VALUE
+            if (x is Pointer p) // and x is valid 
+                point.BindTo(p); //if x is an unbound pointer, bind to it
+            else
+                point.Set(x); // else set pointer value to x
 
             return true;
         }
-
-        // Failure
-        return false;
-    }
-
-    private static bool Unify_Pointer(Pointer point, object x)
-    {
-        // if var already bound -> unify its value
-        if (point.IsBound()) return Unify(point.Get(), x);
-
-        // if x is a pointer already bound -> unify with its value
-        if (x is Pointer px && px.IsBound()) return Unify(point, px.Get());
-
-        // THIS IS WHERE BINDING HAPPENS
-        // EITHER BIND TO POINTER OR VALUE
-        if (x is Pointer p) // and x is valid 
-            point.BindTo(p); //if x is an unbound pointer, bind to it
-        else
-            point.Set(x); // else set pointer value to x
-
-        return true;
     }
 }
