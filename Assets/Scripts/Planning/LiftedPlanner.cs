@@ -26,31 +26,40 @@ namespace Planning
 
         public List<PlanAction> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
         {
-            //initState.Print();
-            //goalState.Print();
-
             List<Node> visited = new List<Node>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
             initNode = new Node(null, initState, null);
             Node rootNode = new Node(null, goalState, null);
 
-            if (rootNode.isGoal(initNode))
-            {
-                Debug.Log("Goal satisfied already.");
-                return null;
-            }
-
+            frontier.Clear();
             frontier.Add(rootNode);
+
             int step = 0;
 
             while (frontier.Count > 0 && step < maxSteps)
             {
+                // A* ordering
                 frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
+
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
-                if (debug) currentNode.Print();
-                //currentNode.PrintToFile();
+
+                if (debug)
+                    currentNode.Print();
+
+                // If the state can Unify with Init and produce a goal
+                if (CanBeGoal(currentNode))
+                {
+                    stopwatch.Stop();
+
+                    if (currentNode.GetParent() == null)
+                        Debug.Log("Goal satisfied already.");
+
+                    Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+
+                    return ReconstructPlan(currentNode);
+                }
 
                 if (!IsLoop(currentNode, visited))
                 {
@@ -58,14 +67,6 @@ namespace Planning
 
                     foreach (Node child in children)
                     {
-                        if (child.isGoal(initNode))
-                        {
-                            stopwatch.Stop();
-                            //Debug.Log($"Goal found in {step} steps and depth {child.GetDepth()}");
-                            Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
-                            return ReconstructPlan(child);
-                        }
-
                         frontier.Add(child);
                     }
                 }
@@ -75,10 +76,9 @@ namespace Planning
             }
 
             stopwatch.Stop();
-            //Debug.Log($"Planning stopped after {step} steps.");
-            //Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
             return null;
         }
+
 
 
         private bool IsLoop(Node node, List<Node> visited)
@@ -95,89 +95,47 @@ namespace Planning
             WorldState currentState = currentNode.GetState();
             List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
 
-            // For each goal in the current goals
+            // Outer loop: one goal at a time
             foreach (Predicate goal in currentGoals)
             {
-                string g = $"Exploring<b><color=PURPLE> GOAL {goal.ToString()}</color></b>.\n";
-                
-                // For each available action
-                foreach (PlanAction action in allActions)
+                string g = $"GOAL: <b><color=PURPLE> GOAL {goal}</color></b>.\n";
+
+                // Middle loop: all actions
+                foreach (PlanAction a in allActions)
                 {
-                    // Clone the action so unification doesn't leak bindings
-                    PlanAction actionClone = action.Clone();
-
-                    g += $"Exploring <b><color=BLUE> ACTION {actionClone.ToString()}</color></b>.\n";
-
-                    bool is_useful = false;
-                    // For each effect of action
-                    foreach (Predicate effect in actionClone.GetEffects())
+                    // Inner loop: all effects of this action
+                    for (int i = 0; i < a.GetEffects().Count; i++)
                     {
-                        if (!actionClone.hasNullValues()) break;
-                        // If even one can unify with the goal, the action is useful
-                        if (Unification.Unify(effect, goal))
-                        {// UNIFICATION HERE, needs banned lists
-                            is_useful = true; // They have unified.
-                            g += $"   - Unified predicates: {effect.ToString()} and {goal.ToString()}\n ({actionClone.ToString()})";
-                        }
-                    }
+                        // Deep clone the action BEFORE unification
+                        PlanAction actionInstance = a.Clone();
 
-                    g += $"After unification, action {actionClone.ToString()} was useful - {is_useful}\n";
+                        Predicate effectInstance = actionInstance.GetEffects()[i];
 
-                    if (is_useful)
-                    {
-                        // Check if init can unifyyy
-                        foreach (Predicate satisfiedInInit in initNode.GetState().GetPredicates())
+                        g += $"Exploring <b><color=BLUE> ACTION {actionInstance}</color></b> with effect {effectInstance}\n";
+
+                        // Try unifying this effect with the current goal
+                        if (Unification.Unify(effectInstance, goal))
                         {
-                            if (!actionClone.hasNullValues()) break;
-                            foreach (Predicate precond in actionClone.GetPreconditions())
+
+                            if (Unification.Unify(effectInstance, goal))
                             {
-                                if (Unification.Unify(precond, satisfiedInInit)) {
-                                    g += $"   - Unified predicates: {precond.ToString()} and {satisfiedInInit.ToString()} ({actionClone.ToString()})\n";
+                                // Check constraints before committing
+                                if (!actionInstance.SatisfiesConstraints())
+                                {
+                                    g += $"Action <color=red>{actionInstance}</color> fails AllDifferent constraint for goal {goal}\n";
+                                    continue; // skip this action effect
                                 }
+
+                                g += $"Action <color=green>{actionInstance}</color> is USEFUL for goal {goal}!!!\n";
                             }
+
+                            g += $"    - Effect {effectInstance} unifies with goal {goal}.\n";
+                            g += $"Action <color=GREEN>{actionInstance}</color> is USEFUL for goal {goal}!!!\n";
+
+                            // Create a new child node using this freshly bound action
+                            Node newNode = CreateChildNode(currentNode, currentState, actionInstance, goal, currentGoals);
+                            children.Add(newNode);
                         }
-                        g += $"After init, action {actionClone.ToString()}\n";
-                    }
-
-
-
-                    // IF THERE ARE NULL VALUES
-
-                    if (is_useful && actionClone.hasNullValues())
-                    {
-                        g += $"Action {actionClone.ToString()} has null values after unification.\n";
-                        //for (int i = 0; i < actionClone.actionArgs.Count; i++)
-                        //{
-                        //   if (actionClone.actionArgs[i] == null)
-                        //  {
-                        // Assign a random pointer from the pool
-                        //     int randIndex = UnityEngine.Random.Range(0, allPointers.Count);
-                        //     actionClone.actionArgs[i] = allPointers[randIndex];
-                        // }
-                        //}
-                        //is_useful = false;
-                    }
-
-                    // Unification for the current action has ended
-                    if (!actionClone.SatisfiesConstraints())
-                    {
-                        g += $"Action {actionClone.ToString()} doesn't satisfy AllDifferent Constraint\n";
-                        is_useful = false;
-                    }
-
-
-                    if (actionClone.IsRemovingGoal(currentGoals))
-                    {
-                        g += $"Action {actionClone.ToString()} is Removing a Goal\n";
-                        is_useful = false;
-                    }
-
-
-                    if (is_useful)
-                    {
-                        g += $"Action <color=GREEN>{actionClone.ToString()}</color> is useful for goal {goal}\n";
-                        Node newNode = CreateChildNode(currentNode, currentState, actionClone, goal, currentGoals);
-                        children.Add(newNode);
                     }
                 }
 
@@ -186,6 +144,7 @@ namespace Planning
 
             return children;
         }
+
 
         public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction actionClone, Predicate goal, List<Predicate> currentGoals)
         {
@@ -208,6 +167,89 @@ namespace Planning
             // Create and return the new child node
             return new Node(currentNode, newState, actionClone);
         }
+
+        private bool CanBeGoal(Node node)
+        {
+            List<Predicate> goals = node.GetUnsatisfiedGoals();
+            List<Predicate> initFacts = initNode.GetState().GetPredicates();
+
+            string log = $"<b><color=purple>Checking if node can be goal:</color></b>\n";
+
+            // Save original pointer values to restore if trial fails
+            Dictionary<Pointer, object> originalValues = goals
+                .SelectMany(g => g.Args)
+                .Distinct()
+                .ToDictionary(p => p, p => p.value);
+
+            try
+            {
+                foreach (Predicate goal in goals)
+                {
+                    bool goalSatisfied = false;
+
+                    foreach (Predicate fact in initFacts)
+                    {
+                        // Trial: save current pointer values
+                        Dictionary<Pointer, object> trialValues = goal.Args
+                            .ToDictionary(p => p, p => p.value);
+
+                        // Attempt unification
+                        if (Unification.Unify(goal, fact))
+                        {
+                            // Check the action's constraints (AllDifferent etc.)
+                            if (node.GetAction() != null && !node.GetAction().SatisfiesConstraints())
+                            {
+                                log += $"<color=red>Goal {goal} unified with {fact} but action constraints FAILED</color>\n";
+
+                                // Restore trial pointer values
+                                foreach (var kv in trialValues)
+                                    kv.Key.value = kv.Value;
+
+                                continue; // try next fact
+                            }
+
+                            // Success → goal satisfied
+                            goalSatisfied = true;
+                            log += $"<color=green>Goal {goal} unified with init fact {fact}</color>\n";
+
+                            // Log pointer bindings
+                            foreach (Pointer p in goal.Args)
+                                log += $"    {p} -> {p.Get()}\n";
+
+                            break; // stop trying other facts for this goal
+                        }
+                        else
+                        {
+                            // Unification failed → restore trial pointer values
+                            foreach (var kv in trialValues)
+                                kv.Key.value = kv.Value;
+                        }
+                    }
+
+                    if (!goalSatisfied)
+                    {
+                        // At least one goal cannot unify → restore all pointers
+                        foreach (var kv in originalValues)
+                            kv.Key.value = kv.Value;
+
+                        Debug.Log(log);
+                        return false;
+                    }
+                }
+
+                // All goals unified and action constraints satisfied → keep bindings
+                Debug.Log(log);
+                return true;
+            }
+            catch
+            {
+                // On exception, restore original pointer values
+                foreach (var kv in originalValues)
+                    kv.Key.value = kv.Value;
+                throw;
+            }
+        }
+
 
 
         private List<PlanAction> ReconstructPlan(Node node)

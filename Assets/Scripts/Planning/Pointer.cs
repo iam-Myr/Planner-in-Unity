@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Planning
 {
@@ -8,11 +9,18 @@ namespace Planning
         public object value; // Either a concrete value or another Pointer
         public Type type;    // Declared type for this logical variable
 
+        private static int counter = 0; // global counter for unique variable names
+        public string Name { get; private set; } // unique name for unbound pointers
+
+        // Constructor for unbound variable
         public Pointer(Type t)
         {
             this.type = t ?? throw new ArgumentNullException(nameof(t));
+            this.Name = $"?v{counter}";
+            counter++;
         }
 
+        // Constructor from concrete value
         public Pointer(object value)
         {
             if (value == null)
@@ -20,9 +28,11 @@ namespace Planning
 
             this.value = value;
             this.type = value.GetType();
+            this.Name = $"?v{counter}";
+            counter++;
         }
 
-
+        // Constructor from value and type
         public Pointer(object value, Type t)
         {
             if (t == null)
@@ -33,9 +43,11 @@ namespace Planning
 
             this.value = value;
             this.type = t;
+            this.Name = $"?v{counter}";
+            counter++;
         }
 
-        /// Get the final value (resolves alias chains).
+        /// Get the final value (resolves pointer chains)
         public object Get() => Get(new HashSet<Pointer>());
 
         private object Get(HashSet<Pointer> visited)
@@ -48,7 +60,7 @@ namespace Planning
             return value is Pointer p ? p.Get(visited) : value;
         }
 
-        /// Typed version of Get() with cast enforcement
+        /// Typed version of Get()
         public T Get<T>()
         {
             object val = Get();
@@ -90,7 +102,7 @@ namespace Planning
         /// Checks whether the current value is another Pointer
         public bool IsPointer() => value is Pointer;
 
-        /// Bind this pointer to another, unifying them (types must match)
+        /// Bind this pointer to another, unifying them
         public void BindTo(Pointer other)
         {
             if (this == other) return;
@@ -98,7 +110,6 @@ namespace Planning
             if (other == null)
                 throw new ArgumentNullException(nameof(other));
 
-            // Enforce type compatibility
             if (this.type != other.type)
                 throw new InvalidOperationException($"Cannot bind Pointer<{type.Name}> to Pointer<{other.type.Name}>");
 
@@ -143,17 +154,25 @@ namespace Planning
         public bool isSameValue(Pointer p) =>
             object.Equals(this.Get(), p?.Get());
 
-        /// Clone this pointer (shallow or recursively)
+        /// Clone this pointer (preserves variable name)
         public Pointer Clone()
         {
+            Pointer cloned;
             if (value is Pointer p)
-                return new Pointer(p.Clone(), type);
+                cloned = new Pointer(p.Clone(), type);
+            else
+                cloned = new Pointer(value, type);
 
-            return new Pointer(value, type);
+            cloned.Name = this.Name; // preserve unique variable name
+            return cloned;
         }
 
-        /// For debugging
-        public override string ToString() =>
-            $"{(IsPointer() ? "->" : "")}{Get()?.ToString() ?? "null"} : {type?.Name ?? "?"}";
+        /// Debug-friendly string
+        public override string ToString()
+        {
+            var val = Get();
+            return val != null ? val.ToString() : Name;
+        }
+
     }
 }

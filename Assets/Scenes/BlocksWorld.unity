@@ -520,7 +520,7 @@ MonoBehaviour:
   MAXSTEPS: 1000
   observeCooldown: 2
   actionTimeoutWindow: 3
-  debug: 1
+  debug: 0
   doYouLikePlanning: 0
 --- !u!1 &790906620
 GameObject:

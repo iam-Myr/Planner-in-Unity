@@ -74,19 +74,11 @@ namespace Planning
 
         public override string ToString()
         {
-            string[] args = new string[actionArgs.Count];
-            for (int i = 0; i < actionArgs.Count; i++)
-            {
-                var obj = actionArgs[i]?.Get();
-
-                if (obj is UnityEngine.Object unityObj)
-                    args[i] = unityObj.name;
-                else
-                    args[i] = obj?.ToString() ?? "null";
-            }
-
-            return $"{actionName}({string.Join(",", args)})";
+            string[] argsStrings = actionArgs.Select(arg => arg?.ToString() ?? "null").ToArray();
+            return $"{actionName}({string.Join(", ", argsStrings)})";
         }
+
+
 
 
         public List<Type> GetArgTypes()
@@ -197,11 +189,18 @@ namespace Planning
             foreach (Predicate effect in effects)
             {
                 if (!observedState.ContainsAtom(effect))
+                {
+                    Debug.LogWarning($"Effect not holding: {effect}");
+                    Debug.Log($"Observed State: {string.Join(", ", observedState.GetPredicates().Select(p => p.ToString()))}");
+
                     Failure = FailureReason.EffectsNotHolding;
-                return false;
+                    return false;
+                }
             }
+
             return true;
         }
+
 
 
         public virtual PlanAction Clone()
@@ -266,145 +265,6 @@ namespace Planning
         }
 
 
-
-
-        /*
-        public virtual PlanAction Clone()
-        {
-            PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
-            Dictionary<Pointer, Pointer> varMap = new Dictionary<Pointer, Pointer>();
-
-            clone.actionArgs = new List<Pointer>();
-            foreach (Pointer arg in this.actionArgs)
-                clone.actionArgs.Add(varMap[arg] = arg.Clone());
-
-            clone.preconditions = new List<Predicate>();
-            foreach (Predicate pre in this.preconditions)
-            {
-                List<Pointer> clonedArgs = new List<Pointer>();
-                foreach (Pointer arg in pre.args)
-                {
-                    if (!varMap.ContainsKey(arg))
-                        varMap[arg] = arg.Clone();
-                    clonedArgs.Add(varMap[arg]);
-                }
-                clone.preconditions.Add(new Predicate(pre.func, clonedArgs, pre.value));
-            }
-
-            clone.effects = new List<Predicate>();
-            foreach (Predicate eff in this.effects)
-            {
-                List<Pointer> clonedArgs = new List<Pointer>();
-                foreach (Pointer arg in eff.args)
-                {
-                    if (!varMap.ContainsKey(arg))
-                        varMap[arg] = arg.Clone();
-                    clonedArgs.Add(varMap[arg]);
-                }
-                clone.effects.Add(new Predicate(eff.func, clonedArgs, eff.value));
-            }
-
-            clone.actionName = this.actionName;
-            return clone;
-        }
-
-        public virtual PlanAction CreateEmpty() => (PlanAction)Activator.CreateInstance(this.GetType());
-
-        // Cool ChatGPT code probably super inefficient 
-        public virtual PlanAction Clone1()
-        {
-            PlanAction clone = new PlanAction();
-
-            // Args
-            clone.actionArgs = new List<Pointer>();
-            foreach (Pointer arg in actionArgs)
-                clone.actionArgs.Add(arg.Clone());
-
-            // Precnditions
-            clone.preconditions = new List<Predicate>();
-            foreach (Predicate arg in preconditions)
-                clone.preconditions.Add(arg.Clone());
-
-            // Effects
-            clone.effects = new List<Predicate>();
-            foreach (Predicate arg in effects)
-                clone.effects.Add(arg.Clone());
-
-            clone.actionName = actionName;
-
-            return clone;
-
-            //// Registry to keep same logical variable shared
-            //Dictionary<SharedVar, SharedVar> varMap = new Dictionary<SharedVar, SharedVar>();
-
-            //// Clone actionArgs and store in registry
-            //newAction.actionArgs = this.actionArgs.Select(arg =>
-            //{
-            //    var cloned = arg.Clone();
-            //    varMap[arg] = cloned;
-            //    return cloned;
-            //}).ToArray();
-
-            //// Clone preconditions with shared vars
-            //newAction.preconditions = this.preconditions
-            //    .Select(p => (
-            //        p.Item1,
-            //        p.Item2.Select(v =>
-            //        {
-            //            if (!varMap.ContainsKey(v))
-            //                varMap[v] = v.Clone();
-            //            return varMap[v];
-            //        }).ToArray()
-            //    )).ToList();
-
-            //// Clone effects with shared vars
-            //newAction.effects = this.effects
-            //    .Select(e => (
-            //        e.Item1,
-            //        e.Item2.Select(v =>
-            //        {
-            //            if (!varMap.ContainsKey(v))
-            //                varMap[v] = v.Clone();
-            //            return varMap[v];
-            //        }).ToArray()
-            //    )).ToList();
-
-
-        }
-
-        public bool IsUseful(Node node)
-        {
-            var unsatisfiedGoals = node.GetUnsatisfiedGoals();
-            foreach (Predicate goal in unsatisfiedGoals)
-            {
-                if (effects.Any(effect => Unification.CanUnify(effect, goal)))
-                {
-                    return true;
-                }
-            }
-            return false;
-        } 
-
-        /*
-        public List<Predicate> SatisfyOtherGoals(List<Predicate> unsatisfiedGoals)
-        {
-            List<Predicate> satisfiedGoals = new List<Predicate>();
-
-            foreach (Predicate effect in effects)
-            {
-                foreach (Predicate goal in unsatisfiedGoals)
-                {
-                    // Check if goal is fully instantiated and matches the effect
-                    if (goal.IsInstantiated() && effect.Equals(goal))
-                    {
-                        satisfiedGoals.Add(goal);
-                    }
-                }
-            }
-
-            return satisfiedGoals;
-        }
-        */
 
 
     }

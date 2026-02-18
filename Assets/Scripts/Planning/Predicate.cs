@@ -99,23 +99,33 @@ namespace Planning
         private bool EqualsStructure(Predicate other)
         {
             if (!Name.Equals(other.Name))
-            {
-                //Debug.Log("Predicate names do not match: " + Name + " vs " + other.Name);
                 return false;
-            }
-
 
             if (Args.Count != other.Args.Count)
                 return false;
 
             for (int i = 0; i < Args.Count; i++)
             {
-                if (!Args[i].isSameValue(other.Args[i]))
-                    return false;
+                Pointer a = Args[i];
+                Pointer b = other.Args[i];
+
+                // Compare by reference if either is unbound
+                if (!a.IsBound() || !b.IsBound())
+                {
+                    if (!ReferenceEquals(a, b))
+                        return false;
+                }
+                else
+                {
+                    // Both bound: compare final values
+                    if (!a.isSameValue(b))
+                        return false;
+                }
             }
 
             return true;
         }
+
 
         public override bool Equals(object obj)
         {
@@ -127,11 +137,8 @@ namespace Planning
 
         public override string ToString()
         {
-            string argsString = string.Join(", ",
-                Args.Select(a => a.value is UnityEngine.Object u ? u.name : a.value?.ToString() ?? "null"));
-
+            string argsString = string.Join(", ", Args.Select(a => a?.ToString() ?? "null"));
             return $"{Name}({argsString}) - {Value}";
         }
-
     }
 }

@@ -15,7 +15,7 @@ namespace BlocksWorld
         protected override List<WorldState> DomainGoals => BlockDomain.GetGoals();
         protected override List<PlanAction> DomainActions => new List<PlanAction>
         {
-            new ActionMove().AddExecutable(Move, 1f),
+            new ActionMove().AddExecutable(Move, 5f),
             //new ActionDrop().AddExecutable(Drop, 2f), //2f is expected time
             //new ActionPickup().AddExecutable(Pickup, 2f)
             
