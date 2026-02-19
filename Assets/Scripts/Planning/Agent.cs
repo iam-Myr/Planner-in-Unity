@@ -10,10 +10,12 @@ namespace Planning
     public abstract class Agent : MonoBehaviour, IObservableHolder
     {
         private LiftedPlanner planner;
-        private List<PlanAction> currentPlan;
+        private PlanResult currentPlanResult;
         private WorldState currentState;
         private WorldState currentGoal;
         private List<PlanAction> actionList;
+        [SerializeField] private PlanUI ui;
+
 
         [Header("Planning Parameters")]
         public int MAXSTEPS = 1000000;
@@ -47,6 +49,10 @@ namespace Planning
         {
             // Choose initial goal from the domain's goals
             currentGoal = ChooseGoal(DomainGoals);
+            if (ui)
+            {
+                ui.SetGoalTxt($"<b>GOAL</b>\n{currentGoal.ToString()}");
+            }
 
             // Generate grounded actions from domain pointers
             //List<PlanAction> groundedActions = ActionGenerator.GenerateAllGroundedActions(DomainActions, DomainPointers);
@@ -60,13 +66,13 @@ namespace Planning
             //planner = new GroundPlanner(groundedActions);
 
             // No plan at start
-            currentPlan = null;
+            currentPlanResult = null;
         }
 
         protected virtual void Update()
         {
             // If executing a plan, don't replan
-            if (currentPlan != null)
+            if (currentPlanResult != null)
                 return;
 
             // Countdown observe timer
@@ -88,17 +94,25 @@ namespace Planning
                 }
 
                 // Ask planner to generate a plan from current state to goal
-                currentPlan = planner.MakePlan(initState, currentGoal, MAXSTEPS);
+                currentPlanResult = planner.MakePlan(initState, currentGoal, MAXSTEPS);
 
-                if (currentPlan != null && currentPlan.Count > 0)
+             
+
+                if (currentPlanResult != null)
                 {
-                    PrintPlan(currentPlan);
+                    List<PlanAction> currentPlan = currentPlanResult.plan;
+                    //PrintPlan(currentPlan);
+                    // Update UI
+                    if (ui)
+                    {
+                        ui.ShowPlan(currentPlanResult);
+                    }
+
                     ExecutePlan(currentPlan);
                 }
                 else
                 {
                     Debug.Log("<color=RED>No plan generated.</color>");
-                    currentPlan = null;
                 }
             }
         }
@@ -143,7 +157,7 @@ namespace Planning
                 if (!action.IsValid())
                 {
                     Debug.Log($"{action} not valid! Replanning...");
-                    currentPlan = null; 
+                    currentPlanResult = null; 
                     yield break; 
                 }
 
@@ -168,7 +182,7 @@ namespace Planning
                     StopCoroutine(running); // Forcefully stop the coroutine
                     Debug.Log($"Action {action} timed out and was interrupted.");
 
-                    currentPlan = null; 
+                    currentPlanResult = null; 
                     yield break; 
                 }
 
@@ -187,7 +201,7 @@ namespace Planning
                     if (!action.EffectsHold(observed))
                     {
                         Debug.Log($"Action {action} executed but effects were not applied.");
-                        currentPlan = null;
+                        currentPlanResult = null;
                         yield break;
                     }
                 }
@@ -195,7 +209,7 @@ namespace Planning
             }
 
             // All actions completed successfully — clear the current plan
-            currentPlan = null;
+            currentPlanResult = null;
         }
 
     }

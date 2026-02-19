@@ -8,9 +8,6 @@ namespace BlocksWorld
 {
     public class Block : PlanObject, IObservableHolder
     {
-        private string blockName;
-        private Block above;
-        private Block below;
 
         // Raycast parameters
         public float rayDistance = 0.5f;
@@ -118,5 +115,6 @@ namespace BlocksWorld
             Gizmos.color = Color.green;
             Gizmos.DrawLine(upStart, upStart + Vector3.up * rayDistance);
         }
+
     }
 }

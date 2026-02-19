@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Planning;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
@@ -24,7 +25,7 @@ namespace Planning
             this.debug = debug;
         }
 
-        public List<PlanAction> MakePlan(WorldState initState, WorldState goalState, int maxSteps)
+        public PlanResult MakePlan(WorldState initState, WorldState goalState, int maxSteps)
         {
             List<Node> visited = new List<Node>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
@@ -58,7 +59,7 @@ namespace Planning
 
                     Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
 
-                    return ReconstructPlan(currentNode);
+                    return new PlanResult(ReconstructPlan(currentNode), stopwatch.ElapsedMilliseconds, step, currentNode.GetDepth());
                 }
 
                 if (!IsLoop(currentNode, visited))
@@ -268,5 +269,21 @@ namespace Planning
             report += s + "\n";
         }
 
+    }
+}
+
+public class PlanResult
+{
+    public List<PlanAction> plan;
+    public long TimeMs;
+    public int Steps;
+    public int Depth;
+
+    public PlanResult(List<PlanAction> planActions, long timeMs, int steps, int depth)
+    {
+        this.plan = planActions;
+        this.TimeMs = timeMs;
+        this.Steps = steps;
+        this.Depth = depth;
     }
 }

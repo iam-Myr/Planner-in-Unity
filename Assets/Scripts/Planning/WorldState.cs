@@ -58,15 +58,20 @@ namespace Planning
         }
 
         // Print all predicates
-        public void Print()
+        public override string ToString()
         {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
             foreach (List<Predicate> list in knowledge_base.Values)
             {
                 foreach (Predicate p in list)
                 {
-                    Debug.Log(p.ToString());
+                    sb.AppendLine(p.ToString());
                 }
             }
+
+            return sb.ToString();
         }
+
     }
 }
