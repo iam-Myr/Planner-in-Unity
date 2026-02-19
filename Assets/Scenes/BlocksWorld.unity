@@ -517,7 +517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e8c421758122fc4d81691376ebb9f20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ui: {fileID: 0}
+  ui: {fileID: 1515174798}
   MAXSTEPS: 1000
   observeCooldown: 2
   actionTimeoutWindow: 3
@@ -1110,6 +1110,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6347795310675418634, guid: 4c7fc3f7c29679249b8ebcdad8580851, type: 3}
   m_PrefabInstance: {fileID: 1515174796}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1515174798 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7683416259742824310, guid: 4c7fc3f7c29679249b8ebcdad8580851, type: 3}
+  m_PrefabInstance: {fileID: 1515174796}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aac4b376674092d4a89a45510527ed5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1744574705
 GameObject:
   m_ObjectHideFlags: 0

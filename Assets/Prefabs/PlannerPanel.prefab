@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6734876999111969125}
   - component: {fileID: 2752310048241467367}
   - component: {fileID: 8398927118259919843}
+  - component: {fileID: 3554173924414933912}
   m_Layer: 5
   m_Name: PlanSCrollView
   m_TagString: Untagged
@@ -108,6 +109,26 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &3554173924414933912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2356591609267159217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 0
+  m_PreferredWidth: -1
+  m_PreferredHeight: 0
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: 1
+  m_LayoutPriority: 1
 --- !u!1 &4526954598030134896
 GameObject:
   m_ObjectHideFlags: 0
@@ -304,7 +325,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 2615819793028809506}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.33525613
+  m_Size: 0.93910176
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -409,7 +430,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
   m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
