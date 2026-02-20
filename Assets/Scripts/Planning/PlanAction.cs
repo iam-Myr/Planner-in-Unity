@@ -1,3 +1,4 @@
+using BlocksWorld;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -268,6 +269,9 @@ namespace Planning
             clone.durationEstimate = this.durationEstimate;
             clone.executable = this.executable;
 
+            // Apply AllDifferent to cloned arguments so banned lists are correct
+            clone.AllDifferent(clone.actionArgs);
+
             return clone;
         }
 
@@ -275,4 +279,43 @@ namespace Planning
 
 
     }
+
+
+ public class ActionInit : PlanAction
+        {
+
+        private List<Predicate> initEffects;
+        public ActionInit() { }
+        public ActionInit(List<Predicate> initEffects)
+        {
+            actionName = "Init";
+            this.initEffects = initEffects;
+
+            // Manually populate base effects list
+            this.effects = initEffects
+                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone()).ToList(), p.Value ?? false))
+                .ToList();
+        }
+
+        public override PlanAction CreateNew(List<Pointer> args) 
+            {
+                return this; // Init action is a singleton with no arguments
+        }
+
+            #region Preconditions
+            public override List<Predicate> InitPreconditions()
+            {
+                return new List<Predicate>{};
+            }
+        #endregion
+
+        #region Effects
+        public override List<Predicate> InitEffects()
+        {
+            return effects;
+        }
+        #endregion
+    }
+    
+
 }

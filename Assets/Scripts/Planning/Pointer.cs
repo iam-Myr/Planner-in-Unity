@@ -101,10 +101,7 @@ namespace Planning
         {
             foreach (object o in objects)
             {
-                if (o is Pointer p && p.IsBound())
-                    bannedList.Add(p.Get()); // If it's a bound pointer, ban the value
-                else
-                    bannedList.Add(o);
+               bannedList.Add(o);
             }
         }
 
@@ -211,7 +208,8 @@ namespace Planning
                 cloned = new Pointer(value, type);
 
             cloned.Name = this.Name; // preserve unique variable name
-            cloned.bannedList = new List<object>(this.bannedList); // preserve bans
+
+            cloned.bannedList = new List<object>(); // start fresh
             return cloned;
         }
 

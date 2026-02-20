@@ -37,6 +37,11 @@ namespace Planning
             frontier.Add(rootNode);
 
             int step = 0;
+            Debug.Log($"{initState.GetPredicates().Count} init predicates");
+
+            // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST
+            //PlanAction initAction = new ActionInit(initState.GetPredicates());
+            //allActions.Add(initAction);
 
             while (frontier.Count > 0 && step < maxSteps)
             {
@@ -258,7 +263,9 @@ namespace Planning
             List<PlanAction> result = new List<PlanAction>();
             while (node != null && node.GetAction() != null)
             {
-                result.Add(node.GetAction());
+                PlanAction action = node.GetAction();
+                if (!(action is ActionInit)) // skip Init actions FOR NOW
+                    result.Add(action);
                 node = node.GetParent();
             }
             return result;
