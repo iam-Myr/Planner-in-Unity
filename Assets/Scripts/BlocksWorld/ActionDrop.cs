@@ -50,10 +50,20 @@ public class ActionDrop : PlanAction
     }
     #endregion
 
+<<<<<<< Updated upstream
     // Effects
     public override List<Predicate> InitEffects()
     {
         return new List<Predicate>
+=======
+            actionArgs.Add(current);
+            actionArgs.Add(to);
+
+            AddConstraint(args => AllDifferent(args));
+        }
+
+        public override PlanAction CreateNew(List<Pointer> args) //[current, to]
+>>>>>>> Stashed changes
         {
             new Predicate(BlockDomain.isOn, new List <object> {current, to}, true), // isOn(current, to)
             new Predicate(BlockDomain.isHolding, new List<object> {current}, false),

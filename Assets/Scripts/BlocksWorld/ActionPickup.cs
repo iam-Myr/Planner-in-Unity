@@ -50,10 +50,21 @@ public class ActionPickup : PlanAction
     }
     #endregion
 
+<<<<<<< Updated upstream
     // Effects
     public override List<Predicate> InitEffects()
     {
         return new List<Predicate>
+=======
+            actionArgs.Add(current);
+            actionArgs.Add(from);
+
+            // Add constraint: the block we pick up must be different from the block underneath
+            AddConstraint(args => AllDifferent(args));
+        }
+
+        public override PlanAction CreateNew(List<Pointer> args)
+>>>>>>> Stashed changes
         {
             new Predicate(BlockDomain.isHolding, new List <object   > {current}, true), // isClear(from)
             new Predicate(BlockDomain.isClear, new List <object> {from}, true), // isClear(from)
