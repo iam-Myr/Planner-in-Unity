@@ -59,12 +59,18 @@ namespace Planning
             // if x is a pointer already bound -> try unify point with x's value
             if (x is Pointer px && px.IsBound()) return Unify(point, px.Get());
 
+            // BAN CHECK
+            point.PrintBanList();
+            Debug.Log($"Is {x} banned?");
+            if (point.IsBanned(x))
+                return false;
+
             // if point not bound, bind to x (either to pointer or to value)
             // THIS IS WHERE BINDING HAPPENS
             // EITHER BIND TO POINTER OR VALUE
             if (x is Pointer p)
             { // and x is valid 
-                Debug.Log($"<color=ORANGE>Binding pointer {point.Name} to POINTER {p.Name}</color>");
+                //Debug.Log($"<color=ORANGE>Binding pointer {point.Name} to POINTER {p.Name}</color>");
                 point.BindTo(p); //if x is an unbound pointer, bind to it
             }
             else

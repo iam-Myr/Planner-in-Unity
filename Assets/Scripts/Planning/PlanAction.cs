@@ -78,7 +78,14 @@ namespace Planning
             return $"{actionName}({string.Join(", ", argsStrings)})";
         }
 
-
+        // For each item in the list
+        //   - take all other items (items except itself)
+        //   - convert them to a List<Pointer>
+        //   - immediately call Ban on that list
+        public void AllDifferent(List<Pointer> items)
+        {
+            items.ForEach(item => item.Ban(items.Except(new[] { item }).ToList()));
+        }
 
 
         public List<Type> GetArgTypes()

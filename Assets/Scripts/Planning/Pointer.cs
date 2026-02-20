@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace Planning
 {
@@ -8,7 +9,7 @@ namespace Planning
     {
         public object value; // Either a concrete value or another Pointer
         public Type type;    // Declared type for this logical variable
-        private List<Pointer> bannedList = new List<Pointer>(); // pointers (and their values) that this pointer cannot unify with 
+        private List<object> bannedList = new List<object>(); // pointers (and their values) that this pointer cannot unify with 
 
         private static int counter = 0; // global counter for unique variable names
         public string Name { get; private set; } // unique name for unbound pointers
@@ -96,6 +97,52 @@ namespace Planning
                 value = val;
         }
 
+        public void Ban(IEnumerable<object> objects)
+        {
+            foreach (object o in objects)
+            {
+                if (o is Pointer p && p.IsBound())
+                    bannedList.Add(p.Get()); // If it's a bound pointer, ban the value
+                else
+                    bannedList.Add(o);
+            }
+        }
+
+        public bool IsBanned(object o)
+        {
+            foreach (object b in bannedList)
+            {
+                if (b is Pointer p)
+                {
+                    // If banned pointer is bound, check its value
+                    var val = p.Get();
+                    if (val != null && object.Equals(o, val))
+                        return true;
+
+                    // Also check if 'o' is the same pointer as 'p'
+                    if (object.ReferenceEquals(o, p))
+                        return true;
+                }
+                else
+                {
+                    if (object.Equals(o, b))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void PrintBanList()
+        {
+            string s = "";
+            foreach(object b in bannedList)
+            {
+                s += b.ToString() + ", ";
+            }
+            Debug.Log($"Ban list for {this.Name}: {s}");
+        }
+
         /// Checks if bound to a concrete value
         public bool IsBound() => Get() != null;
 
@@ -164,6 +211,7 @@ namespace Planning
                 cloned = new Pointer(value, type);
 
             cloned.Name = this.Name; // preserve unique variable name
+            cloned.bannedList = new List<object>(this.bannedList); // preserve bans
             return cloned;
         }
 

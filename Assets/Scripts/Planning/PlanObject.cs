@@ -21,4 +21,6 @@ public abstract class PlanObject : MonoBehaviour
         string hex = ColorUtility.ToHtmlStringRGB(color);
         return $"<color=#{hex}><b>{gameObject.name}</b></color>";
     }
+
+
 }
