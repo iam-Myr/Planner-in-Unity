@@ -62,11 +62,16 @@ namespace Planning
             // if point not bound, bind to x (either to pointer or to value)
             // THIS IS WHERE BINDING HAPPENS
             // EITHER BIND TO POINTER OR VALUE
-            if (x is Pointer p) // and x is valid 
+            if (x is Pointer p)
+            { // and x is valid 
+                Debug.Log($"<color=ORANGE>Binding pointer {point.Name} to POINTER {p.Name}</color>");
                 point.BindTo(p); //if x is an unbound pointer, bind to it
+            }
             else
+            {
+                Debug.Log($"<color=YELLOW>Binding pointer {point.Name} to VALUE {x}</color>");
                 point.Set(x); // else set pointer value to x
-
+            }
             return true;
         }
     }

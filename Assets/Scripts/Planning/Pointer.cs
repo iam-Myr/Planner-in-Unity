@@ -8,6 +8,7 @@ namespace Planning
     {
         public object value; // Either a concrete value or another Pointer
         public Type type;    // Declared type for this logical variable
+        private List<Pointer> bannedList = new List<Pointer>(); // pointers (and their values) that this pointer cannot unify with 
 
         private static int counter = 0; // global counter for unique variable names
         public string Name { get; private set; } // unique name for unbound pointers
@@ -28,8 +29,7 @@ namespace Planning
 
             this.value = value;
             this.type = value.GetType();
-            this.Name = $"?v{counter}";
-            counter++;
+            this.Name = value.ToString(); // use value's string representation as name for better debugging
         }
 
         // Constructor from value and type

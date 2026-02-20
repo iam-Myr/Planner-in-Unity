@@ -23,14 +23,14 @@ public class PlanUI : MonoBehaviour
 
         if (plan == null || plan.Count == 0)
         {
-            planTxt.text += "No plan :(";
+            planTxt.text += "No plan :(\n";
         }
 
         for (int i = 0; i < plan.Count; i++)
         {
             planTxt.text += $"{i + 1}. {plan[i].ToString()} \n";
         }
-        planTxt.text += $"\n---- {plan.Count} steps ----";
+        planTxt.text += $"---- {plan.Count} steps ----";
     }
 
     public void SetStatsTxt(string txt)
@@ -42,7 +42,7 @@ public class PlanUI : MonoBehaviour
     {
         SetPlanTxt(plan.plan);
         SetStatsTxt($"Time: {plan.TimeMs}ms" +
-            $"\nSteps: {plan.Steps}" +
+            $"\nIterations: {plan.Steps}" +
             $"\nDepth: {plan.Depth}");
     }
 }
