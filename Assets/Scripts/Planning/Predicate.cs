@@ -64,9 +64,12 @@ namespace Planning
         {
             foreach (Predicate p in preds.Where(IsThreat))
             {
-                for (int i = 0; i < Args.Count; i++)
+                if (AllButOneInstantiated())
                 {
-                    Args[i].Ban(new List<object> { p.Args[i] });
+                    for (int i = 0; i < Args.Count; i++)
+                    {
+                        Args[i].Ban(new List<object> { p.Args[i] });
+                    }
                 }
             }
         }
@@ -96,6 +99,11 @@ namespace Planning
         public bool IsOpposite(Predicate other)
         {
             return Equals(other) && this.Value != other.Value;
+        }
+
+        public bool AllButOneInstantiated()
+        {
+            return Args.Count(arg => arg.IsBound()) == Args.Count - 1;
         }
 
         private bool EqualsStructure(Predicate other)
