@@ -85,8 +85,6 @@ namespace Planning
             return null;
         }
 
-
-
         private bool IsLoop(Node node, List<Node> visited)
         {
             foreach (Node n in visited)

@@ -12,9 +12,6 @@ namespace Planning
         // Nullable value: null = unobserved
         public bool? Value { get; private set; } // Negation or not
 
-        private List<Func<List<Pointer>, bool>> constraints
-        = new List<Func<List<Pointer>, bool>>();
-
 
         public String Name;
 
@@ -44,26 +41,9 @@ namespace Planning
         public Predicate Instantiate(List<Pointer> newArgs, bool? v)
         {
             Predicate p = new Predicate(Name, Condition, newArgs, v);
-            p.constraints.AddRange(this.constraints);
             return p;
         }
 
-
-
-        public void AddConstraint(Func<List<Pointer>, bool> constraint)
-        {
-            constraints.Add(constraint);
-        }
-
-        public bool CheckConstraints()
-        {
-            foreach (Func<List<Pointer>, bool> c in constraints)
-            {
-                if (!c(Args))
-                    return false;
-            }
-            return true;
-        }
 
         public void SetCondition(Func<List<object>, bool> func)
         {

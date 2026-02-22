@@ -61,12 +61,6 @@ namespace BlocksWorld
             isHandEmpty.SetCondition(isHandEmptyCondition);
             isHolding.SetCondition(isHoldingCondition);
 
-            isOn.AddConstraint(args => Constraints.AllDifferent(args[0], args[1])(args));
-
-
-
-
-
         }
 
         //  Domain actions 
