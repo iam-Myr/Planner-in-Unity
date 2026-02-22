@@ -60,8 +60,8 @@ namespace Planning
             if (x is Pointer px && px.IsBound()) return Unify(point, px.Get());
 
             // BAN CHECK
-            point.PrintBanList();
-            Debug.Log($"Is {x} banned?");
+            //point.PrintBanList();
+            //Debug.Log($"Is {x} banned?");
             if (point.IsBanned(x))
                 return false;
 

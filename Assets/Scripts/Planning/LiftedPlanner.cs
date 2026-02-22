@@ -30,14 +30,13 @@ namespace Planning
             List<Node> visited = new List<Node>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
-            initNode = new Node(null, initState, null);
-            Node rootNode = new Node(null, goalState, null);
+            initNode = new Node(initState);
+            Node rootNode = new Node(goalState);
 
             frontier.Clear();
             frontier.Add(rootNode);
 
             int step = 0;
-            Debug.Log($"{initState.GetPredicates().Count} init predicates");
 
             // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST
             //PlanAction initAction = new ActionInit(initState.GetPredicates());
@@ -52,7 +51,7 @@ namespace Planning
                 frontier.RemoveAt(0);
 
                 if (debug)
-                    currentNode.Print();
+                    Debug.Log($"{currentNode.ToString()}");
 
                 // If the state can Unify with Init and produce a goal
                 if (CanBeGoal(currentNode))
@@ -107,38 +106,30 @@ namespace Planning
                 // Middle loop: all actions
                 foreach (PlanAction a in allActions)
                 {
+                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {a}</color>\n";
                     // Inner loop: all effects of this action
                     for (int i = 0; i < a.GetEffects().Count; i++)
                     {
                         // Deep clone the action BEFORE unification
                         PlanAction actionInstance = a.Clone();
 
+                        // Ban threats
+                        actionInstance.BanThreats(currentGoals);
+
                         Predicate effectInstance = actionInstance.GetEffects()[i];
 
-                        g += $"Exploring <b><color=BLUE> ACTION {actionInstance}</color></b> with effect {effectInstance}\n";
+                        g += $" - Exploring effect {effectInstance} of action {actionInstance}\n";
 
                         // Try unifying this effect with the current goal
                         if (Unification.Unify(effectInstance, goal))
                         {
-
-                            if (Unification.Unify(effectInstance, goal))
-                            {
-                                // Check constraints before committing
-                                if (!actionInstance.SatisfiesConstraints())
-                                {
-                                    g += $"Action <color=red>{actionInstance}</color> fails AllDifferent constraint for goal {goal}\n";
-                                    continue; // skip this action effect
-                                }
-
-                                g += $"Action <color=green>{actionInstance}</color> is USEFUL for goal {goal}!!!\n";
-                            }
-
                             g += $"    - Effect {effectInstance} unifies with goal {goal}.\n";
                             g += $"Action <color=GREEN>{actionInstance}</color> is USEFUL for goal {goal}!!!\n";
 
                             // Create a new child node using this freshly bound action
-                            Node newNode = CreateChildNode(currentNode, currentState, actionInstance, goal, currentGoals);
+                            Node newNode = CreateChildNode(currentNode, currentState, actionInstance, goal, currentGoals, g);
                             children.Add(newNode);
+
                         }
                     }
                 }
@@ -150,7 +141,7 @@ namespace Planning
         }
 
 
-        public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction actionClone, Predicate goal, List<Predicate> currentGoals)
+        public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction actionClone, Predicate goal, List<Predicate> currentGoals, string log)
         {
             // Start with a copy of the current state
             WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
@@ -169,7 +160,7 @@ namespace Planning
             }
 
             // Create and return the new child node
-            return new Node(currentNode, newState, actionClone);
+            return new Node(currentNode, newState, actionClone, goal, log);
         }
 
         private bool CanBeGoal(Node node)
@@ -200,17 +191,6 @@ namespace Planning
                         // Attempt unification
                         if (Unification.Unify(goal, fact))
                         {
-                            // Check the action's constraints (AllDifferent etc.)
-                            if (node.GetAction() != null && !node.GetAction().SatisfiesConstraints())
-                            {
-                                log += $"<color=red>Goal {goal} unified with {fact} but action constraints FAILED</color>\n";
-
-                                // Restore trial pointer values
-                                foreach (var kv in trialValues)
-                                    kv.Key.value = kv.Value;
-
-                                continue; // try next fact
-                            }
 
                             // Success → goal satisfied
                             goalSatisfied = true;

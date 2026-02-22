@@ -11,6 +11,8 @@ namespace Planning
         private Node parent;
         private WorldState state;
         private PlanAction action; // Action applied to this state
+        private Predicate goalSatisfied;
+        private string logs;
         private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
         protected int depth;
 
@@ -18,11 +20,27 @@ namespace Planning
         private static readonly string logPath =
             Path.Combine(Application.persistentDataPath, "planner_nodes.txt");
 
-        public Node(Node parent, WorldState state, PlanAction action)
+        public Node(WorldState state)
+        {
+            this.parent = null;
+            this.state = state;
+            this.action = null;
+            this.goalSatisfied = null;
+            this.logs = null;
+
+            // Init goals
+            unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
+
+            depth = parent == null ? 0 : parent.depth + 1;
+        }
+
+        public Node(Node parent, WorldState state, PlanAction action, Predicate goal, string l)
         {
             this.parent = parent;
             this.state = state;
             this.action = action;
+            this.goalSatisfied = goal;
+            this.logs = l;
 
             // Init goals
             unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
@@ -86,7 +104,7 @@ namespace Planning
         }
 
         // ------------------------- Console Print -------------------------
-        public void Print()
+        public string ToString()
         {
             string s = "";
 
@@ -108,11 +126,11 @@ namespace Planning
             //if (action != null)
                 //s += $"{action}\n";
 
-            //s += "\n<color=#AAAAAA>-----------------</color> " +
-                //"<b><color=#1E90FF>Current State</color></b> " +
-                 //"<color=#AAAAAA>-------------------</color>\n";
-            //if (state != null)
-            //    s += state.ToString() + "\n";
+            s += "\n<color=#AAAAAA>-----------------</color> " +
+                "<b><color=#1E90FF>Satisfied Goal</color></b> " +
+                 "<color=#AAAAAA>-------------------</color>\n";
+            if (goalSatisfied != null)
+                s += goalSatisfied.ToString() + "\n";
 
             s += "\n-----------------" +
                  "<b><color=#1E90FF>Unsatisfied Goals</color></b> " +
@@ -125,11 +143,16 @@ namespace Planning
 
             s += $"\n<b><color=#FF69B4>Remaining Goals:</color></b> {unsatisfiedGoals.Count}\n";
 
+            s+= $"\n<b><color=#ADFF2F>How we got here:</color></b>\n";
+
+            if (logs != null)
+                s += logs + "\n";
+
             s += "\n<color=#AAAAAA>==================================</color> " +
                  "<b><color=#00FFFF>END ANALYSIS</color></b> " +
                  "<color=#AAAAAA>===================================</color>";
 
-            Log(s);
+            return s;
         }
 
 
@@ -172,40 +195,8 @@ namespace Planning
         public Node GetParent() => parent;
         public List<Predicate> GetUnsatisfiedGoals() => unsatisfiedGoals;
 
-        // ------------------------- TXT Logging -------------------------
-        private void LogToFile(string text)
-        {
-            File.AppendAllText(logPath, text + "\n");
-        }
+ 
 
-        public void PrintToFile()
-        {
-            var sb = new StringBuilder();
 
-            sb.AppendLine("================================== ANALYSIS ====================================");
-            sb.AppendLine($"Depth: {depth}");
-            sb.AppendLine("------------------ Previous Action ----------------- ");
-            if (parent != null && parent.GetAction() != null) sb.AppendLine(parent.GetAction().ToString());
-
-            sb.AppendLine("------------------ Current Action ----------------- ");
-            if (action != null) sb.AppendLine(action.ToString());
-
-            sb.AppendLine("----------------- Current State ------------------- ");
-            if (state != null)
-                sb.AppendLine(state.ToString());
-
-            sb.AppendLine("----------------- Unsatisfied Goals ------------------- ");
-            if (unsatisfiedGoals != null)
-            {
-                foreach (Predicate p in unsatisfiedGoals)
-                    sb.AppendLine(p.ToString());
-            }
-
-            sb.AppendLine($"Remaining Goals: {unsatisfiedGoals.Count}");
-            sb.AppendLine("================================== END ANALYSIS ====================================");
-            sb.AppendLine();
-
-            LogToFile(sb.ToString());
-        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
 
+#if false
 namespace Planning
 {
     public class GroundPlanner
@@ -127,3 +128,4 @@ namespace Planning
         }
     }
 }
+#endif

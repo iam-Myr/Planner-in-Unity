@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
 
+#if false
 namespace Planning
 {
     public class LiftedPlannerr
@@ -230,3 +231,4 @@ namespace Planning
 
     }
 }
+#endif

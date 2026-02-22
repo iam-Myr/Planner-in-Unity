@@ -1133,7 +1133,7 @@ MonoBehaviour:
   MAXSTEPS: 9000000
   observeCooldown: 2
   actionTimeoutWindow: 3
-  debug: 0
+  debug: 1
   doYouLikePlanning: 0
   moveSpeed: 5
   hungerMAX: 100

@@ -18,6 +18,8 @@ namespace SimWorld
             actionName = "MoveTo";
             actionArgs.Add(to);
             actionArgs.Add(from);
+
+            AllDifferent(actionArgs);
         }
 
 
@@ -47,8 +49,8 @@ namespace SimWorld
         {
             return new List<Predicate>
             {
-               SimDomain.isAt.Instantiate(new List <Pointer> {to}, true), // isAt(area)  
-               SimDomain.isAt.Instantiate(new List<Pointer> {from}, false)
+               SimDomain.isAt.Instantiate(new List <Pointer> {to}, true), // is at To 
+               SimDomain.isAt.Instantiate(new List<Pointer> {from}, false) //is not At from
             };
         }
     }

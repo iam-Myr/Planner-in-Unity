@@ -68,8 +68,7 @@ namespace Planning
                     PlanAction grounded = template.CreateNew(newArgs);
 
                     // Only keep actions that satisfy constraints (e.g., AllDifferent)
-                    if (grounded.SatisfiesConstraints())
-                        groundedActions.Add(grounded);
+
                 }
             }
 

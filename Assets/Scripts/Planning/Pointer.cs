@@ -103,6 +103,7 @@ namespace Planning
             {
                bannedList.Add(o);
             }
+            //PrintBanList();
         }
 
         public bool IsBanned(object o)
@@ -207,7 +208,6 @@ namespace Planning
             else
                 cloned = new Pointer(value, type);
 
-            cloned.Name = this.Name; // preserve unique variable name
 
             cloned.bannedList = new List<object>(); // start fresh
             return cloned;

@@ -38,19 +38,13 @@ namespace Planning
             this.Value = value;
         }
 
-        public Predicate Instantiate(List<Pointer> newArgs, bool? v)
-        {
-            Predicate p = new Predicate(Name, Condition, newArgs, v);
-            return p;
-        }
-
 
         public void SetCondition(Func<List<object>, bool> func)
         {
             this.Condition = func;
         }
 
-        public Predicate Instantiate(List<Pointer> newArgs, bool v)
+        public Predicate Instantiate(List<Pointer> newArgs, bool? v)
         {
             return new Predicate(Name, Condition, newArgs, v);
         }
@@ -66,14 +60,42 @@ namespace Planning
             return Condition(argValues);
         }
 
+        public void ApplyBan(List<Predicate> preds)
+        {
+            foreach (Predicate p in preds.Where(IsThreat))
+            {
+                for (int i = 0; i < Args.Count; i++)
+                {
+                    Args[i].Ban(new List<object> { p.Args[i] });
+                }
+            }
+        }
+
         public bool IsInstantiated()
         {
             return Args.All(arg => arg.value != null);
         }
 
+        public bool IsThreat(Predicate other)
+        {
+            // Must have same name
+            if (!this.Name.Equals(other.Name))
+                return false;
+
+            // Must have same number of arguments
+            if (this.Args.Count != other.Args.Count)
+                return false;
+
+            // Both must have a value and be opposite
+            if (!this.Value.HasValue || !other.Value.HasValue)
+                return false;
+
+            return this.Value.Value != other.Value.Value;
+        }
+
         public bool IsOpposite(Predicate other)
         {
-            return EqualsStructure(other) && this.Value != other.Value;
+            return Equals(other) && this.Value != other.Value;
         }
 
         private bool EqualsStructure(Predicate other)
