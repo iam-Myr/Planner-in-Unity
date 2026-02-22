@@ -137,27 +137,11 @@ namespace Planning
             constraints.Add(constraint);
         }
 
-        public void BanThreats(List<Predicate> currentGoals)
+        public void BanThreats(List<Predicate> goalList)
         {
-            foreach (Predicate goal in currentGoals)
+            foreach(Predicate e in effects)
             {
-                foreach (Predicate effect in GetEffects())
-                {
-                    // Only consider negative effects (those that can delete the goal)
-                    if (effect.Name == goal.Name && effect.Value.HasValue && effect.Value != goal.Value)
-                    {
-                        // Only ban the argument if it would unify with the goal argument
-                        for (int i = 0; i < actionArgs.Count; i++)
-                        {
-                            Pointer arg = actionArgs[i];
-                            Pointer goalArg = goal.Args.ElementAtOrDefault(i);
-                            if (goalArg != null && object.Equals(arg.Get(), goalArg.Get()))
-                            {
-                                arg.Ban(new List<object> { goalArg.Get() });
-                            }
-                        }
-                    }
-                }
+                e.ApplyBan(goalList);
             }
         }
 
