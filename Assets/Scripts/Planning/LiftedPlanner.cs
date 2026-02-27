@@ -38,14 +38,16 @@ namespace Planning
 
             int step = 0;
 
+            Debug.Log($"INIT\n {initState.ToString()}");
+
             // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST
-            //PlanAction initAction = new ActionInit(initState.GetPredicates());
-            //allActions.Add(initAction);
+            //allActions.RemoveAll(a => a is ActionInit);
+            //allActions.Add(new ActionInit(initState.GetPredicates()));
 
             while (frontier.Count > 0 && step < maxSteps)
             {
                 // A* ordering
-                frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
+                //frontier.Sort((a, b) => a.GetTotalCost().CompareTo(b.GetTotalCost()));
 
                 Node currentNode = frontier[0];
                 frontier.RemoveAt(0);
@@ -74,10 +76,10 @@ namespace Planning
                     {
                         frontier.Add(child);
                     }
-                }
 
-                visited.Add(currentNode);
-                step++;
+                    visited.Add(currentNode);
+                    step++;
+                }
             }
 
             stopwatch.Stop();
@@ -97,6 +99,11 @@ namespace Planning
             List<Node> children = new List<Node>();
             WorldState currentState = currentNode.GetState();
             List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
+
+            // Sort goals: goals already satisfied by initNode go to the bottom
+            currentGoals = currentGoals
+                .OrderBy(g => initNode.GetState().GetPredicates().Any(f => f.Equals(g))) // true = satisfied by init → goes last
+                .ToList();
 
             // Outer loop: one goal at a time
             foreach (Predicate goal in currentGoals)
@@ -216,13 +223,13 @@ namespace Planning
                         foreach (var kv in originalValues)
                             kv.Key.value = kv.Value;
 
-                        Debug.Log(log);
+                        //Debug.Log(log);
                         return false;
                     }
                 }
 
                 // All goals unified and action constraints satisfied → keep bindings
-                Debug.Log(log);
+                //Debug.Log(log);
                 return true;
             }
             catch

@@ -14,6 +14,7 @@ namespace Planning
         private Predicate goalSatisfied;
         private string logs;
         private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
+
         protected int depth;
 
         // TXT Logger path
@@ -43,7 +44,10 @@ namespace Planning
             this.logs = l;
 
             // Init goals
-            unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
+            unsatisfiedGoals = state
+                .GetPredicates()
+                .Distinct()
+                .ToList();
 
             depth = parent == null ? 0 : parent.depth + 1;
         }
@@ -109,7 +113,8 @@ namespace Planning
             string s = "";
 
             s += "================================== " +
-            $"<b><color=#00FFFF>ANALYSIS - {(action != null ? action.ToString() : "ROOT")}</color></b> " +
+            $"<b><color=#00FFFF>{depth}. {(action != null ? action.ToString() : "ROOT")}</color></b>" +
+            $" - <color=GREY>({(parent != null && parent.GetAction() != null ? parent.GetAction().ToString() : "")}) </color>" +
             "===================================\n";
 
             s += $"\n<b><color=#FFD700>Depth:</color></b> {depth}\n";

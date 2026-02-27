@@ -1130,15 +1130,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ui: {fileID: 1493838710}
-  MAXSTEPS: 9000000
+  MAXSTEPS: 1000
   observeCooldown: 2
   actionTimeoutWindow: 3
   debug: 1
   doYouLikePlanning: 0
   moveSpeed: 5
-  hungerMAX: 100
-  sleepMAX: 50
-  waterMAX: 200
+  hungerMAX: 5
+  sleepMAX: 5
+  waterMAX: 5
   hunger: 0
   sleep: 0
   water: 0

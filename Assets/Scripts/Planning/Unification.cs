@@ -75,7 +75,7 @@ namespace Planning
             }
             else
             {
-                Debug.Log($"<color=YELLOW>Binding pointer {point.Name} to VALUE {x}</color>");
+                //Debug.Log($"<color=YELLOW>Binding pointer {point.Name} to VALUE {x}</color>");
                 point.Set(x); // else set pointer value to x
             }
             return true;
