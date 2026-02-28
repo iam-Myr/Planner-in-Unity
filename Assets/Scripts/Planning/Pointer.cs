@@ -131,21 +131,24 @@ namespace Planning
             return false;
         }
 
-        public void PrintBanList()
-        {
-            string s = "";
-            foreach(object b in bannedList)
-            {
-                s += b.ToString() + ", ";
-            }
-            Debug.Log($"Ban list for {this.Name}: {s}");
-        }
 
         /// Checks if bound to a concrete value
         public bool IsBound() => Get() != null;
 
         /// Checks whether the current value is another Pointer
         public bool IsPointer() => value is Pointer;
+
+        public void BindTo(object other)
+        {
+            if (other is Pointer p)
+            {
+                BindTo(p);
+            }
+            else
+            {
+                Set(other);
+            }
+        }
 
         /// Bind this pointer to another, unifying them
         public void BindTo(Pointer other)
@@ -171,7 +174,11 @@ namespace Planning
             }
             else if (!object.Equals(this.Get(), other.Get()))
             {
-                throw new InvalidOperationException("Conflict during unification: values differ.");
+                throw new InvalidOperationException(
+                    $"Conflict during unification: values differ. " +
+                    $"This value: {this.Get()} (type {this.Get()?.GetType().Name ?? "null"}), " +
+                    $"Other value: {other.Get()} (type {other.Get()?.GetType().Name ?? "null"})"
+                );
             }
         }
 
@@ -199,7 +206,8 @@ namespace Planning
         public bool isSameValue(Pointer p) =>
             object.Equals(this.Get(), p?.Get());
 
-        /// Clone this pointer (preserves variable name)
+
+        /// Clone this pointer 
         public Pointer Clone()
         {
             Pointer cloned;
@@ -209,7 +217,7 @@ namespace Planning
                 cloned = new Pointer(value, type);
 
 
-            cloned.bannedList = new List<object>(); // start fresh
+            cloned.bannedList = new List<object>(this.bannedList);
             return cloned;
         }
 
@@ -219,6 +227,7 @@ namespace Planning
             var val = Get();
             return val != null ? val.ToString() : Name;
         }
+
 
     }
 }

@@ -74,6 +74,8 @@ namespace Planning
             }
         }
 
+
+
         public bool IsInstantiated()
         {
             return Args.All(arg => arg.value != null);
@@ -136,6 +138,23 @@ namespace Planning
             return true;
         }
 
+        public Predicate Clone(Dictionary<Pointer, Pointer> pointerMap = null)
+        {
+            pointerMap ??= new Dictionary<Pointer, Pointer>();
+
+            // Clone the arguments, preserving shared logical variables
+            List<Pointer> clonedArgs = new List<Pointer>();
+            foreach (Pointer arg in this.Args)
+            {
+                if (!pointerMap.ContainsKey(arg))
+                    pointerMap[arg] = arg.Clone(); // deep clone if not mapped yet
+
+                clonedArgs.Add(pointerMap[arg]);
+            }
+
+            // Return new Predicate instance with cloned arguments and same condition & value
+            return new Predicate(this.Name, this.Condition, clonedArgs, this.Value);
+        }
 
         public override bool Equals(object obj)
         {

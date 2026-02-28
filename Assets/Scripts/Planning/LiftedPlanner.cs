@@ -13,7 +13,7 @@ namespace Planning
         private Node initNode;
         private List<Pointer> allPointers { get; }
         private bool debug;
-
+         
         private string report = "";
 
 
@@ -41,8 +41,9 @@ namespace Planning
             Debug.Log($"INIT\n {initState.ToString()}");
 
             // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST
-            //allActions.RemoveAll(a => a is ActionInit);
-            //allActions.Add(new ActionInit(initState.GetPredicates()));
+            allActions.RemoveAll(a => a is ActionInit);
+            allActions.Add(new ActionInit(initState.GetPredicates()));
+            //allActions.Insert(0, new ActionInit(initState.GetPredicates()));
 
             while (frontier.Count > 0 && step < maxSteps)
             {
@@ -56,7 +57,7 @@ namespace Planning
                     Debug.Log($"{currentNode.ToString()}");
 
                 // If the state can Unify with Init and produce a goal
-                if (CanBeGoal(currentNode))
+                if (currentNode.isGoal(initNode))
                 {
                     stopwatch.Stop();
 
@@ -113,30 +114,36 @@ namespace Planning
                 // Middle loop: all actions
                 foreach (PlanAction a in allActions)
                 {
+                    // Deep clone the action BEFORE unification
+                    PlanAction action = a.Clone();
+
+                    // Ban threats
+                    action.BanThreats(currentGoals);
+
                     g += $"Exploring <b><color=LIGHTBLUE> ACTION {a}</color>\n";
                     // Inner loop: all effects of this action
-                    for (int i = 0; i < a.GetEffects().Count; i++)
+                    foreach(Predicate effect in action.GetEffects())
                     {
-                        // Deep clone the action BEFORE unification
-                        PlanAction actionInstance = a.Clone();
+         
+                        g += $" - Exploring effect {effect} of action {action}\n";
 
-                        // Ban threats
-                        actionInstance.BanThreats(currentGoals);
-
-                        Predicate effectInstance = actionInstance.GetEffects()[i];
-
-                        g += $" - Exploring effect {effectInstance} of action {actionInstance}\n";
-
-                        // Try unifying this effect with the current goal
-                        if (Unification.Unify(effectInstance, goal))
+                        // Theta-based UNIFICATION HERE
+                        Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
+                        if (theta != null)
                         {
-                            g += $"    - Effect {effectInstance} unifies with goal {goal}.\n";
-                            g += $"Action <color=GREEN>{actionInstance}</color> is USEFUL for goal {goal}!!!\n";
+                            g += $"    - Effect {effect} unifies with goal {goal}.\n";
+                            // Print theta contents
+                            foreach (var kvp in theta)g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
 
-                            // Create a new child node using this freshly bound action
-                            Node newNode = CreateChildNode(currentNode, currentState, actionInstance, goal, currentGoals, g);
+                            Predicate tempEffect = effect.Clone();
+                            // Apply bindings
+                            Unification.Unify(new List<Predicate> { effect, goal}, theta);
+                            g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
+
+                            Node newNode = CreateChildNode(currentNode, currentState, action, goal, currentGoals, g);
                             children.Add(newNode);
 
+                        
                         }
                     }
                 }
@@ -148,26 +155,26 @@ namespace Planning
         }
 
 
-        public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction actionClone, Predicate goal, List<Predicate> currentGoals, string log)
+        public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction action, Predicate goal, List<Predicate> currentGoals, string log)
         {
             // Start with a copy of the current state
             WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
 
             // Add the preconditions of the action
-            newState.AddPredicates(actionClone.GetPreconditions().ToArray());
+            newState.AddPredicates(action.GetPreconditions().ToArray());
 
             // Remove the current goal
             newState.RemovePredicates(goal);
 
             // Remove effects that are also current goals (except the goal we're regressing)
-            foreach (Predicate effect in actionClone.GetEffects())
+            foreach (Predicate effect in action.GetEffects())
             {
                 if (currentGoals.Contains(effect) && effect != goal)
                     newState.RemovePredicates(effect);
             }
 
             // Create and return the new child node
-            return new Node(currentNode, newState, actionClone, goal, log);
+            return new Node(currentNode, newState, action, goal, log);
         }
 
         private bool CanBeGoal(Node node)
@@ -191,15 +198,18 @@ namespace Planning
 
                     foreach (Predicate fact in initFacts)
                     {
-                        // Trial: save current pointer values
+                        // Save trial pointer values
                         Dictionary<Pointer, object> trialValues = goal.Args
                             .ToDictionary(p => p, p => p.value);
 
                         // Attempt unification
-                        if (Unification.Unify(goal, fact))
+                        Dictionary<Pointer, object> theta = Unification.TryUnify(fact, goal);
+                        if (theta != null)
                         {
+                            // Apply the unification bindings
+                            // Apply bindings
+                            Unification.Unify(new List<Predicate> {goal}, theta);
 
-                            // Success → goal satisfied
                             goalSatisfied = true;
                             log += $"<color=green>Goal {goal} unified with init fact {fact}</color>\n";
 
@@ -207,11 +217,11 @@ namespace Planning
                             foreach (Pointer p in goal.Args)
                                 log += $"    {p} -> {p.Get()}\n";
 
-                            break; // stop trying other facts for this goal
+                            break; // Stop trying other facts for this goal
                         }
                         else
                         {
-                            // Unification failed → restore trial pointer values
+                            // Restore trial pointer values if unification fails
                             foreach (var kv in trialValues)
                                 kv.Key.value = kv.Value;
                         }
@@ -219,22 +229,20 @@ namespace Planning
 
                     if (!goalSatisfied)
                     {
-                        // At least one goal cannot unify → restore all pointers
+                        // Restore all original pointers if at least one goal fails
                         foreach (var kv in originalValues)
                             kv.Key.value = kv.Value;
 
-                        //Debug.Log(log);
                         return false;
                     }
                 }
 
-                // All goals unified and action constraints satisfied → keep bindings
-                //Debug.Log(log);
+                // All goals unified → keep bindings
                 return true;
             }
             catch
             {
-                // On exception, restore original pointer values
+                // Restore all original pointers in case of exception
                 foreach (var kv in originalValues)
                     kv.Key.value = kv.Value;
                 throw;

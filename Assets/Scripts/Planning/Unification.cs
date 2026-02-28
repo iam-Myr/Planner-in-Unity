@@ -2,6 +2,8 @@
 using SysDiag = System.Diagnostics;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Drawing;
+using System.Linq;
 
 
 namespace Planning
@@ -9,76 +11,93 @@ namespace Planning
     public static class Unification
     {
 
-        public static bool Unify(object x, object y)//, List<object> banned_x, List<object> banned_y)
+        public static Dictionary<Pointer, object> TryUnify(Predicate p1, Predicate p2)
+        {
+            Dictionary<Pointer, object> theta = new Dictionary<Pointer, object>();
+            return TryUnifyInternal(p1, p2, theta);
+        }
+
+        private static Dictionary<Pointer, object> TryUnifyInternal(object x, object y, Dictionary<Pointer, object> theta)//, List<object> banned_x, List<object> banned_y)
         {
             // Both null or same value
-            if (x == null && y == null) return true;
-            if (x == null || y == null) return false;
+            if (x == null && y == null) return theta;
+            if (x == null || y == null) return null;
 
             // If they are both equal primitive values
-            if (x.Equals(y)) return true;
+            if (x.Equals(y)) return theta;
 
             // VARIABLE?(x) y needs to be valid
-            if (x is Pointer px) return Unify_Pointer(px, y);
+            if (x is Pointer px) return TryUnifyPointer(px, y, theta);
 
             // VARIABLE?(y) x needs to be valid
-            if (y is Pointer py) return Unify_Pointer(py, x);
+            if (y is Pointer py) return TryUnifyPointer(py, x, theta);
 
             // COMPOUND?(x) and COMPOUND?(y)
             if (x is Predicate p1 && y is Predicate p2)
             {
                 // if different names, arg countss, polarities -> fail
                 if (!(p1.Name.Equals(p2.Name)) || (p1.Args.Count != p2.Args.Count))
-                    return false;
+                    return null;
 
                 if (p1.Value.HasValue && p2.Value.HasValue &&
                     p1.Value.Value != p2.Value.Value)
-                    return false;
+                    return null;
 
                 // unify arguments recursively
                 for (int i = 0; i < p1.Args.Count; i++)
                 {
-                    if (!Unify(p1.Args[i], p2.Args[i]))
-                        return false;
+                    if (TryUnifyInternal(p1.Args[i], p2.Args[i], theta) == null)
+                        return null;
                 }
 
-                
+
                 //Debug.Log("Unified predicates: " + p1.ToString() + " and " + p2.ToString());
-                return true;
+                return theta;
             }
 
             // Failure
-            return false;
+            return null;
         }
 
-        private static bool Unify_Pointer(Pointer point, object x)
+        private static Dictionary<Pointer, object> TryUnifyPointer(Pointer point, object x, Dictionary<Pointer, object> theta)
         {
             // if var already bound -> try unify its value with x
-            if (point.IsBound()) return Unify(point.Get(), x);
+            if (point.IsBound()) return TryUnifyInternal(point.Get(), x, theta);
 
             // if x is a pointer already bound -> try unify point with x's value
-            if (x is Pointer px && px.IsBound()) return Unify(point, px.Get());
+            if (x is Pointer px && px.IsBound()) return TryUnifyInternal(point, px.Get(), theta);
 
             // BAN CHECK
             //point.PrintBanList();
             //Debug.Log($"Is {x} banned?");
             if (point.IsBanned(x))
-                return false;
+                return null;
 
-            // if point not bound, bind to x (either to pointer or to value)
-            // THIS IS WHERE BINDING HAPPENS
-            // EITHER BIND TO POINTER OR VALUE
-            if (x is Pointer p)
-            { // and x is valid 
-                //Debug.Log($"<color=ORANGE>Binding pointer {point.Name} to POINTER {p.Name}</color>");
-                point.BindTo(p); //if x is an unbound pointer, bind to it
-            }
-            else
+            if (!theta.ContainsKey(point))
             {
-                //Debug.Log($"<color=YELLOW>Binding pointer {point.Name} to VALUE {x}</color>");
-                point.Set(x); // else set pointer value to x
+                theta[point] = x;
             }
-            return true;
+            return theta;
+        }
+
+        public static void Unify(List<Predicate> preds, Dictionary<Pointer, object> theta)
+        {
+            if (theta == null) return;
+
+            foreach (Predicate pred in preds)
+            {
+                foreach (Pointer arg in pred.Args)
+                {
+                    // Only proceed if the pointer exists in theta
+                    if (theta.TryGetValue(arg, out object x))
+                    {
+                        arg.BindTo(x); 
+                      
+                    }
+                    // else: skip pointers not in theta
+                }
+            }
         }
     }
+    
 }
