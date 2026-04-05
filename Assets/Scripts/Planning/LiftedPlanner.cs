@@ -1,6 +1,7 @@
 ﻿using Planning;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using SysDiag = System.Diagnostics;
 
@@ -38,12 +39,11 @@ namespace Planning
 
             int step = 0;
 
-            Debug.Log($"INIT\n {initState.ToString()}");
+            // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST 
+            //PlanAction initAction = new ActionInit(initState.GetPredicates()); 
+            //allActions.Add(initAction);
 
-            // CREATE DUMMY INIT ACTION AND ADD IT TO ACTION LIST
-            allActions.RemoveAll(a => a is ActionInit);
-            allActions.Add(new ActionInit(initState.GetPredicates()));
-            //allActions.Insert(0, new ActionInit(initState.GetPredicates()));
+            Debug.Log($"INIT\n {initState.ToString()}");
 
             while (frontier.Count > 0 && step < maxSteps)
             {
@@ -57,7 +57,7 @@ namespace Planning
                     Debug.Log($"{currentNode.ToString()}");
 
                 // If the state can Unify with Init and produce a goal
-                if (currentNode.isGoal(initNode))
+                if (CanBeGoal(currentNode))
                 {
                     stopwatch.Stop();
 
@@ -107,25 +107,38 @@ namespace Planning
                 .ToList();
 
             // Outer loop: one goal at a time
-            foreach (Predicate goal in currentGoals)
+            for (int i = 0; i < currentGoals.Count(); i++)
             {
-                string g = $"GOAL: <b><color=PURPLE> GOAL {goal}</color></b>.\n";
+                string g = $"GOAL: <b><color=PURPLE> GOAL {currentGoals[i]}</color></b>.\n";
 
                 // Middle loop: all actions
                 foreach (PlanAction a in allActions)
                 {
-                    // Deep clone the action BEFORE unification
-                    PlanAction action = a.Clone();
-
-                    // Ban threats
-                    action.BanThreats(currentGoals);
+                
 
                     g += $"Exploring <b><color=LIGHTBLUE> ACTION {a}</color>\n";
                     // Inner loop: all effects of this action
-                    foreach(Predicate effect in action.GetEffects())
+                    for (int j = 0; j < a.GetEffects().Count(); j++)
                     {
-         
+                        Dictionary<Pointer, Pointer> pointerMap = new Dictionary<Pointer, Pointer>();
+
+                        // CLONE ACTION
+                        PlanAction action = a.Clone(pointerMap);
+
+                        // Ban threats
+                        action.BanThreats(currentGoals);
+
+                        // GET CLONED EFFECT
+                        Predicate effect = action.GetEffects().ElementAt(j);
+
                         g += $" - Exploring effect {effect} of action {action}\n";
+
+                        // CLONE GOAL LIST
+                        List<Predicate> clonedGoals = currentGoals
+                            .Select(g => g.Clone(pointerMap))
+                            .ToList();
+
+                        Predicate goal = clonedGoals[i];
 
                         // Theta-based UNIFICATION HERE
                         Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
@@ -135,12 +148,12 @@ namespace Planning
                             // Print theta contents
                             foreach (var kvp in theta)g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
 
-                            Predicate tempEffect = effect.Clone();
+                            
                             // Apply bindings
                             Unification.Unify(new List<Predicate> { effect, goal}, theta);
                             g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
 
-                            Node newNode = CreateChildNode(currentNode, currentState, action, goal, currentGoals, g);
+                            Node newNode = CreateChildNode(currentNode, currentState, action, goal, clonedGoals, g);
                             children.Add(newNode);
 
                         
@@ -158,7 +171,7 @@ namespace Planning
         public Node CreateChildNode(Node currentNode, WorldState currentState, PlanAction action, Predicate goal, List<Predicate> currentGoals, string log)
         {
             // Start with a copy of the current state
-            WorldState newState = new WorldState().AddPredicates(currentState.GetPredicates().ToArray());
+            WorldState newState = new WorldState().AddPredicates(currentGoals.ToArray());
 
             // Add the preconditions of the action
             newState.AddPredicates(action.GetPreconditions().ToArray());
@@ -182,7 +195,7 @@ namespace Planning
             List<Predicate> goals = node.GetUnsatisfiedGoals();
             List<Predicate> initFacts = initNode.GetState().GetPredicates();
 
-            string log = $"<b><color=purple>Checking if node can be goal:</color></b>\n";
+            string log = $"<b><color=purple>- CanBeGoal -</color></b>\n";
 
             // Save original pointer values to restore if trial fails
             Dictionary<Pointer, object> originalValues = goals
@@ -206,13 +219,14 @@ namespace Planning
                         Dictionary<Pointer, object> theta = Unification.TryUnify(fact, goal);
                         if (theta != null)
                         {
+                            log += $"<color=green>Goal {goal} unified with init fact {fact}</color>\n";
+
                             // Apply the unification bindings
                             // Apply bindings
                             Unification.Unify(new List<Predicate> {goal}, theta);
 
                             goalSatisfied = true;
-                            log += $"<color=green>Goal {goal} unified with init fact {fact}</color>\n";
-
+                            
                             // Log pointer bindings
                             foreach (Pointer p in goal.Args)
                                 log += $"    {p} -> {p.Get()}\n";
@@ -236,6 +250,10 @@ namespace Planning
                         return false;
                     }
                 }
+
+                // All goals unified → keep bindings
+                if (debug)
+                    Debug.Log(log);
 
                 // All goals unified → keep bindings
                 return true;

@@ -203,32 +203,32 @@ namespace Planning
         }
 
 
-        public virtual PlanAction Clone()
+        public virtual PlanAction Clone(Dictionary<Pointer, Pointer> pointerMap = null)
         {
+            // If no map is provided, create a new one
+            pointerMap ??= new Dictionary<Pointer, Pointer>();
+
             // Create a new instance of the same action type
             PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
 
-            // Map original pointers to cloned pointers to preserve shared logical variables
-            Dictionary<Pointer, Pointer> pointerMap = new Dictionary<Pointer, Pointer>();
-
-            // Clone action arguments
+            // Clone action arguments using the map
             clone.actionArgs = this.actionArgs.Select(arg =>
             {
                 if (!pointerMap.ContainsKey(arg))
-                    pointerMap[arg] = arg.Clone();
+                    pointerMap[arg] = arg.Clone(pointerMap); // deep clone pointer if not already cloned
                 return pointerMap[arg];
             }).ToList();
 
-            // Clone preconditions using the Predicate.Clone(pointerMap)
+            // Clone preconditions using the same pointer map
             clone.preconditions = this.preconditions.Select(pre => pre.Clone(pointerMap)).ToList();
 
-            // Clone effects using the Predicate.Clone(pointerMap)
+            // Clone effects using the same pointer map
             clone.effects = this.effects.Select(eff => eff.Clone(pointerMap)).ToList();
 
             // Clone constraints
             clone.constraints = new List<Func<List<Pointer>, bool>>(this.constraints);
 
-            // Copy action name, duration, executable
+            // Copy other properties
             clone.actionName = this.actionName;
             clone.durationEstimate = this.durationEstimate;
             clone.executable = this.executable;
@@ -244,9 +244,8 @@ namespace Planning
 
     }
 
-
- public class ActionInit : PlanAction
-        {
+    public class ActionInit : PlanAction
+    {
 
         private List<Predicate> initEffects;
         public ActionInit() { }
@@ -255,22 +254,24 @@ namespace Planning
             actionName = "Init";
             this.initEffects = initEffects;
 
+            Dictionary<Pointer, Pointer>  pointerMap = new Dictionary<Pointer, Pointer>();
+
             // Manually populate base effects list
             this.effects = initEffects
-                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone()).ToList(), p.Value ?? false))
+                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone(pointerMap)).ToList(), p.Value ?? false))
                 .ToList();
         }
 
-        public override PlanAction CreateNew(List<Pointer> args) 
-            {
-                return this; // Init action is a singleton with no arguments
+        public override PlanAction CreateNew(List<Pointer> args)
+        {
+            return this; // Init action is a singleton with no arguments
         }
 
-            #region Preconditions
-            public override List<Predicate> InitPreconditions()
-            {
-                return new List<Predicate>{};
-            }
+        #region Preconditions
+        public override List<Predicate> InitPreconditions()
+        {
+            return new List<Predicate> { };
+        }
         #endregion
 
         #region Effects
@@ -280,6 +281,7 @@ namespace Planning
         }
         #endregion
     }
-    
+
+
 
 }

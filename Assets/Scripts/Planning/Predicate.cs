@@ -64,7 +64,7 @@ namespace Planning
         {
             foreach (Predicate p in preds.Where(IsThreat))
             {
-                if (AllButOneInstantiated())
+                if (Args.Count(arg => arg.IsBound()) == Args.Count - 1) // All but one instantiated
                 {
                     for (int i = 0; i < Args.Count; i++)
                     {
@@ -103,10 +103,6 @@ namespace Planning
             return Equals(other) && this.Value != other.Value;
         }
 
-        public bool AllButOneInstantiated()
-        {
-            return Args.Count(arg => arg.IsBound()) == Args.Count - 1;
-        }
 
         private bool EqualsStructure(Predicate other)
         {
@@ -142,17 +138,13 @@ namespace Planning
         {
             pointerMap ??= new Dictionary<Pointer, Pointer>();
 
-            // Clone the arguments, preserving shared logical variables
             List<Pointer> clonedArgs = new List<Pointer>();
+
             foreach (Pointer arg in this.Args)
             {
-                if (!pointerMap.ContainsKey(arg))
-                    pointerMap[arg] = arg.Clone(); // deep clone if not mapped yet
-
-                clonedArgs.Add(pointerMap[arg]);
+                clonedArgs.Add(arg.Clone(pointerMap));
             }
 
-            // Return new Predicate instance with cloned arguments and same condition & value
             return new Predicate(this.Name, this.Condition, clonedArgs, this.Value);
         }
 
