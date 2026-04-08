@@ -212,29 +212,51 @@ namespace Planning
             Dictionary<Pointer, Pointer> pointerMap = new Dictionary<Pointer, Pointer>();
 
             // Clone action arguments
-            clone.actionArgs = this.actionArgs.Select(arg =>
+            clone.actionArgs = new List<Pointer>();
+            foreach (Pointer arg in this.actionArgs)
             {
-                if (!pointerMap.ContainsKey(arg))
-                    pointerMap[arg] = arg.Clone();
-                return pointerMap[arg];
-            }).ToList();
+                Pointer clonedArg = arg.Clone();
+                pointerMap[arg] = clonedArg;
+                clone.actionArgs.Add(clonedArg);
+            }
 
-            // Clone preconditions using the Predicate.Clone(pointerMap)
-            clone.preconditions = this.preconditions.Select(pre => pre.Clone(pointerMap)).ToList();
+            clone.AllDifferent(clone.actionArgs);
 
-            // Clone effects using the Predicate.Clone(pointerMap)
-            clone.effects = this.effects.Select(eff => eff.Clone(pointerMap)).ToList();
+            // Clone preconditions
+            clone.preconditions = new List<Predicate>();
+            foreach (Predicate pre in this.preconditions)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in pre.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.preconditions.Add(new Predicate(pre.Name, pre.Condition, clonedArgs, pre.Value ?? false));
+            }
+
+            // Clone effects
+            clone.effects = new List<Predicate>();
+            foreach (Predicate eff in this.effects)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in eff.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.effects.Add(new Predicate(eff.Name, eff.Condition, clonedArgs, eff.Value ?? false));
+            }
 
             // Clone constraints
             clone.constraints = new List<Func<List<Pointer>, bool>>(this.constraints);
 
-            // Copy action name, duration, executable
+            // Copy other action properties
             clone.actionName = this.actionName;
             clone.durationEstimate = this.durationEstimate;
             clone.executable = this.executable;
-
-            // Reapply AllDifferent to cloned arguments so banned lists are correct
-            clone.AllDifferent(clone.actionArgs);
 
             return clone;
         }
