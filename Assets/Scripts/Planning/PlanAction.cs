@@ -203,38 +203,60 @@ namespace Planning
         }
 
 
-        public virtual PlanAction Clone(Dictionary<Pointer, Pointer> pointerMap = null)
+        public virtual PlanAction Clone()
         {
-            // If no map is provided, create a new one
-            pointerMap ??= new Dictionary<Pointer, Pointer>();
-
             // Create a new instance of the same action type
             PlanAction clone = (PlanAction)Activator.CreateInstance(this.GetType());
 
-            // Clone action arguments using the map
-            clone.actionArgs = this.actionArgs.Select(arg =>
+            // Map original pointers to cloned pointers to preserve shared logical variables
+            Dictionary<Pointer, Pointer> pointerMap = new Dictionary<Pointer, Pointer>();
+
+            // Clone action arguments
+            clone.actionArgs = new List<Pointer>();
+            foreach (Pointer arg in this.actionArgs)
             {
-                if (!pointerMap.ContainsKey(arg))
-                    pointerMap[arg] = arg.Clone(pointerMap); // deep clone pointer if not already cloned
-                return pointerMap[arg];
-            }).ToList();
+                Pointer clonedArg = arg.Clone();
+                pointerMap[arg] = clonedArg;
+                clone.actionArgs.Add(clonedArg);
+            }
 
-            // Clone preconditions using the same pointer map
-            clone.preconditions = this.preconditions.Select(pre => pre.Clone(pointerMap)).ToList();
+            clone.AllDifferent(clone.actionArgs);
 
-            // Clone effects using the same pointer map
-            clone.effects = this.effects.Select(eff => eff.Clone(pointerMap)).ToList();
+            // Clone preconditions
+            clone.preconditions = new List<Predicate>();
+            foreach (Predicate pre in this.preconditions)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in pre.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.preconditions.Add(new Predicate(pre.Name, pre.Condition, clonedArgs, pre.Value ?? false));
+            }
+
+            // Clone effects
+            clone.effects = new List<Predicate>();
+            foreach (Predicate eff in this.effects)
+            {
+                List<Pointer> clonedArgs = new List<Pointer>();
+                foreach (Pointer arg in eff.Args)
+                {
+                    if (!pointerMap.ContainsKey(arg))
+                        pointerMap[arg] = arg.Clone();
+                    clonedArgs.Add(pointerMap[arg]);
+                }
+                clone.effects.Add(new Predicate(eff.Name, eff.Condition, clonedArgs, eff.Value ?? false));
+            }
 
             // Clone constraints
             clone.constraints = new List<Func<List<Pointer>, bool>>(this.constraints);
 
-            // Copy other properties
+            // Copy other action properties
             clone.actionName = this.actionName;
             clone.durationEstimate = this.durationEstimate;
             clone.executable = this.executable;
-
-            // Reapply AllDifferent to cloned arguments so banned lists are correct
-            clone.AllDifferent(clone.actionArgs);
 
             return clone;
         }
@@ -244,8 +266,9 @@ namespace Planning
 
     }
 
-    public class ActionInit : PlanAction
-    {
+
+ public class ActionInit : PlanAction
+        {
 
         private List<Predicate> initEffects;
         public ActionInit() { }
@@ -254,24 +277,22 @@ namespace Planning
             actionName = "Init";
             this.initEffects = initEffects;
 
-            Dictionary<Pointer, Pointer>  pointerMap = new Dictionary<Pointer, Pointer>();
-
             // Manually populate base effects list
             this.effects = initEffects
-                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone(pointerMap)).ToList(), p.Value ?? false))
+                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone()).ToList(), p.Value ?? false))
                 .ToList();
         }
 
-        public override PlanAction CreateNew(List<Pointer> args)
-        {
-            return this; // Init action is a singleton with no arguments
+        public override PlanAction CreateNew(List<Pointer> args) 
+            {
+                return this; // Init action is a singleton with no arguments
         }
 
-        #region Preconditions
-        public override List<Predicate> InitPreconditions()
-        {
-            return new List<Predicate> { };
-        }
+            #region Preconditions
+            public override List<Predicate> InitPreconditions()
+            {
+                return new List<Predicate>{};
+            }
         #endregion
 
         #region Effects
@@ -281,7 +302,6 @@ namespace Planning
         }
         #endregion
     }
-
-
+    
 
 }

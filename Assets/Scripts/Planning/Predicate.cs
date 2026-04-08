@@ -64,7 +64,7 @@ namespace Planning
         {
             foreach (Predicate p in preds.Where(IsThreat))
             {
-                if (Args.Count(arg => arg.IsBound()) == Args.Count - 1) // All but one instantiated
+                if (AllButOneInstantiated())
                 {
                     for (int i = 0; i < Args.Count; i++)
                     {
@@ -103,6 +103,10 @@ namespace Planning
             return Equals(other) && this.Value != other.Value;
         }
 
+        public bool AllButOneInstantiated()
+        {
+            return Args.Count(arg => arg.IsBound()) == Args.Count - 1;
+        }
 
         private bool EqualsStructure(Predicate other)
         {
@@ -134,18 +138,21 @@ namespace Planning
             return true;
         }
 
-        public Predicate Clone(Dictionary<Pointer, Pointer> pointerMap = null)
+        public Predicate Clone()
         {
-            pointerMap ??= new Dictionary<Pointer, Pointer>();
+            Predicate clone =  new Predicate(this.Name, this.Condition, this.Args, this.Value);
+            return clone;
+        }
 
-            List<Pointer> clonedArgs = new List<Pointer>();
-
-            foreach (Pointer arg in this.Args)
+        public static List<Predicate> CloneList(List<Predicate> predicates)
+        {
+            List<Predicate> clonedList = new List<Predicate>();
+            foreach (Predicate p in predicates)
             {
-                clonedArgs.Add(arg.Clone(pointerMap));
+                clonedList.Add(p.Clone());
             }
 
-            return new Predicate(this.Name, this.Condition, clonedArgs, this.Value);
+            return clonedList;
         }
 
         public override bool Equals(object obj)
