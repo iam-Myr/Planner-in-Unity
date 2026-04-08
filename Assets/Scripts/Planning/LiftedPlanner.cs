@@ -39,8 +39,8 @@ namespace Planning
             Debug.Log($"INIT\n {initState}");
 
             // CREATE DUMMY INIT ACTION
-            //allActions.RemoveAll(a => a is ActionInit);
-            //allActions.Add(new ActionInit(initState.GetPredicates()));
+            allActions.RemoveAll(a => a is ActionInit);
+            allActions.Add(new ActionInit(initState.GetPredicates()));
 
             while (frontier.Count > 0 && step < maxSteps)
             {
@@ -50,7 +50,7 @@ namespace Planning
                 if (debug)
                     Debug.Log($"{currentNode.ToString()}");
 
-                if (CanBeGoal(currentNode))
+                if (currentNode.isGoal(initNode))
                 {
                     stopwatch.Stop();
 
@@ -174,25 +174,7 @@ namespace Planning
             newState.AddPredicates(action.GetPreconditions().ToArray());
             newState.RemovePredicates(goal);
 
-            foreach (Predicate effect in action.GetEffects())
-            {
-                foreach (Predicate otherGoal in currentGoals)
-                {
-                    if (otherGoal.Equals(goal))
-                        continue;
-
-                    var theta = Unification.TryUnify(effect, otherGoal);
-
-                    if (theta != null)
-                    {
-                        Unification.Unify(new List<Predicate> { otherGoal }, theta);
-                        newState.RemovePredicates(otherGoal);
-
-                        if (debug)
-                            Debug.Log($"Action {action} also satisfies goal {otherGoal}");
-                    }
-                }
-            }
+            // REMOVE OTHER GOALS
 
             return new Node(currentNode, newState, action, goal, log);
         }

@@ -138,22 +138,21 @@ namespace Planning
             return true;
         }
 
-        public Predicate Clone(Dictionary<Pointer, Pointer> pointerMap = null)
+        public Predicate Clone()
         {
-            pointerMap ??= new Dictionary<Pointer, Pointer>();
+            Predicate clone =  new Predicate(this.Name, this.Condition, this.Args, this.Value);
+            return clone;
+        }
 
-            // Clone the arguments, preserving shared logical variables
-            List<Pointer> clonedArgs = new List<Pointer>();
-            foreach (Pointer arg in this.Args)
+        public static List<Predicate> CloneList(List<Predicate> predicates)
+        {
+            List<Predicate> clonedList = new List<Predicate>();
+            foreach (Predicate p in predicates)
             {
-                if (!pointerMap.ContainsKey(arg))
-                    pointerMap[arg] = arg.Clone(); // deep clone if not mapped yet
-
-                clonedArgs.Add(pointerMap[arg]);
+                clonedList.Add(p.Clone());
             }
 
-            // Return new Predicate instance with cloned arguments and same condition & value
-            return new Predicate(this.Name, this.Condition, clonedArgs, this.Value);
+            return clonedList;
         }
 
         public override bool Equals(object obj)
