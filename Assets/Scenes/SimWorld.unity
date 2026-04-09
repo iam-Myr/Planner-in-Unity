@@ -1136,9 +1136,9 @@ MonoBehaviour:
   debug: 1
   doYouLikePlanning: 0
   moveSpeed: 5
-  hungerMAX: 5
-  sleepMAX: 5
-  waterMAX: 5
+  hungerMAX: 100
+  sleepMAX: 120
+  waterMAX: 50
   hunger: 0
   sleep: 0
   water: 0

@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ui: {fileID: 1515174798}
-  MAXSTEPS: 500
+  MAXSTEPS: 100
   observeCooldown: 2
   actionTimeoutWindow: 3
   debug: 1

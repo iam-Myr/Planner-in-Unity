@@ -211,13 +211,25 @@ namespace Planning
         public Pointer Clone()
         {
             Pointer cloned;
+
             if (value is Pointer p)
-                cloned = new Pointer(p.Clone(), type);
+            {
+                // Create a new unbound Pointer with the same type
+                cloned = new Pointer(type);
+                // Manually assign its value to the cloned child pointer
+                cloned.value = p.Clone();
+            }
             else
+            {
+                // Value is concrete, safe to pass to constructor
                 cloned = new Pointer(value, type);
+            }
 
-
+            // Copy banned list
             cloned.bannedList = new List<object>(this.bannedList);
+
+            cloned.Name += "_" + Name; // Append original name for better debugging
+
             return cloned;
         }
 

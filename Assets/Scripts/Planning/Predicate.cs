@@ -140,8 +140,10 @@ namespace Planning
 
         public Predicate Clone()
         {
-            Predicate clone =  new Predicate(this.Name, this.Condition, this.Args, this.Value);
-            return clone;
+            // List<Pointer> clonedArgs = Args.Select(arg => arg.Clone()).ToList(); // New container + copy of everything in old container
+
+            List<Pointer> clonedArgs = new List<Pointer>(Args);
+            return new Predicate(Name, Condition, clonedArgs, Value ?? false);
         }
 
         public static List<Predicate> CloneList(List<Predicate> predicates)

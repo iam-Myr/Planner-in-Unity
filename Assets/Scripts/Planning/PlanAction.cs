@@ -269,18 +269,12 @@ namespace Planning
 
  public class ActionInit : PlanAction
         {
-
-        private List<Predicate> initEffects;
         public ActionInit() { }
         public ActionInit(List<Predicate> initEffects)
         {
             actionName = "Init";
-            this.initEffects = initEffects;
-
             // Manually populate base effects list
-            this.effects = initEffects
-                .Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone()).ToList(), p.Value ?? false))
-                .ToList();
+            effects = Predicate.CloneList(initEffects);
         }
 
         public override PlanAction CreateNew(List<Pointer> args) 
@@ -301,6 +295,13 @@ namespace Planning
             return effects;
         }
         #endregion
+
+        public override PlanAction Clone()
+{
+    return new ActionInit(
+        this.effects.Select(p => new Predicate(p.Name, p.Condition, p.Args.Select(a => a.Clone()).ToList(), p.Value ?? false)).ToList()
+    );
+}
     }
     
 

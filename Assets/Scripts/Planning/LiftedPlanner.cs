@@ -50,7 +50,7 @@ namespace Planning
                 if (debug)
                     Debug.Log($"{currentNode.ToString()}");
 
-                if (currentNode.isGoal(initNode))
+                if (CanBeGoal(currentNode))
                 {
                     stopwatch.Stop();
 
@@ -116,6 +116,7 @@ namespace Planning
                     // Inner loop: all effects of this action
                     for (int j = 0; j < a.GetEffects().Count(); j++)
                     {
+
                         // CLONE GOAL LIST
                         List<Predicate> clonedGoals = Predicate.CloneList(currentGoals);
                                                                     // Get Cloned goal
@@ -154,7 +155,7 @@ namespace Planning
                 }
 
                 // Per goal log
-                // Debug.Log(g);
+                Debug.Log(g);
             }
 
             return children;
@@ -172,9 +173,15 @@ namespace Planning
                 .AddPredicates(currentState.GetPredicates().ToArray());
 
             newState.AddPredicates(action.GetPreconditions().ToArray());
-            newState.RemovePredicates(goal);
+            //newState.RemovePredicates(goal);
 
-            // REMOVE OTHER GOALS
+            // REMOVE GOAL &  OTHER GOALS
+
+            foreach (Predicate effect in action.GetEffects())
+            {
+                if (currentGoals.Contains(effect))
+                    newState.RemovePredicates(effect);
+            }
 
             return new Node(currentNode, newState, action, goal, log);
         }
