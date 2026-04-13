@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
 using SysDiag = System.Diagnostics;
 
 namespace Planning
 {
     public class LiftedPlanner
     {
-        private List<PlanAction> allActions;
-        private List<Node> frontier = new List<Node>();
-        private Node initNode;
+        private List<PlanAction> ActionTemplatesList;
+        private List<LiftedNode> frontier = new List<LiftedNode>();
+        private LiftedNode initNode;
         private List<Pointer> allPointers { get; }
         private bool debug;
         private string report = "";
@@ -18,18 +19,18 @@ namespace Planning
         public LiftedPlanner(List<PlanAction> allActions, List<Pointer> allPointers, bool debug)
         {
             Debug.Log("Planner initialized");
-            this.allActions = allActions;
+            this.ActionTemplatesList = allActions;
             this.allPointers = allPointers;
             this.debug = debug;
         }
 
         public PlanResult MakePlan(WorldState initState, WorldState goalState, int maxSteps)
         {
-            List<Node> visited = new List<Node>();
+            List<LiftedNode> visited = new List<LiftedNode>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
-            initNode = new Node(initState);
-            Node rootNode = new Node(goalState);
+            initNode = new LiftedNode(initState.GetPredicates());
+            LiftedNode rootNode = new LiftedNode(goalState.GetPredicates());
 
             frontier.Clear();
             frontier.Add(rootNode);
@@ -39,18 +40,18 @@ namespace Planning
             Debug.Log($"INIT\n {initState}");
 
             // CREATE DUMMY INIT ACTION
-            allActions.RemoveAll(a => a is ActionInit);
-            allActions.Add(new ActionInit(initState.GetPredicates()));
+            ActionTemplatesList.RemoveAll(a => a is ActionInit);
+            ActionTemplatesList.Add(new ActionInit(initState.GetPredicates()));
 
             while (frontier.Count > 0 && step < maxSteps)
             {
-                Node currentNode = frontier[0];
+                LiftedNode currentNode = frontier[0];
                 frontier.RemoveAt(0);
 
                 if (debug)
                     Debug.Log($"{currentNode.ToString()}");
 
-                if (currentNode.isGoal(initNode))
+                if (CanBeGoal(currentNode))
                 {
                     stopwatch.Stop();
 
@@ -60,7 +61,7 @@ namespace Planning
                     Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
 
                     return new PlanResult(
-                        ReconstructPlan(currentNode),
+                        currentNode.GetPlan(),
                         stopwatch.ElapsedMilliseconds,
                         step,
                         currentNode.GetDepth()
@@ -69,9 +70,9 @@ namespace Planning
 
                 if (!IsLoop(currentNode, visited))
                 {
-                    List<Node> children = FindChildren(currentNode);
+                    List<LiftedNode> children = FindChildren(currentNode); // Infinite loop here :<
 
-                    foreach (Node child in children)
+                    foreach (LiftedNode child in children)
                         frontier.Add(child);
 
                     visited.Add(currentNode);
@@ -83,18 +84,102 @@ namespace Planning
             return null;
         }
 
-        private bool IsLoop(Node node, List<Node> visited)
+        private bool IsLoop(LiftedNode node, List<LiftedNode> visited)
         {
-            foreach (Node n in visited)
-                if (n.HasSameGoals(node))
+            foreach (LiftedNode n in visited)
+                if (n.isSame(node))
                     return true;
 
             return false;
         }
 
-        private List<Node> FindChildren(Node currentNode)
+
+        private List<LiftedNode> FindChildren(LiftedNode node)
         {
-            List<Node> children = new List<Node>();
+            List<LiftedNode> children = new List<LiftedNode>();
+
+
+
+            // Sort goals: goals already satisfied by initNode go to the bottom
+            //
+
+            // For every goal in goal list
+            for (int i = 0; i < node.GetUnsatGoals().Count(); i++)
+            {
+                string g = $"GOAL: <b><color=PURPLE> GOAL {node.GetUnsatGoals()[i]}</color></b>.\n";
+
+                // For every action template in actionList
+                foreach (PlanAction actionTemplate in ActionTemplatesList)
+                {
+
+                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {actionTemplate}</color>\n";
+                    // For every effect of this action
+                    for (int j = 0; j < actionTemplate.GetEffects().Count(); j++)
+                    {
+
+                        LiftedNode currentNode = node.Clone();
+
+                        // CLONE GOAL LIST
+                        List<Predicate> clonedGoals = currentNode.GetUnsatGoals();
+ 
+                        // CLONE ACTION
+                        PlanAction action = actionTemplate.Clone();
+
+                        // Ban threats
+                        action.BanThreats(clonedGoals);
+
+                        // GET CLONED EFFECT
+                        Predicate effect = action.GetEffects().ElementAt(j);
+
+                        // Get Cloned goal
+                        Predicate goal = clonedGoals.ElementAt(i);
+
+                        g += $" - Exploring effect {effect} of action {action}\n";
+
+                        // Theta-based UNIFICATION HERE
+                        Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
+                        if (theta != null) // Unification succeded!
+                        {
+                            g += $"    - Effect {effect} unifies with goal {goal}.\n";
+                            // Print theta contents
+                            foreach (var kvp in theta) g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
+
+
+                            // Apply bindings
+                            Unification.Unify(new List<Predicate> { effect, goal }, theta);
+                            g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
+
+                            // Add action to plan
+                            currentNode.AddToPlan(action);
+
+                            // Add goal to node
+                            currentNode.SetGoal(goal);
+
+                            // Remove Goals (og and others sat)
+                            currentNode.RemoveGoals(action.GetEffects());
+
+                            // Add preconditions as new goals
+                            currentNode.AddGoals(action.GetPreconditions());
+
+                            // Add to child list :)
+                            children.Add(currentNode);
+                        }
+                    }
+                }
+
+                // Per goal log
+                Debug.Log(g);
+            }
+
+            return children;
+        }
+
+
+        /*
+
+        private List<GroundNode> FindChildren(GroundNode currentNode)
+        {
+            List<GroundNode> children = new List<GroundNode>();
             WorldState currentState = currentNode.GetState();
             List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
 
@@ -116,6 +201,7 @@ namespace Planning
                     // Inner loop: all effects of this action
                     for (int j = 0; j < a.GetEffects().Count(); j++)
                     {
+
                         // CLONE GOAL LIST
                         List<Predicate> clonedGoals = Predicate.CloneList(currentGoals);
                                                                     // Get Cloned goal
@@ -145,7 +231,7 @@ namespace Planning
                             Unification.Unify(new List<Predicate> { effect, goal }, theta);
                             g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
 
-                            Node newNode = CreateChildNode(currentNode, currentState, action, goal, clonedGoals, g);
+                            GroundNode newNode = CreateChildNode(currentNode, currentState, action, goal, clonedGoals, g);
                             children.Add(newNode);
 
 
@@ -154,14 +240,14 @@ namespace Planning
                 }
 
                 // Per goal log
-                // Debug.Log(g);
+                Debug.Log(g);
             }
 
             return children;
-        }
+        } 
 
-        public Node CreateChildNode(
-            Node currentNode,
+        public GroundNode CreateChildNode(
+            GroundNode currentNode,
             WorldState currentState,
             PlanAction action,
             Predicate goal,
@@ -172,18 +258,24 @@ namespace Planning
                 .AddPredicates(currentState.GetPredicates().ToArray());
 
             newState.AddPredicates(action.GetPreconditions().ToArray());
-            newState.RemovePredicates(goal);
+            //newState.RemovePredicates(goal);
 
-            // REMOVE OTHER GOALS
+            // REMOVE GOAL &  OTHER GOALS
 
-            return new Node(currentNode, newState, action, goal, log);
-        }
+            foreach (Predicate effect in action.GetEffects())
+            {
+                if (currentGoals.Contains(effect))
+                    newState.RemovePredicates(effect);
+            }
 
+            return new GroundNode(currentNode, newState, action, goal, log);
+        } */
 
-        private bool CanBeGoal(Node node)
+        
+        private bool CanBeGoal(LiftedNode node)
         {
-            List<Predicate> goals = node.GetUnsatisfiedGoals();
-            List<Predicate> initFacts = initNode.GetState().GetPredicates();
+            List<Predicate> goals = node.GetUnsatGoals();
+            List<Predicate> initFacts = initNode.GetUnsatGoals();
 
             Dictionary<Pointer, object> originalValues = goals
                 .SelectMany(g => g.Args)
@@ -235,9 +327,10 @@ namespace Planning
 
                 throw;
             }
-        }
-
-        private List<PlanAction> ReconstructPlan(Node node)
+        } 
+        
+        /*
+        private List<PlanAction> ReconstructPlan(GroundNode node)
         {
             List<PlanAction> result = new List<PlanAction>();
 
@@ -252,7 +345,8 @@ namespace Planning
             }
 
             return result;
-        }
+        } 
+        */
 
         private void Append(string s)
         {
