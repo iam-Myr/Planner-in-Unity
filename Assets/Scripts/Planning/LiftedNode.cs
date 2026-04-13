@@ -3,109 +3,84 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using UnityEngine;
+using System;
+using NUnit.Framework;
 
 namespace Planning
 {
-    public class Node
+    public class LiftedNode
     {
-        private Node parent;
-        private WorldState state;
+        private LiftedNode parent;
         private PlanAction action; // Action applied to this state
+        private List<PlanAction> plan;
         private Predicate goalSatisfied;
+        private List<Predicate> unsatisfiedGoals = new List<Predicate>();
         private string logs;
-        private List<Predicate> unsatisfiedGoals; // init might not actually achieve it
-
         protected int depth;
 
-        // TXT Logger path
-        private static readonly string logPath =
-            Path.Combine(Application.persistentDataPath, "planner_nodes.txt");
-
-        public Node(WorldState state)
+        public LiftedNode(List<Predicate> predicates)
         {
+            this.unsatisfiedGoals = predicates;
+            depth = 0;
             this.parent = null;
-            this.state = state;
-            this.action = null;
-            this.goalSatisfied = null;
-            this.logs = null;
-
-            // Init goals
-            unsatisfiedGoals = new List<Predicate>(state.GetPredicates());
-
-            depth = parent == null ? 0 : parent.depth + 1;
         }
 
-        public Node(Node parent, WorldState state, PlanAction action, Predicate goal, string l)
+        public LiftedNode(LiftedNode parent, List<Predicate> unsatGoals, List<PlanAction> plan, string l)
         {
             this.parent = parent;
-            this.state = state;
-            this.action = action;
-            this.goalSatisfied = goal;
+            this.unsatisfiedGoals = unsatGoals;
+            this.plan = plan;
             this.logs = l;
-
-            // Init goals
-            unsatisfiedGoals = state
-                .GetPredicates()
-                .Distinct()
-                .ToList();
 
             depth = parent == null ? 0 : parent.depth + 1;
         }
 
         // Node is goal if the current state atoms are a subset of the init state
-        public bool isGoal(Node initNode)
+        public bool isGoal(LiftedNode initNode)
         {
-            List<Predicate> initPreds = initNode.GetState().GetPredicates();
-            List<Predicate> nodePreds = this.state.GetPredicates();
 
-            foreach (Predicate p in nodePreds)
+            List<Predicate> initPreds = initNode.GetUnsatGoals();
+            
+
+            foreach (Predicate p in unsatisfiedGoals)
             {
-                if (!ContainsPredicate(initPreds, p))
+                if (!Predicate.ContainsPredicate(initPreds, p))
                     return false;
             }
 
             return true;
         }
 
-        public bool ContainsPredicate(List<Predicate> pList, Predicate p)
+        public LiftedNode Clone()
         {
-            foreach (Predicate p_list in pList)
-            {
-                if (p.Equals(p_list))
-                    return true;
-            }
-            return false;
+            // Clone plan
+            List<PlanAction> cloned_plan = PlanAction.CloneList(plan);
+
+            // Clone unsatgoals
+            List<Predicate> cloned_unsatisfiedGoals = Predicate.CloneList(unsatisfiedGoals);
+
+            // Create new node
+            // public LiftedNode(LiftedNode parent, PlanAction action, Predicate goal, string l)
+            LiftedNode cloned_Node = new LiftedNode(this, cloned_unsatisfiedGoals, cloned_plan, this.logs);
+
+            //return it
+            return cloned_Node;
         }
 
-        public bool HasSameState(Node other)
+        public void AddGoals(List<Predicate> goals)
         {
-            var thisPreds = this.GetState().GetPredicates();
-            var otherPreds = other.GetState().GetPredicates();
-
-            if (thisPreds.Count != otherPreds.Count)
-                return false;
-
-            foreach (Predicate p in thisPreds)
-            {
-                if (!otherPreds.Any(a => a.Equals(p)))
-                    return false;
-            }
-
-            return true;
+            unsatisfiedGoals.AddRange(goals);
         }
 
-        public bool HasSameGoals(Node other)
+        public void RemoveGoals(List<Predicate> goals)
         {
-            if (unsatisfiedGoals.Count != other.GetUnsatisfiedGoals().Count)
-                return false;
-
-            foreach (Predicate g in unsatisfiedGoals)
+            foreach (Predicate g in goals)
             {
-                if (!other.GetUnsatisfiedGoals().Any(a => a.Equals(g)))
-                    return false;
+                if (unsatisfiedGoals.Contains(g))
+                    unsatisfiedGoals.Remove(g);
             }
-            return true;
         }
+
 
         // ------------------------- Console Print -------------------------
         public string ToString()
@@ -126,10 +101,19 @@ namespace Planning
                 s += $"{parent.GetAction()}\n";
 
             //s += "\n------------------ " +
-                 //"<b><color=#00FF00>Current Action</color></b> " +
-                 //"------------------\n";
+            //"<b><color=#00FF00>Current Action</color></b> " +
+            //"------------------\n";
             //if (action != null)
-                //s += $"{action}\n";
+            //s += $"{action}\n";
+
+            s += "\n<color=#AAAAAA>-----------------</color> " +
+                "<b><color=#1E90AA>Plan</color></b> " +
+                 "<color=#AAAAAA>-------------------</color>\n";
+            if (plan != null)
+            {
+                foreach (PlanAction a in plan)
+                    s += "- " + a.ToString() + "\n";
+            }
 
             s += "\n<color=#AAAAAA>-----------------</color> " +
                 "<b><color=#1E90FF>Satisfied Goal</color></b> " +
@@ -163,23 +147,8 @@ namespace Planning
 
         void Log(string msg) => Debug.Log($"{msg}");
 
-        public void PrintGoals()
-        {
-            foreach (Predicate p in unsatisfiedGoals)
-            {
-                Log(p.ToString());
-            }
-        }
 
-        public void RemoveGoal(Predicate goal)
-        {
-            unsatisfiedGoals.Remove(goal);
-        }
-
-        public void SetState(WorldState state)
-        {
-            this.state = state;
-        }
+        // GETTERS
 
         // Cost Function g(n)
         public int GetCost() => depth;
@@ -195,13 +164,43 @@ namespace Planning
         public int GetTotalCost() => GetCost() + GetHeuristic();
 
         public int GetDepth() => depth;
-        public WorldState GetState() => state;
         public PlanAction GetAction() => action;
-        public Node GetParent() => parent;
-        public List<Predicate> GetUnsatisfiedGoals() => unsatisfiedGoals;
+        public void SetAction(PlanAction a) => action = a;
+        public LiftedNode GetParent() => parent;
+        public List<Predicate> GetUnsatGoals() => unsatisfiedGoals;
 
- 
+        internal void AddToPlan(PlanAction action)
+        {
+            
+            this.action = action;
+            plan.Add(action);
+        }
+
+        internal List<PlanAction> GetPlan()
+        {
+            // Has to be reversed cause we're doing regression!
+            List<PlanAction> realPlan = new List<PlanAction>(plan);
+            realPlan.Reverse();
 
 
+            // Remove Inits
+            realPlan.RemoveAll(a => a is ActionInit);
+            return realPlan;
+        }
+
+        internal void SetGoal(Predicate goal) =>  this.goalSatisfied = goal;
+
+        internal bool isSame(LiftedNode other)
+        {
+            if (unsatisfiedGoals.Count != other.GetUnsatGoals().Count)
+                return false;
+
+            foreach (Predicate g in unsatisfiedGoals)
+            {
+                if (!other.GetUnsatGoals().Any(a => a.Equals(g)))
+                    return false;
+            }
+            return true;
+        }
     }
 }

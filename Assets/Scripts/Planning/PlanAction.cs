@@ -261,7 +261,16 @@ namespace Planning
             return clone;
         }
 
+        public static List<PlanAction> CloneList(List<PlanAction> list)
+        {
 
+            List<PlanAction> cloned_Actions = new List<PlanAction>();
+            if (list != null)
+            {
+                cloned_Actions = list.Select(a => a.Clone()).ToList(); // New container + copy of everything in old container
+            }
+            return cloned_Actions;
+        }
 
 
     }

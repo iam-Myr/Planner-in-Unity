@@ -140,9 +140,9 @@ namespace Planning
 
         public Predicate Clone()
         {
-            // List<Pointer> clonedArgs = Args.Select(arg => arg.Clone()).ToList(); // New container + copy of everything in old container
+             List<Pointer> clonedArgs = Args.Select(arg => arg.Clone()).ToList(); // New container + copy of everything in old container
 
-            List<Pointer> clonedArgs = new List<Pointer>(Args);
+            //List<Pointer> clonedArgs = new List<Pointer>(Args);
             return new Predicate(Name, Condition, clonedArgs, Value ?? false);
         }
 
@@ -155,6 +155,16 @@ namespace Planning
             }
 
             return clonedList;
+        }
+
+        public static bool ContainsPredicate(List<Predicate> pList, Predicate p)
+        {
+            foreach (Predicate p_list in pList)
+            {
+                if (p.Equals(p_list))
+                    return true;
+            }
+            return false;
         }
 
         public override bool Equals(object obj)
