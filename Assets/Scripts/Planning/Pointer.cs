@@ -236,17 +236,11 @@ namespace Planning
 
             map[this] = clone;
 
-            clone.bannedList = this.bannedList
-            .Select(o =>
-            {
-                if (o is Pointer p)
-                    return p.Clone(map);
-                return o;
-            })
-            .ToList();
+            //BAN LIST???
 
             return clone;
         }
+
 
         /// Debug-friendly string
         public override string ToString()

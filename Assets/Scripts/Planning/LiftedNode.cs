@@ -71,60 +71,12 @@ namespace Planning
             return true;
         }
 
-        public bool CanBeGoal(LiftedNode initNode)
+        public void SortbyInit(LiftedNode initNode)
         {
-            List<Predicate> initFacts = initNode.GetUnsatGoals();
-
-            Dictionary<Pointer, object> originalValues = unsatisfiedGoals
-                .SelectMany(g => g.Args)
-                .Distinct()
-                .ToDictionary(p => p, p => p.value);
-
-            try
-            {
-                foreach (Predicate goal in unsatisfiedGoals)
-                {
-                    bool goalSatisfied = false;
-
-                    foreach (Predicate fact in initFacts)
-                    {
-                        Dictionary<Pointer, object> trialValues =
-                            goal.Args.ToDictionary(p => p, p => p.value);
-
-                        Dictionary<Pointer, object> theta =
-                            Unification.TryUnify(fact, goal);
-
-                        if (theta != null)
-                        {
-                            Unification.Unify(new List<Predicate> { goal }, theta);
-                            goalSatisfied = true;
-                            break;
-                        }
-                        else
-                        {
-                            foreach (var kv in trialValues)
-                                kv.Key.value = kv.Value;
-                        }
-                    }
-
-                    if (!goalSatisfied)
-                    {
-                        foreach (var kv in originalValues)
-                            kv.Key.value = kv.Value;
-
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-            catch
-            {
-                foreach (var kv in originalValues)
-                    kv.Key.value = kv.Value;
-
-                throw;
-            }
+            // Sort goals: goals already satisfied by initNode go to the bottom
+            unsatisfiedGoals = unsatisfiedGoals
+                .OrderBy(g => initNode.GetUnsatGoals().Any(f => f.Equals(g))) // true = satisfied by init → goes last
+                .ToList();
         }
 
         public LiftedNode Clone(Dictionary<Pointer, Pointer> pointerMap)
@@ -154,13 +106,11 @@ namespace Planning
             unsatisfiedGoals.AddRange(goals);
         }
 
-        public void RemoveGoals(List<Predicate> goals)
+        public void RemoveGoals(List<Predicate> satGoals)
         {
-            foreach (Predicate g in goals)
-            {
-                if (unsatisfiedGoals.Contains(g))
-                    unsatisfiedGoals.Remove(g);
-            }
+            unsatisfiedGoals.RemoveAll(ug =>
+                satGoals.Any(g => ug.Equals(g))
+            );
         }
 
 
@@ -269,17 +219,6 @@ namespace Planning
             realPlan.RemoveAll(a => a is ActionInit);
             return realPlan;
         }
-
-        public string PrintPlan()
-        {
-            string s = "";
-            foreach (PlanAction a in GetPlan())
-                s += a.ToString();
-                s += "\n";
-            return s;
-        }
-               
-
           
 
         internal void SetGoal(Predicate goal) =>  this.goalSatisfied = goal;

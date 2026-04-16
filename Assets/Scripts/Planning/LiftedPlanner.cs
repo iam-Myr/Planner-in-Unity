@@ -45,13 +45,18 @@ namespace Planning
 
             while (frontier.Count > 0 && step < maxSteps)
             {
+                // A* HEURISTIC 
+                frontier = frontier
+                    .OrderBy(n => n.GetTotalCost()) // f(n) = g + h
+                    .ToList();
+
                 LiftedNode currentNode = frontier[0];
                 frontier.RemoveAt(0);
 
                 if (debug)
                     Debug.Log($"{currentNode.ToString()}");
 
-                if (currentNode.CanBeGoal(initNode))
+                if (CanBeGoal(currentNode))
                 {
                     stopwatch.Stop();
 
@@ -99,7 +104,7 @@ namespace Planning
             List<LiftedNode> children = new List<LiftedNode>();
 
             // Put goals sat by init at the bottom
-
+            node.SortbyInit(initNode);
 
             for (int i = 0; i < node.GetUnsatGoals().Count(); i++)
             {
@@ -111,7 +116,7 @@ namespace Planning
 
                     for (int j = 0; j < actionTemplate.GetEffects().Count(); j++)
                     {
-                        // 🔥 ONE shared map per child
+                        // ONE shared map per child
                         var pointerMap = new Dictionary<Pointer, Pointer>();
 
                         // Clone node + action in SAME universe
@@ -154,7 +159,66 @@ namespace Planning
 
             return children;
         }
+
+
+        public bool CanBeGoal(LiftedNode Node)
+        {
+            List<Predicate> initFacts = initNode.GetUnsatGoals();
+
+            Dictionary<Pointer, object> originalValues = Node.GetUnsatGoals()
+                .SelectMany(g => g.Args)
+                .Distinct()
+                .ToDictionary(p => p, p => p.value);
+
+            bool success = SolveGoals(Node.GetUnsatGoals(), initFacts, 0);
+
+            if (!success)
+            {
+                // Only restore if failed
+                foreach (var kv in originalValues)
+                    kv.Key.value = kv.Value;
+            }
+
+            return success;
+        }
+
+        private bool SolveGoals(List<Predicate> goals, List<Predicate> initFacts, int index)
+        {
+            if (index >= goals.Count)
+                return true;
+
+            Predicate goal = goals[index];
+
+            foreach (Predicate fact in initFacts)
+            {
+                // Save state BEFORE trying this match
+                Dictionary<Pointer, object> snapshot = goals
+                    .SelectMany(g => g.Args)
+                    .Distinct()
+                    .ToDictionary(p => p, p => p.value);
+
+                var theta = Unification.TryUnify(fact, goal);
+
+                if (theta != null)
+                {
+                    // Apply substitution
+                    Unification.Unify(new List<Predicate> { goal }, theta);
+
+                    // Continue with next goal
+                    if (SolveGoals(goals, initFacts, index + 1))
+                        return true;
+                }
+
+                // Restore state
+                foreach (var kv in snapshot)
+                    kv.Key.value = kv.Value;
+            }
+
+            return false;
+        }
     }
+
+
 
     public class PlanResult
     {
