@@ -51,14 +51,14 @@ namespace Planning
                 if (debug)
                     Debug.Log($"{currentNode.ToString()}");
 
-                if (CanBeGoal(currentNode))
+                if (currentNode.CanBeGoal(initNode))
                 {
                     stopwatch.Stop();
 
                     if (currentNode.GetParent() == null)
                         Debug.Log("Goal satisfied already.");
 
-                    Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");
+                    Debug.Log($"Planning took {stopwatch.ElapsedMilliseconds} ms");;
 
                     return new PlanResult(
                         currentNode.GetPlan(),
@@ -98,259 +98,61 @@ namespace Planning
         {
             List<LiftedNode> children = new List<LiftedNode>();
 
+            // Put goals sat by init at the bottom
 
 
-            // Sort goals: goals already satisfied by initNode go to the bottom
-            //
-
-            // For every goal in goal list
             for (int i = 0; i < node.GetUnsatGoals().Count(); i++)
             {
                 string g = $"GOAL: <b><color=PURPLE> GOAL {node.GetUnsatGoals()[i]}</color></b>.\n";
 
-                // For every action template in actionList
                 foreach (PlanAction actionTemplate in ActionTemplatesList)
                 {
-
                     g += $"Exploring <b><color=LIGHTBLUE> ACTION {actionTemplate}</color>\n";
-                    // For every effect of this action
+
                     for (int j = 0; j < actionTemplate.GetEffects().Count(); j++)
                     {
+                        // 🔥 ONE shared map per child
+                        var pointerMap = new Dictionary<Pointer, Pointer>();
 
-                        LiftedNode currentNode = node.Clone();
+                        // Clone node + action in SAME universe
+                        LiftedNode currentNode = node.Clone(pointerMap);
+                        PlanAction action = actionTemplate.Clone(pointerMap);
 
-                        // CLONE GOAL LIST
-                        List<Predicate> clonedGoals = currentNode.GetUnsatGoals();
- 
-                        // CLONE ACTION
-                        PlanAction action = actionTemplate.Clone();
+                        var clonedGoals = currentNode.GetUnsatGoals();
 
-                        // Ban threats
                         action.BanThreats(clonedGoals);
 
-                        // GET CLONED EFFECT
                         Predicate effect = action.GetEffects().ElementAt(j);
-
-                        // Get Cloned goal
                         Predicate goal = clonedGoals.ElementAt(i);
 
                         g += $" - Exploring effect {effect} of action {action}\n";
 
-                        // Theta-based UNIFICATION HERE
                         Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
-                        if (theta != null) // Unification succeded!
+
+                        if (theta != null)
                         {
                             g += $"    - Effect {effect} unifies with goal {goal}.\n";
-                            // Print theta contents
-                            foreach (var kvp in theta) g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
 
+                            foreach (var kvp in theta)
+                                g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
 
-                            // Apply bindings
+                           
                             Unification.Unify(new List<Predicate> { effect, goal }, theta);
+
                             g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
 
-                            // Add action to plan
-                            currentNode.AddToPlan(action);
+                            //Update Node with new info! Make it official Child!
+                            currentNode.Update(action, goal);
 
-                            // Add goal to node
-                            currentNode.SetGoal(goal);
-
-                            // Remove Goals (og and others sat)
-                            currentNode.RemoveGoals(action.GetEffects());
-
-                            // Add preconditions as new goals
-                            currentNode.AddGoals(action.GetPreconditions());
-
-                            // Add to child list :)
                             children.Add(currentNode);
                         }
                     }
                 }
 
-                // Per goal log
-                Debug.Log(g);
+                //Debug.Log(g);
             }
 
             return children;
-        }
-
-
-        /*
-
-        private List<GroundNode> FindChildren(GroundNode currentNode)
-        {
-            List<GroundNode> children = new List<GroundNode>();
-            WorldState currentState = currentNode.GetState();
-            List<Predicate> currentGoals = currentNode.GetUnsatisfiedGoals();
-
-            // Sort goals: goals already satisfied by initNode go to the bottom
-            currentGoals = currentGoals
-                .OrderBy(g => initNode.GetState().GetPredicates().Any(f => f.Equals(g))) // true = satisfied by init → goes last
-                .ToList();
-
-            // Outer loop: one goal at a time
-            for (int i = 0; i < currentGoals.Count(); i++)
-            {
-                string g = $"GOAL: <b><color=PURPLE> GOAL {currentGoals[i]}</color></b>.\n";
-
-                // Middle loop: all actions
-                foreach (PlanAction a in allActions)
-                {
-
-                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {a}</color>\n";
-                    // Inner loop: all effects of this action
-                    for (int j = 0; j < a.GetEffects().Count(); j++)
-                    {
-
-                        // CLONE GOAL LIST
-                        List<Predicate> clonedGoals = Predicate.CloneList(currentGoals);
-                                                                    // Get Cloned goal
-                        Predicate goal = clonedGoals.ElementAt(i);
-
-                        // CLONE ACTION
-                        PlanAction action = a.Clone();
-
-                        // Ban threats
-                        action.BanThreats(clonedGoals);
-
-                        // GET CLONED EFFECT
-                        Predicate effect = action.GetEffects().ElementAt(j);
-
-                        g += $" - Exploring effect {effect} of action {action}\n";
-
-                        // Theta-based UNIFICATION HERE
-                        Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
-                        if (theta != null)
-                        {
-                            g += $"    - Effect {effect} unifies with goal {goal}.\n";
-                            // Print theta contents
-                            foreach (var kvp in theta) g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
-
-
-                            // Apply bindings
-                            Unification.Unify(new List<Predicate> { effect, goal }, theta);
-                            g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
-
-                            GroundNode newNode = CreateChildNode(currentNode, currentState, action, goal, clonedGoals, g);
-                            children.Add(newNode);
-
-
-                        }
-                    }
-                }
-
-                // Per goal log
-                Debug.Log(g);
-            }
-
-            return children;
-        } 
-
-        public GroundNode CreateChildNode(
-            GroundNode currentNode,
-            WorldState currentState,
-            PlanAction action,
-            Predicate goal,
-            List<Predicate> currentGoals,
-            string log)
-        {
-            WorldState newState = new WorldState()
-                .AddPredicates(currentState.GetPredicates().ToArray());
-
-            newState.AddPredicates(action.GetPreconditions().ToArray());
-            //newState.RemovePredicates(goal);
-
-            // REMOVE GOAL &  OTHER GOALS
-
-            foreach (Predicate effect in action.GetEffects())
-            {
-                if (currentGoals.Contains(effect))
-                    newState.RemovePredicates(effect);
-            }
-
-            return new GroundNode(currentNode, newState, action, goal, log);
-        } */
-
-        
-        private bool CanBeGoal(LiftedNode node)
-        {
-            List<Predicate> goals = node.GetUnsatGoals();
-            List<Predicate> initFacts = initNode.GetUnsatGoals();
-
-            Dictionary<Pointer, object> originalValues = goals
-                .SelectMany(g => g.Args)
-                .Distinct()
-                .ToDictionary(p => p, p => p.value);
-
-            try
-            {
-                foreach (Predicate goal in goals)
-                {
-                    bool goalSatisfied = false;
-
-                    foreach (Predicate fact in initFacts)
-                    {
-                        Dictionary<Pointer, object> trialValues =
-                            goal.Args.ToDictionary(p => p, p => p.value);
-
-                        Dictionary<Pointer, object> theta =
-                            Unification.TryUnify(fact, goal);
-
-                        if (theta != null)
-                        {
-                            Unification.Unify(new List<Predicate> { goal }, theta);
-                            goalSatisfied = true;
-                            break;
-                        }
-                        else
-                        {
-                            foreach (var kv in trialValues)
-                                kv.Key.value = kv.Value;
-                        }
-                    }
-
-                    if (!goalSatisfied)
-                    {
-                        foreach (var kv in originalValues)
-                            kv.Key.value = kv.Value;
-
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-            catch
-            {
-                foreach (var kv in originalValues)
-                    kv.Key.value = kv.Value;
-
-                throw;
-            }
-        } 
-        
-        /*
-        private List<PlanAction> ReconstructPlan(GroundNode node)
-        {
-            List<PlanAction> result = new List<PlanAction>();
-
-            while (node != null && node.GetAction() != null)
-            {
-                PlanAction action = node.GetAction();
-
-                if (!(action is ActionInit))
-                    result.Add(action);
-
-                node = node.GetParent();
-            }
-
-            return result;
-        } 
-        */
-
-        private void Append(string s)
-        {
-            report += s + "\n";
         }
     }
 

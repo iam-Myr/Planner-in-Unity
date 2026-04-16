@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -10,21 +10,24 @@ namespace Planning
 {
     public class LiftedNode
     {
-        private LiftedNode parent;
+        private LiftedNode parent = null;
         private PlanAction action; // Action applied to this state
-        private List<PlanAction> plan;
+        private List<PlanAction> plan = new List<PlanAction>();
         private Predicate goalSatisfied;
-        private List<Predicate> unsatisfiedGoals = new List<Predicate>();
+        private List<Predicate> unsatisfiedGoals;
         private string logs;
-        protected int depth;
+        protected int depth = 0;
 
+        private string ID = "0";
+        private int childIndex = 0;
+
+        // used for root
         public LiftedNode(List<Predicate> predicates)
         {
             this.unsatisfiedGoals = predicates;
-            depth = 0;
-            this.parent = null;
         }
 
+        // used for children
         public LiftedNode(LiftedNode parent, List<Predicate> unsatGoals, List<PlanAction> plan, string l)
         {
             this.parent = parent;
@@ -33,6 +36,23 @@ namespace Planning
             this.logs = l;
 
             depth = parent == null ? 0 : parent.depth + 1;
+        }
+
+
+        public void Update(PlanAction action, Predicate goal)
+        {
+            AddToPlan(action);
+            SetGoal(goal);
+
+            RemoveGoals(action.GetEffects());
+            AddGoals(action.GetPreconditions());
+
+            if (parent != null)
+            {
+                parent.childIndex++;
+                ID = parent.ID + "." + parent.childIndex;
+            }
+
         }
 
         // Node is goal if the current state atoms are a subset of the init state
@@ -51,20 +71,82 @@ namespace Planning
             return true;
         }
 
-        public LiftedNode Clone()
+        public bool CanBeGoal(LiftedNode initNode)
         {
-            // Clone plan
-            List<PlanAction> cloned_plan = PlanAction.CloneList(plan);
+            List<Predicate> initFacts = initNode.GetUnsatGoals();
 
-            // Clone unsatgoals
-            List<Predicate> cloned_unsatisfiedGoals = Predicate.CloneList(unsatisfiedGoals);
+            Dictionary<Pointer, object> originalValues = unsatisfiedGoals
+                .SelectMany(g => g.Args)
+                .Distinct()
+                .ToDictionary(p => p, p => p.value);
 
-            // Create new node
-            // public LiftedNode(LiftedNode parent, PlanAction action, Predicate goal, string l)
-            LiftedNode cloned_Node = new LiftedNode(this, cloned_unsatisfiedGoals, cloned_plan, this.logs);
+            try
+            {
+                foreach (Predicate goal in unsatisfiedGoals)
+                {
+                    bool goalSatisfied = false;
 
-            //return it
-            return cloned_Node;
+                    foreach (Predicate fact in initFacts)
+                    {
+                        Dictionary<Pointer, object> trialValues =
+                            goal.Args.ToDictionary(p => p, p => p.value);
+
+                        Dictionary<Pointer, object> theta =
+                            Unification.TryUnify(fact, goal);
+
+                        if (theta != null)
+                        {
+                            Unification.Unify(new List<Predicate> { goal }, theta);
+                            goalSatisfied = true;
+                            break;
+                        }
+                        else
+                        {
+                            foreach (var kv in trialValues)
+                                kv.Key.value = kv.Value;
+                        }
+                    }
+
+                    if (!goalSatisfied)
+                    {
+                        foreach (var kv in originalValues)
+                            kv.Key.value = kv.Value;
+
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                foreach (var kv in originalValues)
+                    kv.Key.value = kv.Value;
+
+                throw;
+            }
+        }
+
+        public LiftedNode Clone(Dictionary<Pointer, Pointer> pointerMap)
+        {
+            var newGoals = unsatisfiedGoals
+                .Select(g => g.Clone(pointerMap))
+                .ToList();
+
+            var newPlan = plan?
+                .Select(a => a.Clone(pointerMap))
+                .ToList();
+
+            LiftedNode clone = new LiftedNode(this, newGoals, newPlan, logs);
+
+
+            if (action != null)
+                clone.action = action.Clone(pointerMap);
+
+            if (goalSatisfied != null)
+                clone.goalSatisfied = goalSatisfied.Clone(pointerMap);
+
+            return clone;
         }
 
         public void AddGoals(List<Predicate> goals)
@@ -89,7 +171,7 @@ namespace Planning
 
             s += "================================== " +
             $"<b><color=#00FFFF>{depth}. {(action != null ? action.ToString() : "ROOT")}</color></b>" +
-            $" - <color=GREY>({(parent != null && parent.GetAction() != null ? parent.GetAction().ToString() : "")}) </color>" +
+            $" - <color=GREY>({ID}) </color>" +
             "===================================\n";
 
             s += $"\n<b><color=#FFD700>Depth:</color></b> {depth}\n";
@@ -187,6 +269,18 @@ namespace Planning
             realPlan.RemoveAll(a => a is ActionInit);
             return realPlan;
         }
+
+        public string PrintPlan()
+        {
+            string s = "";
+            foreach (PlanAction a in GetPlan())
+                s += a.ToString();
+                s += "\n";
+            return s;
+        }
+               
+
+          
 
         internal void SetGoal(Predicate goal) =>  this.goalSatisfied = goal;
 

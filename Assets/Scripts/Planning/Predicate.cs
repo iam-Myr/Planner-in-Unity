@@ -138,24 +138,13 @@ namespace Planning
             return true;
         }
 
-        public Predicate Clone()
+        public Predicate Clone(Dictionary<Pointer, Pointer> map)
         {
-             List<Pointer> clonedArgs = Args.Select(arg => arg.Clone()).ToList(); // New container + copy of everything in old container
+            var newArgs = Args.Select(arg => arg.Clone(map)).ToList();
 
-            //List<Pointer> clonedArgs = new List<Pointer>(Args);
-            return new Predicate(Name, Condition, clonedArgs, Value ?? false);
+            return new Predicate(Name, Condition, newArgs, Value);
         }
 
-        public static List<Predicate> CloneList(List<Predicate> predicates)
-        {
-            List<Predicate> clonedList = new List<Predicate>();
-            foreach (Predicate p in predicates)
-            {
-                clonedList.Add(p.Clone());
-            }
-
-            return clonedList;
-        }
 
         public static bool ContainsPredicate(List<Predicate> pList, Predicate p)
         {

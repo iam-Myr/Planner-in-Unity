@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -208,29 +209,43 @@ namespace Planning
 
 
         /// Clone this pointer 
-        public Pointer Clone()
+        public Pointer Clone(Dictionary<Pointer, Pointer> map)
         {
-            Pointer cloned;
+            if (map.TryGetValue(this, out var existing))
+                return existing;
+
+            Pointer clone;
 
             if (value is Pointer p)
             {
-                // Create a new unbound Pointer with the same type
-                cloned = new Pointer(type);
-                // Manually assign its value to the cloned child pointer
-                cloned.value = p.Clone();
+                clone = new Pointer(GetDeclaredType());
+                map[this] = clone;
+
+                clone.BindTo(p.Clone(map));
+                return clone;
+            }
+
+            if (IsBound())
+            {
+                clone = new Pointer(Get(), GetDeclaredType());
             }
             else
             {
-                // Value is concrete, safe to pass to constructor
-                cloned = new Pointer(value, type);
+                clone = new Pointer(GetDeclaredType());
             }
 
-            // Copy banned list
-            cloned.bannedList = new List<object>(this.bannedList);
+            map[this] = clone;
 
-            cloned.Name += "_" + Name; // Append original name for better debugging
+            clone.bannedList = this.bannedList
+            .Select(o =>
+            {
+                if (o is Pointer p)
+                    return p.Clone(map);
+                return o;
+            })
+            .ToList();
 
-            return cloned;
+            return clone;
         }
 
         /// Debug-friendly string
