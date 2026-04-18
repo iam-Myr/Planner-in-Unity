@@ -107,8 +107,7 @@ namespace Planning
             {
                 foreach (Predicate goal in goals)
                 {
-                    if (effect.IsOpposite(goal) &&
-                        effect.Value != goal.Value)
+                    if (effect.IsOpposite(goal))
                     {
                         return true;
                     }

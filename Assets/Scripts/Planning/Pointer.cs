@@ -107,6 +107,16 @@ namespace Planning
             //PrintBanList();
         }
 
+        public void PrintBanList()
+        {
+            string s = "";
+            foreach (object b in bannedList)
+            {
+                s += b.ToString() + ", ";
+            }
+            Debug.Log($"Ban list for {this.Name}: {s}");
+        }
+
         public bool IsBanned(object o)
         {
             foreach (object b in bannedList)

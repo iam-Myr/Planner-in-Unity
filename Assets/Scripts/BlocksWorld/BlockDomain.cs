@@ -66,7 +66,7 @@ namespace BlocksWorld
         //  Domain actions 
         public static List<PlanAction> ActionTemplates = new List<PlanAction>
         {
-            new ActionMove(),
+            //new ActionMove(),
             new ActionPickup(),
             new ActionDrop()
         };

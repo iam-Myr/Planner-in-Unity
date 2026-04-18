@@ -39,7 +39,7 @@ namespace Planning
         }
 
 
-        public void Update(PlanAction action, Predicate goal)
+        public void Update(PlanAction action, Predicate goal, string l)
         {
             AddToPlan(action);
             SetGoal(goal);
@@ -52,6 +52,8 @@ namespace Planning
                 parent.childIndex++;
                 ID = parent.ID + "." + parent.childIndex;
             }
+
+            this.logs = l;
 
         }
 

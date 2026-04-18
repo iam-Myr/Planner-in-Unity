@@ -64,7 +64,7 @@ namespace Planning
         {
             foreach (Predicate p in preds.Where(IsThreat))
             {
-                if (AllButOneInstantiated())
+                if (Args.Count(arg => arg.IsBound()) == Args.Count - 1) //All but one instantiated
                 {
                     for (int i = 0; i < Args.Count; i++)
                     {
@@ -100,13 +100,21 @@ namespace Planning
 
         public bool IsOpposite(Predicate other)
         {
-            return Equals(other) && this.Value != other.Value;
+            if (other == null)
+                return false;
+
+            // Same structure (ignore value)
+            if (!EqualsStructure(other))
+                return false;
+
+            // Both must have values
+            if (!this.Value.HasValue || !other.Value.HasValue)
+                return false;
+
+            // Values must be different
+            return this.Value.Value != other.Value.Value;
         }
 
-        public bool AllButOneInstantiated()
-        {
-            return Args.Count(arg => arg.IsBound()) == Args.Count - 1;
-        }
 
         private bool EqualsStructure(Predicate other)
         {

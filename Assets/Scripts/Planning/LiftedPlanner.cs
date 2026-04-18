@@ -46,9 +46,7 @@ namespace Planning
             while (frontier.Count > 0 && step < maxSteps)
             {
                 // A* HEURISTIC 
-                frontier = frontier
-                    .OrderBy(n => n.GetTotalCost()) // f(n) = g + h
-                    .ToList();
+                //frontier = frontier.OrderBy(n => n.GetTotalCost()).ToList();
 
                 LiftedNode currentNode = frontier[0];
                 frontier.RemoveAt(0);
@@ -104,24 +102,27 @@ namespace Planning
             List<LiftedNode> children = new List<LiftedNode>();
 
             // Put goals sat by init at the bottom
-            node.SortbyInit(initNode);
+            //node.SortbyInit(initNode);
 
             for (int i = 0; i < node.GetUnsatGoals().Count(); i++)
             {
                 string g = $"GOAL: <b><color=PURPLE> GOAL {node.GetUnsatGoals()[i]}</color></b>.\n";
 
-                foreach (PlanAction actionTemplate in ActionTemplatesList)
+                foreach (PlanAction actionSchema in ActionTemplatesList)
                 {
-                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {actionTemplate}</color>\n";
+                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {actionSchema}</color>\n";
 
-                    for (int j = 0; j < actionTemplate.GetEffects().Count(); j++)
+                    // if they action template is removing goals, skip it.
+                    if (actionSchema.IsRemovingGoal(node.GetUnsatGoals())) continue;
+                    
+                    for (int j = 0; j < actionSchema.GetEffects().Count(); j++)
                     {
                         // ONE shared map per child
                         var pointerMap = new Dictionary<Pointer, Pointer>();
 
                         // Clone node + action in SAME universe
                         LiftedNode currentNode = node.Clone(pointerMap);
-                        PlanAction action = actionTemplate.Clone(pointerMap);
+                        PlanAction action = actionSchema.Clone(pointerMap);
 
                         var clonedGoals = currentNode.GetUnsatGoals();
 
@@ -147,7 +148,7 @@ namespace Planning
                             g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
 
                             //Update Node with new info! Make it official Child!
-                            currentNode.Update(action, goal);
+                            currentNode.Update(action, goal, g);
 
                             children.Add(currentNode);
                         }
