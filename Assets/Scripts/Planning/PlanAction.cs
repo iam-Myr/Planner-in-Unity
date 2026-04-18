@@ -101,7 +101,7 @@ namespace Planning
         }
 
 
-        public bool IsRemovingGoal(List<Predicate> goals)
+        public Predicate IsRemovingGoal(List<Predicate> goals)
         {
             foreach (Predicate effect in effects)
             {
@@ -109,11 +109,11 @@ namespace Planning
                 {
                     if (effect.IsOpposite(goal))
                     {
-                        return true;
+                        return goal;
                     }
                 }
             }
-            return false;
+            return null;
         }
 
         public bool IsValid()

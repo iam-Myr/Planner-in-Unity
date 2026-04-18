@@ -41,14 +41,10 @@ namespace Planning
 
             Debug.Log($"INIT\n {initState}");
 
-            // CREATE DUMMY INIT ACTION
-            //ActionTemplatesList.RemoveAll(a => a is ActionInit);
-            //ActionTemplatesList.Add(new ActionInit(initState.GetPredicates()));
-
             while (frontier.Count > 0 && step < maxSteps)
             {
                 // A* HEURISTIC 
-                //frontier = frontier.OrderBy(n => n.GetTotalCost()).ToList();
+                frontier = frontier.OrderBy(n => n.GetTotalCost()).ToList();
 
                 LiftedNode currentNode = frontier[0];
                 frontier.RemoveAt(0);
@@ -104,10 +100,9 @@ namespace Planning
             List<LiftedNode> children = new List<LiftedNode>();
 
             // existing plan actions + schema
-            List<PlanAction> actions = new List<PlanAction>();
-            if(node.GetAction() != null)
-                actions.Add(node.GetAction());
+            List<PlanAction> actions = new List<PlanAction>(node.GetPlan());
             actions.AddRange(ActionTemplatesList);
+            actions.Add(new ActionInit(initNode.GetUnsatGoals()));
 
 
             // Put goals sat by init at the bottom
@@ -122,9 +117,10 @@ namespace Planning
                     g += $"Exploring <b><color=LIGHTBLUE> ACTION {originalAction}</color>\n";
 
                     // if they action template is removing goals, skip it.
-                    if (originalAction.IsRemovingGoal(node.GetUnsatGoals())) 
+                    Predicate removedGoal = originalAction.IsRemovingGoal(node.GetUnsatGoals());
+                    if (removedGoal != null) 
                     {
-                        g += $"    - Skipping action {originalAction} because it removes goals.\n";
+                        g += $"    - Skipping action {originalAction} because it removes goal {removedGoal}.\n";
                         continue;
                     }
                     for (int j = 0; j < originalAction.GetEffects().Count(); j++)

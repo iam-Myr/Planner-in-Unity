@@ -39,6 +39,7 @@ namespace Planning
             depth = parent == null ? 0 : parent.depth + 1;
         }
 
+        // IT THINS pickup(A, ?v1) and pickup(A, ?v2) ARE THE SAME
 
         public void Update(PlanAction action, Predicate goal, string l)
         {
@@ -116,7 +117,12 @@ namespace Planning
 
         public void AddGoals(List<Predicate> goals)
         {
-            unsatisfiedGoals.AddRange(goals);
+            foreach (Predicate g in goals)
+            {
+                if (!unsatisfiedGoals.Any(goal => goal.Equals(g)))
+                    unsatisfiedGoals.Add(g);
+            }
+            //unsatisfiedGoals.AddRange(goals);
         }
 
         public void RemoveGoals(List<Predicate> satGoals)

@@ -12,8 +12,9 @@ namespace BlocksWorld
         public static Pointer C = new Pointer(GameObject.Find("C").GetComponent<PlanObject>());
         public static Pointer D = new Pointer(GameObject.Find("D").GetComponent<PlanObject>());
         public static Pointer E = new Pointer(GameObject.Find("E").GetComponent<PlanObject>());
+        public static Pointer R = new Pointer(GameObject.Find("R").GetComponent<PlanObject>());
 
-        public static List<Pointer> AllPointers = new List<Pointer> { A, B, C, D, E };
+        public static List<Pointer> AllPointers = new List<Pointer> { A, B, C, D, E, R };
 
         // The agent
         public static BlockAgent agent = GameObject.Find("Agent").GetComponent<BlockAgent>();
