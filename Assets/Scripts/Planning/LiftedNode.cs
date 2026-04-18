@@ -13,6 +13,7 @@ namespace Planning
         private LiftedNode parent = null;
         private PlanAction action; // Action applied to this state
         private List<PlanAction> plan = new List<PlanAction>();
+        private List<PlanAction> debugPlan = new List<PlanAction>();
         private Predicate goalSatisfied;
         private List<Predicate> unsatisfiedGoals;
         private string logs;
@@ -41,20 +42,25 @@ namespace Planning
 
         public void Update(PlanAction action, Predicate goal, string l)
         {
-            AddToPlan(action);
-            SetGoal(goal);
+            if (!isActioninPlan(action) && action is not ActionInit){
+                plan.Add(action);
+                SetGoal(goal);
 
-            RemoveGoals(action.GetEffects());
-            AddGoals(action.GetPreconditions());
-
-            if (parent != null)
+                RemoveGoals(action.GetEffects());
+                AddGoals(action.GetPreconditions());
+            }
+            else
             {
-                parent.childIndex++;
-                ID = parent.ID + "." + parent.childIndex;
+                // Remove goals but don't add the preconditions
+                SetGoal(goal);
+                RemoveGoals(action.GetEffects());
             }
 
-            this.logs = l;
+            this.action = action;
+            debugPlan.Add(action);
 
+            this.logs = l;
+            ComputeID();
         }
 
         // Node is goal if the current state atoms are a subset of the init state
@@ -62,7 +68,7 @@ namespace Planning
         {
 
             List<Predicate> initPreds = initNode.GetUnsatGoals();
-            
+
 
             foreach (Predicate p in unsatisfiedGoals)
             {
@@ -91,8 +97,13 @@ namespace Planning
                 .Select(a => a.Clone(pointerMap))
                 .ToList();
 
+            var newDebugPlan = debugPlan?
+                .Select(a => a.Clone(pointerMap))
+                .ToList();
+
             LiftedNode clone = new LiftedNode(this, newGoals, newPlan, logs);
 
+            clone.debugPlan = newDebugPlan;
 
             if (action != null)
                 clone.action = action.Clone(pointerMap);
@@ -141,6 +152,12 @@ namespace Planning
             //s += $"{action}\n";
 
             s += "\n<color=#AAAAAA>-----------------</color> " +
+                "<b><color=#1E90FF>Satisfied Goal</color></b> " +
+                 "<color=#AAAAAA>-------------------</color>\n";
+            if (goalSatisfied != null)
+                s += goalSatisfied.ToString() + "\n";
+
+            s += "\n<color=#AAAAAA>-----------------</color> " +
                 "<b><color=#1E90AA>Plan</color></b> " +
                  "<color=#AAAAAA>-------------------</color>\n";
             if (plan != null)
@@ -150,23 +167,27 @@ namespace Planning
             }
 
             s += "\n<color=#AAAAAA>-----------------</color> " +
-                "<b><color=#1E90FF>Satisfied Goal</color></b> " +
+                "<b><color=#1E90AA>Debug Plan</color></b> " +
                  "<color=#AAAAAA>-------------------</color>\n";
-            if (goalSatisfied != null)
-                s += goalSatisfied.ToString() + "\n";
+            if (debugPlan != null)
+            {
+                foreach (PlanAction a in debugPlan)
+                    s += "- " + a.ToString() + "\n";
+            }
+
 
             s += "\n-----------------" +
                  "<b><color=#1E90FF>Unsatisfied Goals</color></b> " +
                  "-------------------\n";
             if (unsatisfiedGoals != null)
             {
-               foreach (Predicate p in unsatisfiedGoals)
+                foreach (Predicate p in unsatisfiedGoals)
                     s += p.ToString() + "\n";
             }
 
             s += $"\n<b><color=#FF69B4>Remaining Goals:</color></b> {unsatisfiedGoals.Count}\n";
 
-            s+= $"\n<b><color=#ADFF2F>How we got here:</color></b>\n";
+            s += $"\n<b><color=#ADFF2F>How we got here:</color></b>\n";
 
             if (logs != null)
                 s += logs + "\n";
@@ -203,12 +224,6 @@ namespace Planning
         public LiftedNode GetParent() => parent;
         public List<Predicate> GetUnsatGoals() => unsatisfiedGoals;
 
-        internal void AddToPlan(PlanAction action)
-        {
-            
-            this.action = action;
-            plan.Add(action);
-        }
 
         internal List<PlanAction> GetPlan()
         {
@@ -221,9 +236,9 @@ namespace Planning
             realPlan.RemoveAll(a => a is ActionInit);
             return realPlan;
         }
-          
 
-        internal void SetGoal(Predicate goal) =>  this.goalSatisfied = goal;
+
+        internal void SetGoal(Predicate goal) => this.goalSatisfied = goal;
 
         internal bool isSame(LiftedNode other)
         {
@@ -236,6 +251,20 @@ namespace Planning
                     return false;
             }
             return true;
+        }
+
+        public bool isActioninPlan(PlanAction a)
+        {
+            return plan.Any(p => p.Equals(a));
+        }
+
+        public void ComputeID()
+        {
+            if (parent != null)
+            {
+                parent.childIndex++;
+                ID = parent.ID + "." + parent.childIndex;
+            }
         }
     }
 }

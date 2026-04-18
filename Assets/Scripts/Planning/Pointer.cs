@@ -173,7 +173,7 @@ namespace Planning
                 throw new InvalidOperationException($"Cannot bind Pointer<{type.Name}> to Pointer<{other.type.Name}>");
 
             if (CreatesCycle(other))
-                throw new InvalidOperationException("Binding would create a cycle.");
+                //throw new InvalidOperationException("Binding would create a cycle.");
 
             if (!this.IsBound())
             {

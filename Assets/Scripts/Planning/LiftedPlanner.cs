@@ -1,4 +1,5 @@
-﻿using Planning;
+﻿using BlocksWorld;
+using Planning;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,6 +27,7 @@ namespace Planning
 
         public PlanResult MakePlan(WorldState initState, WorldState goalState, int maxSteps)
         {
+
             List<LiftedNode> visited = new List<LiftedNode>();
             SysDiag.Stopwatch stopwatch = SysDiag.Stopwatch.StartNew();
 
@@ -40,8 +42,8 @@ namespace Planning
             Debug.Log($"INIT\n {initState}");
 
             // CREATE DUMMY INIT ACTION
-            ActionTemplatesList.RemoveAll(a => a is ActionInit);
-            ActionTemplatesList.Add(new ActionInit(initState.GetPredicates()));
+            //ActionTemplatesList.RemoveAll(a => a is ActionInit);
+            //ActionTemplatesList.Add(new ActionInit(initState.GetPredicates()));
 
             while (frontier.Count > 0 && step < maxSteps)
             {
@@ -101,6 +103,13 @@ namespace Planning
         {
             List<LiftedNode> children = new List<LiftedNode>();
 
+            // existing plan actions + schema
+            List<PlanAction> actions = new List<PlanAction>();
+            if(node.GetAction() != null)
+                actions.Add(node.GetAction());
+            actions.AddRange(ActionTemplatesList);
+
+
             // Put goals sat by init at the bottom
             //node.SortbyInit(initNode);
 
@@ -108,21 +117,26 @@ namespace Planning
             {
                 string g = $"GOAL: <b><color=PURPLE> GOAL {node.GetUnsatGoals()[i]}</color></b>.\n";
 
-                foreach (PlanAction actionSchema in ActionTemplatesList)
+                foreach (PlanAction originalAction in actions)
                 {
-                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {actionSchema}</color>\n";
+                    g += $"Exploring <b><color=LIGHTBLUE> ACTION {originalAction}</color>\n";
 
                     // if they action template is removing goals, skip it.
-                    if (actionSchema.IsRemovingGoal(node.GetUnsatGoals())) continue;
-                    
-                    for (int j = 0; j < actionSchema.GetEffects().Count(); j++)
+                    if (originalAction.IsRemovingGoal(node.GetUnsatGoals())) 
+                    {
+                        g += $"    - Skipping action {originalAction} because it removes goals.\n";
+                        continue;
+                    }
+                    for (int j = 0; j < originalAction.GetEffects().Count(); j++)
                     {
                         // ONE shared map per child
                         var pointerMap = new Dictionary<Pointer, Pointer>();
 
+
                         // Clone node + action in SAME universe
                         LiftedNode currentNode = node.Clone(pointerMap);
-                        PlanAction action = actionSchema.Clone(pointerMap);
+                        PlanAction action = originalAction.Clone(pointerMap);
+                        
 
                         var clonedGoals = currentNode.GetUnsatGoals();
 
@@ -131,7 +145,7 @@ namespace Planning
                         Predicate effect = action.GetEffects().ElementAt(j);
                         Predicate goal = clonedGoals.ElementAt(i);
 
-                        g += $" - Exploring effect {effect} of action {action}\n";
+                        g += $" - Exploring effect {effect} of action {action}\n"; 
 
                         Dictionary<Pointer, object> theta = Unification.TryUnify(effect, goal);
 
@@ -142,20 +156,20 @@ namespace Planning
                             foreach (var kvp in theta)
                                 g += $"{kvp.Key} ({kvp.Key.Name}) => {kvp.Value}\n";
 
-                           
+                            //Debug.Log(g);
                             Unification.Unify(new List<Predicate> { effect, goal }, theta);
 
                             g += $"Action <color=GREEN>{action}</color> is USEFUL for goal {goal}!!!\n";
 
                             //Update Node with new info! Make it official Child!
                             currentNode.Update(action, goal, g);
-
+                            
                             children.Add(currentNode);
                         }
                     }
                 }
 
-                //Debug.Log(g);
+                Debug.Log(g);
             }
 
             return children;

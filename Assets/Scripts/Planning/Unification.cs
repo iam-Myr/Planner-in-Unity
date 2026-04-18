@@ -91,13 +91,13 @@ namespace Planning
                     // Only proceed if the pointer exists in theta
                     if (theta.TryGetValue(arg, out object x))
                     {
-                        arg.BindTo(x); 
-                      
+                        arg.BindTo(x);
+
                     }
                     // else: skip pointers not in theta
                 }
             }
         }
     }
-    
+
 }

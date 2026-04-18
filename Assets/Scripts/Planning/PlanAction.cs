@@ -235,7 +235,41 @@ namespace Planning
             return clone;
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is not PlanAction other)
+                return false;
 
+            if (actionName != other.actionName)
+                return false;
+
+            if (actionArgs.Count != other.actionArgs.Count)
+                return false;
+
+            for (int i = 0; i < actionArgs.Count; i++)
+            {
+                var a = actionArgs[i].Get();
+                var b = other.actionArgs[i].Get();
+
+                if (!Equals(a, b))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = actionName.GetHashCode();
+
+            foreach (var arg in actionArgs)
+            {
+                var v = arg.Get();
+                hash = hash * 31 + (v?.GetHashCode() ?? 0);
+            }
+
+            return hash;
+        }
 
     }
 

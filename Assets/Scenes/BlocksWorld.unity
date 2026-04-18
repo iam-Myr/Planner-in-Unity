@@ -290,6 +290,7 @@ GameObject:
   - component: {fileID: 763108827}
   - component: {fileID: 763108826}
   - component: {fileID: 763108828}
+  - component: {fileID: 763108829}
   m_Layer: 0
   m_Name: Agent
   m_TagString: Untagged
@@ -380,11 +381,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ui: {fileID: 1515174798}
-  MAXSTEPS: 100
-  observeCooldown: 2
+  MAXSTEPS: 1000
+  observeCooldown: 20
   actionTimeoutWindow: 3
   debug: 1
   doYouLikePlanning: 0
+--- !u!114 &763108829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 763108825}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1243c482007678488fb256c517456a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &978544371
 GameObject:
   m_ObjectHideFlags: 0
