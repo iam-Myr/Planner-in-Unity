@@ -102,7 +102,7 @@ namespace Planning
             // existing plan actions + schema
             List<PlanAction> actions = new List<PlanAction>(node.GetPlan());
             actions.AddRange(ActionTemplatesList);
-            actions.Add(new ActionInit(initNode.GetUnsatGoals()));
+            //actions.Add(new ActionInit(initNode.GetUnsatGoals()));
 
 
             // Put goals sat by init at the bottom
