@@ -54,7 +54,8 @@ namespace BlocksWorld
             {
                 BlockDomain.isHolding.Instantiate(new List<Pointer> { current }, true),     // now holding the block
                 BlockDomain.isClear.Instantiate(new List<Pointer> { from }, true),         // from is now clear
-                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, false)          // hand is no longer empty
+                BlockDomain.isHandEmpty.Instantiate(new List<Pointer> { }, false),          // hand is no longer empty
+                //BlockDomain.isOn.Instantiate(new List<Pointer> { current, from }, false) // current is no longer on from
             };
         }
         #endregion

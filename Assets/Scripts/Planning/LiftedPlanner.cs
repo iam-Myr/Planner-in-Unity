@@ -103,7 +103,7 @@ namespace Planning
             List<PlanAction> actions = new List<PlanAction>();
             if (node.GetAction() != null) actions.Add(node.GetAction()); // CAUSES INFINITY BUG
             actions.AddRange(ActionTemplatesList);
-            actions.Add(new ActionInit(initNode.GetUnsatGoals()));
+            //actions.Add(new ActionInit(initNode.GetUnsatGoals()));
 
 
             // Put goals sat by init at the bottom
