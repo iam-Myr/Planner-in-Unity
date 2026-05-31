@@ -100,7 +100,8 @@ namespace Planning
             List<LiftedNode> children = new List<LiftedNode>();
 
             // existing plan actions + schema
-            List<PlanAction> actions = new List<PlanAction>(node.GetPlan());
+            List<PlanAction> actions = new List<PlanAction>();
+            if (node.GetAction() != null) actions.Add(node.GetAction()); // CAUSES INFINITY BUG
             actions.AddRange(ActionTemplatesList);
             actions.Add(new ActionInit(initNode.GetUnsatGoals()));
 
